@@ -1,0 +1,5 @@
+data/backups/
+data/uploads/
+data/*.log
+data/beta-credentials.txt
+data/state.beta.json

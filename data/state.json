@@ -1,0 +1,1590 @@
+{
+  "lang": "es",
+  "activeView": "results",
+  "activeThreadId": "thread-1784647410851-4df5ff",
+  "mobileMenuOpen": false,
+  "calendarCursor": "2026-07-01",
+  "permissions": {
+    "coachCanAttendance": true,
+    "delegateCanAttendance": true,
+    "coachCanAnnouncements": true,
+    "delegateCanAnnouncements": true,
+    "coachCanCallups": true,
+    "coachCanDocuments": true,
+    "delegateCanDocuments": true,
+    "coachCanResults": true,
+    "coachCanResultGallery": true,
+    "delegateCanResultGallery": true,
+    "coachCanTeams": true,
+    "coachCanEvents": true,
+    "coachCanImportMembers": false,
+    "delegateCanImportMembers": false,
+    "coachCanExportData": true,
+    "delegateCanExportData": false,
+    "coachCanBackupData": false,
+    "delegateCanBackupData": false,
+    "coachCanRestoreData": false,
+    "delegateCanRestoreData": false,
+    "coachCanUndoBulk": false,
+    "delegateCanUndoBulk": false
+  },
+  "pushEnabled": true,
+  "categories": [
+    "Micro",
+    "Prebenjamin",
+    "Benjamin",
+    "Alevin",
+    "Infantil",
+    "Juvenil",
+    "Junior",
+    "Senior Autonomico",
+    "Senior Oro",
+    "Senior Elite",
+    "Oro Femenino",
+    "Elite Femenino",
+    "Sub20 Femenino"
+  ],
+  "teams": [
+    {
+      "id": "team-1",
+      "category": "Infantil",
+      "name": "Infantil A",
+      "coachId": "u-director",
+      "delegateId": "u-delegate",
+      "standingsUrl": "",
+      "officialStandings": [],
+      "standingsUpdatedAt": ""
+    },
+    {
+      "id": "team-2",
+      "category": "Senior Oro",
+      "name": "Senior Oro",
+      "coachId": "u-coach",
+      "delegateId": "",
+      "standingsUrl": "",
+      "officialStandings": [],
+      "standingsUpdatedAt": ""
+    },
+    {
+      "id": "team-3",
+      "category": "Oro Femenino",
+      "name": "Oro Femenino",
+      "coachId": "",
+      "delegateId": "u-delegate",
+      "standingsUrl": "",
+      "officialStandings": [],
+      "standingsUpdatedAt": ""
+    },
+    {
+      "id": "team-1784715025005-0c429d",
+      "category": "Elite Femenino",
+      "name": "Élite Femenino",
+      "coachId": "u-director",
+      "delegateId": "",
+      "standingsUrl": "",
+      "officialStandings": [],
+      "standingsUpdatedAt": ""
+    }
+  ],
+  "users": [
+    {
+      "id": "u-director",
+      "name": "Direccion deportiva",
+      "roles": [
+        "director",
+        "coach"
+      ],
+      "email": "direccion@club.test",
+      "children": [],
+      "disabled": false,
+      "notificationPrefs": {
+        "events": true,
+        "callups": true,
+        "files": true,
+        "announcements": true,
+        "messages": true
+      },
+      "passwordHash": "6f6637da3e8adb0d8cf93f3686b30b1dc9a82762079b21fd298741b43c162c88",
+      "passwordSalt": "7a781724675d52b6b1ac1165abc403d9"
+    },
+    {
+      "id": "u-coach",
+      "name": "Entrenador Senior Oro",
+      "roles": [
+        "coach"
+      ],
+      "email": "coach@club.test",
+      "children": [],
+      "disabled": false,
+      "notificationPrefs": {
+        "events": true,
+        "callups": true,
+        "files": true,
+        "announcements": true,
+        "messages": true
+      },
+      "passwordHash": "c8ada5a7b8cf9819a875e64075b6737002318c5e2861634892d5cd2c85ac5adb",
+      "passwordSalt": "9769f3c8297aa6d28d5e7e49b4af19a0"
+    },
+    {
+      "id": "u-delegate",
+      "name": "Delegada equipo",
+      "roles": [
+        "delegate"
+      ],
+      "email": "delegada@club.test",
+      "children": [],
+      "disabled": false,
+      "notificationPrefs": {
+        "events": true,
+        "callups": true,
+        "files": true,
+        "announcements": true,
+        "messages": true
+      },
+      "passwordHash": "311c10ff0ea531721830f6c1804e42b46feef4dd6deea9b06b8553609e712e21",
+      "passwordSalt": "903e93bd6a1c17c7b7523f7b2a3d1588"
+    },
+    {
+      "id": "u-parent",
+      "name": "Familia Martin",
+      "roles": [
+        "parent"
+      ],
+      "email": "familia@club.test",
+      "children": [
+        "p-2",
+        "p-1"
+      ],
+      "disabled": false,
+      "notificationPrefs": {
+        "events": true,
+        "callups": true,
+        "files": true,
+        "announcements": true,
+        "messages": true
+      },
+      "passwordHash": "419e190c09ba3d74e55d9069673ee6c55f36ea2e00dae98fa7602a786118317f",
+      "passwordSalt": "397ef02886ec5e235375dee1da4dc431"
+    },
+    {
+      "id": "u-player",
+      "name": "Leo Martin",
+      "roles": [
+        "player"
+      ],
+      "email": "leo@club.test",
+      "playerId": "p-2",
+      "children": [],
+      "disabled": false,
+      "notificationPrefs": {
+        "events": true,
+        "callups": true,
+        "files": true,
+        "announcements": true,
+        "messages": true
+      },
+      "passwordHash": "68579f4e8b087eb07c66de18514ebbf7ef2a7c5fc6bd42e4d4c9d0a0cbe82b7b",
+      "passwordSalt": "672a52e50f11a3d11358684646e1353a"
+    },
+    {
+      "id": "u-vega",
+      "name": "Vega Munoz",
+      "roles": [
+        "player"
+      ],
+      "email": "vega@club.test",
+      "playerId": "p-5",
+      "children": [],
+      "disabled": false,
+      "notificationPrefs": {
+        "events": true,
+        "callups": true,
+        "files": true,
+        "announcements": true,
+        "messages": true
+      },
+      "passwordHash": "8def452b4159430146be908b619374851e9184cb941eebeae0edf2c61878c041",
+      "passwordSalt": "fdd0a8e13e85e1c7ab02ea50545b661f"
+    },
+    {
+      "id": "user-1785163386807-0781df",
+      "name": "Tommy Soeder",
+      "roles": [
+        "player"
+      ],
+      "email": "soeder9087@gmail.com",
+      "children": [],
+      "playerId": "p-1785163386807-ff63a1",
+      "disabled": false,
+      "phone": "",
+      "notificationPrefs": {
+        "events": true,
+        "callups": true,
+        "files": true,
+        "announcements": true,
+        "messages": true
+      },
+      "passwordHash": "ae58214261f4beb6f9c767151039bd978e90b188b1c54c177130ea19d160ee2a",
+      "passwordSalt": "53571546b3e11fc511e7bc82da225b04"
+    }
+  ],
+  "players": [
+    {
+      "id": "p-1",
+      "name": "Nora Martin",
+      "age": 13,
+      "teams": [
+        "team-1",
+        "team-3",
+        "team-1784715025005-0c429d"
+      ],
+      "guardians": [
+        "u-parent"
+      ],
+      "notes": "Compagina con hielo, los martes no puede",
+      "active": true,
+      "userId": "",
+      "phone": ""
+    },
+    {
+      "id": "p-2",
+      "name": "Leo Martin",
+      "age": 16,
+      "teams": [
+        "team-1",
+        "team-2"
+      ],
+      "guardians": [
+        "u-parent"
+      ],
+      "userId": "u-player",
+      "notes": "",
+      "active": true,
+      "phone": ""
+    },
+    {
+      "id": "p-3",
+      "name": "Claudia Perez",
+      "age": 18,
+      "teams": [
+        "team-3",
+        "team-1784715025005-0c429d"
+      ],
+      "guardians": [],
+      "notes": "",
+      "active": true,
+      "phone": ""
+    },
+    {
+      "id": "p-4",
+      "name": "Mario Ruiz",
+      "age": 15,
+      "teams": [
+        "team-1",
+        "team-2"
+      ],
+      "guardians": [],
+      "notes": "",
+      "active": true,
+      "phone": ""
+    },
+    {
+      "id": "p-5",
+      "name": "Vega Munoz",
+      "age": 27,
+      "teams": [
+        "team-1784715025005-0c429d"
+      ],
+      "guardians": [],
+      "userId": "u-vega",
+      "notes": "es fea y mala",
+      "active": true,
+      "phone": ""
+    },
+    {
+      "id": "p-1785163386807-ff63a1",
+      "name": "Tommy Soeder",
+      "age": 31,
+      "teams": [
+        "team-2",
+        "team-3"
+      ],
+      "guardians": [],
+      "userId": "user-1785163386807-0781df",
+      "notes": "",
+      "phone": "+34634556802",
+      "active": true
+    }
+  ],
+  "announcements": [
+    {
+      "id": "ann-1784804515845-a38f0e",
+      "title": "Bienvenidos !!",
+      "body": " ami cas !!",
+      "targetType": "team",
+      "targetIds": [
+        "team-2"
+      ],
+      "important": true,
+      "createdAt": "2026-07-23"
+    },
+    {
+      "id": "ann-1",
+      "title": "Horarios del fin de semana",
+      "body": "Ya estan publicados los partidos y eventos principales. Revisad convocatoria antes del viernes.",
+      "targetType": "all",
+      "targetIds": [],
+      "important": true,
+      "createdAt": "2026-07-17"
+    },
+    {
+      "id": "ann-2",
+      "title": "Reunion familias Infantil A",
+      "body": "El club convoca reunion breve tras el entrenamiento del martes.",
+      "targetType": "team",
+      "targetIds": [
+        "team-1"
+      ],
+      "important": false,
+      "createdAt": "2026-07-18"
+    }
+  ],
+  "events": [
+    {
+      "id": "ev-1",
+      "type": "match",
+      "title": "Infantil A vs Tres Cantos",
+      "teamId": "team-1",
+      "date": "2026-07-20",
+      "time": "12:00",
+      "place": "Polideportivo municipal",
+      "notes": "Confirmar antes del jueves a las 20:00.",
+      "playerIds": [
+        "p-1",
+        "p-2",
+        "p-4"
+      ],
+      "sourceCallupId": "call-1",
+      "seasonId": "season-2026",
+      "competitionId": "comp-league-2026"
+    },
+    {
+      "id": "ev-1784716710316-c2b6e5",
+      "type": "match",
+      "sourceCallupId": "call-1784716710315-e6f1f0",
+      "title": "Senior Oro vs CPLV",
+      "teamId": "team-2",
+      "date": "2026-07-25",
+      "time": "12:38",
+      "place": "Valladolid",
+      "notes": "",
+      "playerIds": [
+        "p-2",
+        "p-4"
+      ],
+      "seasonId": "season-2026",
+      "competitionId": "comp-league-2026"
+    },
+    {
+      "id": "ev-1784716990514-13edb5",
+      "type": "match",
+      "sourceCallupId": "call-1784716990513-954b52",
+      "title": "Senior Oro vs Rubi",
+      "teamId": "team-2",
+      "date": "2026-07-25",
+      "time": "12:42",
+      "place": "LO",
+      "notes": "",
+      "playerIds": [
+        "p-2",
+        "p-4"
+      ],
+      "seasonId": "season-2026",
+      "competitionId": "comp-league-2026"
+    },
+    {
+      "id": "ev-1784804576277-e8f99a",
+      "type": "match",
+      "sourceCallupId": "call-1784804576277-910a7e",
+      "title": "Senior Oro vs CPLV",
+      "teamId": "team-2",
+      "date": "2026-07-25",
+      "time": "13:02",
+      "place": "LO",
+      "notes": "",
+      "playerIds": [
+        "p-2",
+        "p-4"
+      ],
+      "seasonId": "season-2026",
+      "competitionId": "comp-league-2026"
+    },
+    {
+      "id": "ev-1784809489392-26a1d3",
+      "type": "match",
+      "sourceCallupId": "call-1784809489392-de0e39",
+      "title": "Senior Oro vs CPLV",
+      "teamId": "team-2",
+      "date": "2026-07-23",
+      "time": "18:24",
+      "place": "sfgh",
+      "notes": "",
+      "playerIds": [
+        "p-2",
+        "p-4"
+      ],
+      "seasonId": "season-2026",
+      "competitionId": "comp-league-2026"
+    }
+  ],
+  "callups": [
+    {
+      "id": "call-1",
+      "eventId": "ev-1",
+      "teamId": "team-1",
+      "rival": "Tres Cantos",
+      "date": "2026-07-20",
+      "time": "12:00",
+      "place": "Polideportivo municipal",
+      "arrival": "11:00",
+      "kit": "Primera equipacion",
+      "playerIds": [
+        "p-1",
+        "p-2",
+        "p-4"
+      ],
+      "notes": "Confirmar antes del jueves a las 20:00.",
+      "responses": {
+        "p-1": "pending",
+        "p-2": "yes",
+        "p-4": "pending"
+      },
+      "seasonId": "season-2026",
+      "competitionId": "comp-league-2026"
+    },
+    {
+      "id": "call-1784716710315-e6f1f0",
+      "teamId": "team-2",
+      "rival": "CPLV",
+      "date": "2026-07-25",
+      "time": "12:38",
+      "place": "Valladolid",
+      "arrival": "12:38",
+      "kit": "Blanca",
+      "playerIds": [
+        "p-2",
+        "p-4"
+      ],
+      "notes": "",
+      "responses": {
+        "p-2": "no",
+        "p-4": "pending"
+      },
+      "eventId": "ev-1784716710316-c2b6e5",
+      "seasonId": "season-2026",
+      "competitionId": "comp-league-2026"
+    },
+    {
+      "id": "call-1784716990513-954b52",
+      "teamId": "team-2",
+      "rival": "Rubi",
+      "date": "2026-07-25",
+      "time": "12:42",
+      "place": "LO",
+      "arrival": "14:43",
+      "kit": "Blanca",
+      "playerIds": [
+        "p-2",
+        "p-4"
+      ],
+      "notes": "",
+      "responses": {
+        "p-2": "no",
+        "p-4": "pending"
+      },
+      "eventId": "ev-1784716990514-13edb5",
+      "seasonId": "season-2026",
+      "competitionId": "comp-league-2026"
+    },
+    {
+      "id": "call-1784804576277-910a7e",
+      "teamId": "team-2",
+      "rival": "CPLV",
+      "date": "2026-07-25",
+      "time": "13:02",
+      "place": "LO",
+      "arrival": "11:02",
+      "kit": "blamc",
+      "playerIds": [
+        "p-2",
+        "p-4"
+      ],
+      "notes": "",
+      "responses": {
+        "p-2": "yes",
+        "p-4": "pending"
+      },
+      "eventId": "ev-1784804576277-e8f99a",
+      "seasonId": "season-2026",
+      "competitionId": "comp-league-2026"
+    },
+    {
+      "id": "call-1784809489392-de0e39",
+      "teamId": "team-2",
+      "rival": "CPLV",
+      "date": "2026-07-23",
+      "time": "18:24",
+      "place": "sfgh",
+      "arrival": "17:24",
+      "kit": "blamc",
+      "playerIds": [
+        "p-2",
+        "p-4"
+      ],
+      "notes": "",
+      "responses": {
+        "p-2": "no",
+        "p-4": "pending"
+      },
+      "eventId": "ev-1784809489392-26a1d3",
+      "seasonId": "season-2026",
+      "competitionId": "comp-league-2026"
+    }
+  ],
+  "trainings": [
+    {
+      "id": "tr-1",
+      "teamId": "team-1",
+      "date": "2026-07-18",
+      "time": "19:00",
+      "place": "Pista principal",
+      "absences": {
+        "p-1": "Medico"
+      },
+      "confirmed": true,
+      "attendance": {
+        "p-2": "yes",
+        "p-4": "yes",
+        "p-1": "no"
+      },
+      "playerIds": [],
+      "seasonId": "season-2026",
+      "competitionId": ""
+    },
+    {
+      "id": "tr-2",
+      "teamId": "team-2",
+      "date": "2026-07-19",
+      "time": "21:00",
+      "place": "Pista principal",
+      "absences": {},
+      "confirmed": true,
+      "attendance": {
+        "p-2": "yes",
+        "p-4": "yes"
+      },
+      "playerIds": [],
+      "seasonId": "season-2026",
+      "competitionId": ""
+    }
+  ],
+  "threads": [
+    {
+      "id": "thread-1784647410851-4df5ff",
+      "subject": "Leo Martin -> Direccion deportiva: erthrthrthrhrt",
+      "assignedToId": "u-director",
+      "relatedPlayerIds": [
+        "p-2"
+      ],
+      "participantUserIds": [
+        "u-player"
+      ],
+      "messages": [
+        {
+          "from": "user",
+          "text": "shtrthrthr",
+          "at": "17:23"
+        },
+        {
+          "from": "club",
+          "text": "Recibido",
+          "at": "17:24"
+        },
+        {
+          "from": "club",
+          "text": "Push!",
+          "at": "17:31"
+        },
+        {
+          "from": "club",
+          "text": "Holaaa",
+          "at": "17:52"
+        },
+        {
+          "from": "user",
+          "text": "dime",
+          "at": "17:53"
+        },
+        {
+          "from": "club",
+          "text": "Epa",
+          "at": "18:29"
+        },
+        {
+          "from": "club",
+          "text": "Hey que tal",
+          "at": "20:55"
+        },
+        {
+          "from": "user",
+          "text": "bien",
+          "at": "20:56"
+        },
+        {
+          "from": "user",
+          "text": "hoikhl",
+          "at": "20:59"
+        },
+        {
+          "from": "club",
+          "text": "Hola",
+          "at": "21:03"
+        }
+      ],
+      "seenBy": {
+        "u-player": 10,
+        "u-director": 10
+      }
+    },
+    {
+      "id": "thread-1",
+      "subject": "Familia Martin -> Direccion deportiva",
+      "assignedToId": "u-director",
+      "relatedPlayerIds": [
+        "p-1",
+        "p-2"
+      ],
+      "participantUserIds": [
+        "u-parent"
+      ],
+      "messages": [
+        {
+          "from": "user",
+          "text": "Hola, Leo llegara diez minutos tarde el martes.",
+          "at": "09:20"
+        },
+        {
+          "from": "club",
+          "text": "Recibido, lo dejamos anotado para el entrenador.",
+          "at": "09:26"
+        },
+        {
+          "from": "club",
+          "text": "Holaaa",
+          "at": "17:22"
+        }
+      ],
+      "seenBy": {
+        "u-director": 3
+      }
+    },
+    {
+      "id": "thread-2",
+      "subject": "Leo Martin -> Entrenador Senior Oro",
+      "assignedToId": "u-coach",
+      "relatedPlayerIds": [
+        "p-2"
+      ],
+      "participantUserIds": [
+        "u-player"
+      ],
+      "messages": [
+        {
+          "from": "user",
+          "text": "Puedo llegar antes para calentar?",
+          "at": "17:10"
+        }
+      ],
+      "seenBy": {
+        "u-player": 1,
+        "u-director": 1
+      }
+    }
+  ],
+  "documents": [
+    {
+      "id": "doc-1",
+      "teamId": "team-1",
+      "name": "Video tecnico - salida de puck.mp4",
+      "kind": "video/mp4",
+      "size": 18400000,
+      "notes": "Subido por el club para Infantil A.",
+      "createdAt": "2026-07-17",
+      "uploadedBy": "Direccion deportiva",
+      "folderId": ""
+    }
+  ],
+  "toast": "",
+  "notifications": [
+    {
+      "id": "notice-1784809489393-345fa9",
+      "userId": "u-player",
+      "playerId": "p-2",
+      "eventId": "ev-1784809489392-26a1d3",
+      "title": "Nueva convocatoria publicada",
+      "body": "Senior Oro vs CPLV · 2026-07-23 18:24",
+      "createdAt": "2026-07-23",
+      "read": true,
+      "count": 1
+    },
+    {
+      "id": "notice-1784809489393-59eed1",
+      "userId": "u-parent",
+      "playerId": "p-2",
+      "eventId": "ev-1784809489392-26a1d3",
+      "title": "Nueva convocatoria publicada",
+      "body": "Senior Oro vs CPLV · 2026-07-23 18:24",
+      "createdAt": "2026-07-23",
+      "read": true,
+      "count": 1
+    },
+    {
+      "id": "notice-1784804576277-749463",
+      "userId": "u-player",
+      "playerId": "p-2",
+      "eventId": "ev-1784804576277-e8f99a",
+      "title": "Nueva convocatoria publicada",
+      "body": "Senior Oro vs CPLV · 2026-07-25 13:02",
+      "createdAt": "2026-07-23",
+      "read": true,
+      "count": 1
+    },
+    {
+      "id": "notice-1784804576277-7eb165",
+      "userId": "u-parent",
+      "playerId": "p-2",
+      "eventId": "ev-1784804576277-e8f99a",
+      "title": "Nueva convocatoria publicada",
+      "body": "Senior Oro vs CPLV · 2026-07-25 13:02",
+      "createdAt": "2026-07-23",
+      "read": true,
+      "count": 1
+    },
+    {
+      "id": "notice-1784716990514-3c1f6a",
+      "userId": "u-player",
+      "playerId": "p-2",
+      "eventId": "ev-1784716990514-13edb5",
+      "title": "Nueva convocatoria publicada",
+      "body": "Senior Oro vs Rubi · 2026-07-25 12:42",
+      "createdAt": "2026-07-22",
+      "read": true,
+      "count": 1
+    },
+    {
+      "id": "notice-1784716990514-e7651c",
+      "userId": "u-parent",
+      "playerId": "p-2",
+      "eventId": "ev-1784716990514-13edb5",
+      "title": "Nueva convocatoria publicada",
+      "body": "Senior Oro vs Rubi · 2026-07-25 12:42",
+      "createdAt": "2026-07-22",
+      "read": true,
+      "count": 1
+    },
+    {
+      "id": "notice-1784716934490-1fd15a",
+      "userId": "u-vega",
+      "playerId": "p-5",
+      "eventId": "ev-1784660241582-f0663d",
+      "title": "Evento cancelado",
+      "body": "Senior Oro vs Cplv",
+      "createdAt": "2026-07-22",
+      "read": false,
+      "count": 1
+    },
+    {
+      "id": "notice-1784716934490-1c3dbf",
+      "userId": "u-player",
+      "playerId": "p-2",
+      "eventId": "ev-1784660241582-f0663d",
+      "title": "Evento cancelado",
+      "body": "Senior Oro vs Cplv",
+      "createdAt": "2026-07-22",
+      "read": true,
+      "count": 1
+    },
+    {
+      "id": "notice-1784716934490-e9d28a",
+      "userId": "u-parent",
+      "playerId": "p-2",
+      "eventId": "ev-1784660241582-f0663d",
+      "title": "Evento cancelado",
+      "body": "Senior Oro vs Cplv",
+      "createdAt": "2026-07-22",
+      "read": true,
+      "count": 1
+    },
+    {
+      "id": "notice-1784716930769-e384ce",
+      "userId": "u-vega",
+      "playerId": "p-5",
+      "eventId": "ev-1784649055768-f1d813",
+      "title": "Evento cancelado",
+      "body": "Senior Oro vs Cplv",
+      "createdAt": "2026-07-22",
+      "read": false,
+      "count": 1
+    },
+    {
+      "id": "notice-1784716930769-5698c3",
+      "userId": "u-player",
+      "playerId": "p-2",
+      "eventId": "ev-1784649055768-f1d813",
+      "title": "Evento cancelado",
+      "body": "Senior Oro vs Cplv",
+      "createdAt": "2026-07-22",
+      "read": true,
+      "count": 1
+    },
+    {
+      "id": "notice-1784716930769-355475",
+      "userId": "u-parent",
+      "playerId": "p-2",
+      "eventId": "ev-1784649055768-f1d813",
+      "title": "Evento cancelado",
+      "body": "Senior Oro vs Cplv",
+      "createdAt": "2026-07-22",
+      "read": true,
+      "count": 1
+    },
+    {
+      "id": "notice-1784716710316-b6f012",
+      "userId": "u-player",
+      "playerId": "p-2",
+      "eventId": "ev-1784716710316-c2b6e5",
+      "title": "Nueva convocatoria publicada",
+      "body": "Senior Oro vs CPLV · 2026-07-25 12:38",
+      "createdAt": "2026-07-22",
+      "read": true,
+      "count": 1
+    },
+    {
+      "id": "notice-1784716710316-4430e8",
+      "userId": "u-parent",
+      "playerId": "p-2",
+      "eventId": "ev-1784716710316-c2b6e5",
+      "title": "Nueva convocatoria publicada",
+      "body": "Senior Oro vs CPLV · 2026-07-25 12:38",
+      "createdAt": "2026-07-22",
+      "read": true,
+      "count": 1
+    },
+    {
+      "id": "notice-1784660241583-7f7005",
+      "userId": "u-vega",
+      "playerId": "p-5",
+      "eventId": "ev-1784660241582-f0663d",
+      "title": "Nueva convocatoria publicada",
+      "body": "Senior Oro vs Cplv · 2026-07-21 20:57",
+      "createdAt": "2026-07-21",
+      "read": true,
+      "count": 1
+    },
+    {
+      "id": "notice-1784660241583-c1435c",
+      "userId": "u-player",
+      "playerId": "p-2",
+      "eventId": "ev-1784660241582-f0663d",
+      "title": "Nueva convocatoria publicada",
+      "body": "Senior Oro vs Cplv · 2026-07-21 20:57",
+      "createdAt": "2026-07-21",
+      "read": true,
+      "count": 1
+    },
+    {
+      "id": "notice-1784660241583-d9f51c",
+      "userId": "u-parent",
+      "playerId": "p-2",
+      "eventId": "ev-1784660241582-f0663d",
+      "title": "Nueva convocatoria publicada",
+      "body": "Senior Oro vs Cplv · 2026-07-21 20:57",
+      "createdAt": "2026-07-21",
+      "read": true,
+      "count": 1
+    },
+    {
+      "id": "notice-1784649055768-8ecbdd",
+      "userId": "u-vega",
+      "playerId": "p-5",
+      "eventId": "ev-1784649055768-f1d813",
+      "title": "Nueva convocatoria publicada",
+      "body": "Senior Oro vs Cplv · 2026-07-25 17:50",
+      "createdAt": "2026-07-21",
+      "read": true,
+      "count": 1
+    },
+    {
+      "id": "notice-1784649055768-77824e",
+      "userId": "u-player",
+      "playerId": "p-2",
+      "eventId": "ev-1784649055768-f1d813",
+      "title": "Nueva convocatoria publicada",
+      "body": "Senior Oro vs Cplv · 2026-07-25 17:50",
+      "createdAt": "2026-07-21",
+      "read": true,
+      "count": 1
+    },
+    {
+      "id": "notice-1784649055768-a2e28e",
+      "userId": "u-parent",
+      "playerId": "p-2",
+      "eventId": "ev-1784649055768-f1d813",
+      "title": "Nueva convocatoria publicada",
+      "body": "Senior Oro vs Cplv · 2026-07-25 17:50",
+      "createdAt": "2026-07-21",
+      "read": true,
+      "count": 1
+    },
+    {
+      "id": "notice-1784649029224-0e5c3c",
+      "userId": "u-player",
+      "playerId": "p-2",
+      "eventId": "ev-1784643142645-1c8481",
+      "title": "Convocatoria cancelada",
+      "body": "Infantil A vs Js",
+      "createdAt": "2026-07-21",
+      "read": true,
+      "count": 1
+    },
+    {
+      "id": "notice-1784649029224-ea9252",
+      "userId": "u-parent",
+      "playerId": "p-2",
+      "eventId": "ev-1784643142645-1c8481",
+      "title": "Convocatoria cancelada",
+      "body": "Infantil A vs Js",
+      "createdAt": "2026-07-21",
+      "read": true,
+      "count": 1
+    },
+    {
+      "id": "notice-1784648943976-e2b470",
+      "userId": "u-player",
+      "playerId": "p-2",
+      "eventId": "ev-1784647504415-e7cb78",
+      "title": "Evento cancelado",
+      "body": "Senior Oro vs Cplv",
+      "createdAt": "2026-07-21",
+      "read": true,
+      "count": 1
+    },
+    {
+      "id": "notice-1784648943976-3eae7e",
+      "userId": "u-parent",
+      "playerId": "p-2",
+      "eventId": "ev-1784647504415-e7cb78",
+      "title": "Evento cancelado",
+      "body": "Senior Oro vs Cplv",
+      "createdAt": "2026-07-21",
+      "read": true,
+      "count": 1
+    },
+    {
+      "id": "notice-1784647504415-e58ddc",
+      "userId": "u-player",
+      "playerId": "p-2",
+      "eventId": "ev-1784647504415-e7cb78",
+      "title": "Nueva convocatoria publicada",
+      "body": "Senior Oro vs Cplv · 2026-07-25 17:24",
+      "createdAt": "2026-07-21",
+      "read": true,
+      "count": 1
+    },
+    {
+      "id": "notice-1784647504415-647037",
+      "userId": "u-parent",
+      "playerId": "p-2",
+      "eventId": "ev-1784647504415-e7cb78",
+      "title": "Nueva convocatoria publicada",
+      "body": "Senior Oro vs Cplv · 2026-07-25 17:24",
+      "createdAt": "2026-07-21",
+      "read": true,
+      "count": 1
+    }
+  ],
+  "readAnnouncementIds": [
+    "ann-1",
+    "ann-2",
+    "ann-1784804515845-a38f0e"
+  ],
+  "documentFolders": [
+    {
+      "id": "folder-1",
+      "teamId": "team-1",
+      "name": "Videos"
+    },
+    {
+      "id": "folder-2",
+      "teamId": "team-2",
+      "name": "Convocatorias"
+    },
+    {
+      "id": "folder-1784703466274-cdf455",
+      "teamId": "team-1",
+      "name": "Fisicos"
+    }
+  ],
+  "activeDocumentTeamId": "team-1",
+  "activeDocumentFolderId": "",
+  "resultsCursor": "2026-07-27",
+  "results": [
+    {
+      "id": "res-1784799833741-dfa36d",
+      "teamId": "team-1",
+      "opponent": "CPLM",
+      "date": "2026-07-18",
+      "place": "LO",
+      "homeAway": "home",
+      "teamScore": 3,
+      "opponentScore": 1,
+      "notes": "Partidazo",
+      "gallery": [],
+      "seasonId": "season-2026",
+      "competitionId": "comp-league-2026",
+      "matchReportUrl": "",
+      "officialMatchReport": null,
+      "matchReportUpdatedAt": ""
+    },
+    {
+      "id": "res-3",
+      "teamId": "team-3",
+      "opponent": "Alcorcon",
+      "date": "2026-07-19",
+      "place": "Alcorcon",
+      "homeAway": "away",
+      "teamScore": 4,
+      "opponentScore": 1,
+      "notes": "Victoria solida fuera de casa.",
+      "gallery": [],
+      "seasonId": "season-2026",
+      "competitionId": "comp-league-2026",
+      "matchReportUrl": "",
+      "officialMatchReport": null,
+      "matchReportUpdatedAt": ""
+    },
+    {
+      "id": "res-2",
+      "teamId": "team-2",
+      "opponent": "Las Rozas",
+      "date": "2026-07-26",
+      "place": "Pista principal",
+      "homeAway": "away",
+      "teamScore": 2,
+      "opponentScore": 2,
+      "notes": "Empate trabajado, con porteria vacia en el ultimo minuto.",
+      "gallery": [],
+      "seasonId": "season-2026",
+      "competitionId": "comp-league-2026",
+      "matchReportUrl": "",
+      "officialMatchReport": null,
+      "matchReportUpdatedAt": ""
+    },
+    {
+      "id": "res-9",
+      "teamId": "team-3",
+      "opponent": "Getafe",
+      "date": "2026-07-26",
+      "place": "Getafe",
+      "homeAway": "away",
+      "teamScore": 5,
+      "opponentScore": 2,
+      "notes": "Muy buen cierre de fin de semana.",
+      "gallery": [],
+      "seasonId": "season-2026",
+      "competitionId": "comp-league-2026",
+      "matchReportUrl": "",
+      "officialMatchReport": null,
+      "matchReportUpdatedAt": ""
+    },
+    {
+      "id": "res-10",
+      "teamId": "team-1",
+      "opponent": "Mostoles",
+      "date": "2026-07-26",
+      "place": "Pista principal",
+      "homeAway": "home",
+      "teamScore": 2,
+      "opponentScore": 2,
+      "notes": "Igualado hasta el ultimo cambio.",
+      "gallery": [],
+      "seasonId": "season-2026",
+      "competitionId": "comp-league-2026",
+      "matchReportUrl": "",
+      "officialMatchReport": null,
+      "matchReportUpdatedAt": ""
+    },
+    {
+      "id": "res-12",
+      "teamId": "team-3",
+      "opponent": "Las Rozas",
+      "date": "2026-07-26",
+      "place": "Pista principal",
+      "homeAway": "home",
+      "teamScore": 0,
+      "opponentScore": 1,
+      "notes": "Derrota minima.",
+      "gallery": [],
+      "seasonId": "season-2026",
+      "competitionId": "comp-league-2026",
+      "matchReportUrl": "",
+      "officialMatchReport": null,
+      "matchReportUpdatedAt": ""
+    },
+    {
+      "id": "res-1",
+      "teamId": "team-1",
+      "opponent": "Tres Cantos",
+      "date": "2026-07-25",
+      "place": "Polideportivo municipal",
+      "homeAway": "home",
+      "teamScore": 5,
+      "opponentScore": 3,
+      "notes": "Buen cierre de partido y reparto de minutos.",
+      "gallery": [],
+      "seasonId": "season-2026",
+      "competitionId": "comp-league-2026",
+      "matchReportUrl": "",
+      "officialMatchReport": null,
+      "matchReportUpdatedAt": ""
+    },
+    {
+      "id": "res-4",
+      "teamId": "team-1",
+      "opponent": "Majadahonda",
+      "date": "2026-07-25",
+      "place": "Pista principal",
+      "homeAway": "home",
+      "teamScore": 3,
+      "opponentScore": 1,
+      "notes": "Infantil A resolvio en el segundo tiempo.",
+      "gallery": [],
+      "seasonId": "season-2026",
+      "competitionId": "comp-league-2026",
+      "matchReportUrl": "",
+      "officialMatchReport": null,
+      "matchReportUpdatedAt": ""
+    },
+    {
+      "id": "res-5",
+      "teamId": "team-2",
+      "opponent": "Rivas",
+      "date": "2026-07-25",
+      "place": "Rivas",
+      "homeAway": "away",
+      "teamScore": 6,
+      "opponentScore": 4,
+      "notes": "Partido abierto y mucho ritmo.",
+      "gallery": [],
+      "seasonId": "season-2026",
+      "competitionId": "comp-league-2026",
+      "matchReportUrl": "",
+      "officialMatchReport": null,
+      "matchReportUpdatedAt": ""
+    },
+    {
+      "id": "res-6",
+      "teamId": "team-3",
+      "opponent": "Leganes",
+      "date": "2026-07-25",
+      "place": "Pista principal",
+      "homeAway": "home",
+      "teamScore": 1,
+      "opponentScore": 1,
+      "notes": "Empate con buena defensa.",
+      "gallery": [],
+      "seasonId": "season-2026",
+      "competitionId": "comp-league-2026",
+      "matchReportUrl": "",
+      "officialMatchReport": null,
+      "matchReportUpdatedAt": ""
+    },
+    {
+      "id": "res-7",
+      "teamId": "team-1",
+      "opponent": "Alcobendas",
+      "date": "2026-07-25",
+      "place": "Alcobendas",
+      "homeAway": "away",
+      "teamScore": 2,
+      "opponentScore": 5,
+      "notes": "Toco remar tras un mal inicio.",
+      "gallery": [],
+      "seasonId": "season-2026",
+      "competitionId": "comp-league-2026",
+      "matchReportUrl": "",
+      "officialMatchReport": null,
+      "matchReportUpdatedAt": ""
+    },
+    {
+      "id": "res-8",
+      "teamId": "team-2",
+      "opponent": "Coslada",
+      "date": "2026-07-25",
+      "place": "Pista principal",
+      "homeAway": "home",
+      "teamScore": 4,
+      "opponentScore": 0,
+      "notes": "Porteria a cero y control del puck.",
+      "gallery": [],
+      "seasonId": "season-2026",
+      "competitionId": "comp-league-2026",
+      "matchReportUrl": "",
+      "officialMatchReport": null,
+      "matchReportUpdatedAt": ""
+    },
+    {
+      "id": "res-11",
+      "teamId": "team-2",
+      "opponent": "Tres Cantos B",
+      "date": "2026-07-26",
+      "place": "Tres Cantos",
+      "homeAway": "away",
+      "teamScore": 7,
+      "opponentScore": 3,
+      "notes": "Ataque muy eficaz.",
+      "gallery": [],
+      "seasonId": "season-2026",
+      "competitionId": "comp-league-2026",
+      "matchReportUrl": "",
+      "officialMatchReport": null,
+      "matchReportUpdatedAt": ""
+    }
+  ],
+  "auditLog": [
+    {
+      "id": "audit-1785164706191-b834ca",
+      "action": "login",
+      "target": "session",
+      "label": "Entrenador Senior Oro",
+      "details": null,
+      "userId": "u-coach",
+      "userName": "Entrenador Senior Oro",
+      "at": "2026-07-27T15:05:06.191Z"
+    },
+    {
+      "id": "audit-1785164327485-7434ba",
+      "action": "login",
+      "target": "session",
+      "label": "Direccion deportiva",
+      "details": null,
+      "userId": "u-director",
+      "userName": "Direccion deportiva",
+      "at": "2026-07-27T14:58:47.485Z"
+    },
+    {
+      "id": "audit-1785164295828-b6a65a",
+      "action": "login",
+      "target": "session",
+      "label": "Direccion deportiva",
+      "details": null,
+      "userId": "u-director",
+      "userName": "Direccion deportiva",
+      "at": "2026-07-27T14:58:15.828Z"
+    },
+    {
+      "id": "audit-1785163410806-e13fb3",
+      "action": "login",
+      "target": "session",
+      "label": "Direccion deportiva",
+      "userId": "u-director",
+      "userName": "Direccion deportiva",
+      "at": "2026-07-27T14:43:30.806Z"
+    },
+    {
+      "id": "audit-1785163404486-e90df9",
+      "action": "login",
+      "target": "session",
+      "label": "Tommy Soeder",
+      "userId": "user-1785163386807-0781df",
+      "userName": "Tommy Soeder",
+      "at": "2026-07-27T14:43:24.486Z"
+    },
+    {
+      "id": "audit-1785163386807-59008d",
+      "action": "alta r?pida",
+      "target": "player",
+      "label": "Tommy Soeder",
+      "userId": "u-director",
+      "userName": "Direccion deportiva",
+      "at": "2026-07-27T14:43:06.807Z"
+    },
+    {
+      "id": "audit-1785158440694-8f969d",
+      "action": "login",
+      "target": "session",
+      "label": "Direccion deportiva",
+      "userId": "u-director",
+      "userName": "Direccion deportiva",
+      "at": "2026-07-27T13:20:40.694Z"
+    },
+    {
+      "id": "audit-1785158170039-1623e3",
+      "action": "login",
+      "target": "session",
+      "label": "Direccion deportiva",
+      "userId": "u-director",
+      "userName": "Direccion deportiva",
+      "at": "2026-07-27T13:16:10.039Z"
+    },
+    {
+      "id": "audit-1785156739651-e0a063",
+      "action": "login",
+      "target": "session",
+      "label": "Direccion deportiva",
+      "userId": "u-director",
+      "userName": "Direccion deportiva",
+      "at": "2026-07-27T12:52:19.651Z"
+    },
+    {
+      "id": "audit-1785156476317-b82930",
+      "action": "login",
+      "target": "session",
+      "label": "Direccion deportiva",
+      "userId": "u-director",
+      "userName": "Direccion deportiva",
+      "at": "2026-07-27T12:47:56.317Z"
+    },
+    {
+      "id": "audit-1785156256649-b10668",
+      "action": "login",
+      "target": "session",
+      "label": "Direccion deportiva",
+      "userId": "u-director",
+      "userName": "Direccion deportiva",
+      "at": "2026-07-27T12:44:16.650Z"
+    },
+    {
+      "id": "audit-1785156254579-c017b8",
+      "action": "login",
+      "target": "session",
+      "label": "Direccion deportiva",
+      "userId": "u-director",
+      "userName": "Direccion deportiva",
+      "at": "2026-07-27T12:44:14.579Z"
+    },
+    {
+      "id": "audit-1785155952563-79e9ab",
+      "action": "login",
+      "target": "session",
+      "label": "Direccion deportiva",
+      "userId": "u-director",
+      "userName": "Direccion deportiva",
+      "at": "2026-07-27T12:39:12.563Z"
+    },
+    {
+      "id": "audit-1785155612726-4a2442",
+      "action": "login",
+      "target": "session",
+      "label": "Direccion deportiva",
+      "userId": "u-director",
+      "userName": "Direccion deportiva",
+      "at": "2026-07-27T12:33:32.726Z"
+    },
+    {
+      "id": "audit-1785155325340-fa1e27",
+      "action": "login",
+      "target": "session",
+      "label": "Direccion deportiva",
+      "userId": "u-director",
+      "userName": "Direccion deportiva",
+      "at": "2026-07-27T12:28:45.340Z"
+    },
+    {
+      "id": "audit-1785097289147-01428c",
+      "action": "login",
+      "target": "session",
+      "label": "Direccion deportiva",
+      "userId": "u-director",
+      "userName": "Direccion deportiva",
+      "at": "2026-07-26T20:21:29.147Z"
+    },
+    {
+      "id": "audit-1785097257721-841b09",
+      "action": "login",
+      "target": "session",
+      "label": "Direccion deportiva",
+      "userId": "u-director",
+      "userName": "Direccion deportiva",
+      "at": "2026-07-26T20:20:57.721Z"
+    },
+    {
+      "id": "audit-1785097191540-5077af",
+      "action": "login",
+      "target": "session",
+      "label": "Direccion deportiva",
+      "userId": "u-director",
+      "userName": "Direccion deportiva",
+      "at": "2026-07-26T20:19:51.540Z"
+    },
+    {
+      "id": "audit-1785097109190-ba2b3b",
+      "action": "login",
+      "target": "session",
+      "label": "Direccion deportiva",
+      "userId": "u-director",
+      "userName": "Direccion deportiva",
+      "at": "2026-07-26T20:18:29.190Z"
+    },
+    {
+      "id": "audit-1785096559330-76a467",
+      "action": "editar perfil jugador",
+      "target": "player",
+      "label": "Vega Munoz",
+      "userId": "u-director",
+      "userName": "Direccion deportiva",
+      "at": "2026-07-26T20:09:19.330Z"
+    },
+    {
+      "id": "audit-1785096238926-bb23d9",
+      "action": "editar perfil jugador",
+      "target": "player",
+      "label": "Vega Munoz",
+      "userId": "u-director",
+      "userName": "Direccion deportiva",
+      "at": "2026-07-26T20:03:58.926Z"
+    },
+    {
+      "id": "audit-1785095693638-78e5b3",
+      "action": "editar perfil jugador",
+      "target": "player",
+      "label": "Nora Martin",
+      "userId": "u-director",
+      "userName": "Direccion deportiva",
+      "at": "2026-07-26T19:54:53.638Z"
+    },
+    {
+      "id": "audit-1785095229845-c68f50",
+      "action": "login",
+      "target": "session",
+      "label": "Direccion deportiva",
+      "userId": "u-director",
+      "userName": "Direccion deportiva",
+      "at": "2026-07-26T19:47:09.845Z"
+    },
+    {
+      "id": "audit-1785094526054-ec575f",
+      "action": "login",
+      "target": "session",
+      "label": "Leo Martin",
+      "userId": "u-player",
+      "userName": "Leo Martin",
+      "at": "2026-07-26T19:35:26.054Z"
+    },
+    {
+      "id": "audit-1784846292284-4f4736",
+      "action": "borrar foto",
+      "target": "gallery",
+      "label": "Senior Oro vs Las Rozas",
+      "userId": "u-director",
+      "userName": "Direccion deportiva",
+      "at": "2026-07-23T22:38:12.284Z"
+    },
+    {
+      "id": "audit-1784845800131-2b3c87",
+      "action": "login",
+      "target": "session",
+      "label": "Leo Martin",
+      "userId": "u-player",
+      "userName": "Leo Martin",
+      "at": "2026-07-23T22:30:00.131Z"
+    },
+    {
+      "id": "audit-1784817188357-3767ab",
+      "action": "login",
+      "target": "session",
+      "label": "Direccion deportiva",
+      "userId": "u-director",
+      "userName": "Direccion deportiva",
+      "at": "2026-07-23T14:33:08.357Z"
+    },
+    {
+      "id": "audit-1784816099529-48fefb",
+      "action": "login",
+      "target": "session",
+      "label": "Direccion deportiva",
+      "userId": "u-director",
+      "userName": "Direccion deportiva",
+      "at": "2026-07-23T14:14:59.529Z"
+    },
+    {
+      "id": "audit-1784816055508-4139e9",
+      "action": "login",
+      "target": "session",
+      "label": "Leo Martin",
+      "userId": "u-player",
+      "userName": "Leo Martin",
+      "at": "2026-07-23T14:14:15.508Z"
+    }
+  ],
+  "historyType": "callups",
+  "historyQuery": "",
+  "profileQuery": "",
+  "profileTeamFilter": "",
+  "activeProfilePlayerId": "p-5",
+  "globalSearchQuery": "",
+  "globalSearchOpen": false,
+  "globalSearchSource": "sidebar",
+  "seasons": [
+    {
+      "id": "season-2026",
+      "name": "2026/27",
+      "startsAt": "2026-07-01",
+      "endsAt": "2027-06-30",
+      "active": true
+    },
+    {
+      "id": "season-2025",
+      "name": "2025/26",
+      "startsAt": "2025-07-01",
+      "endsAt": "2026-06-30",
+      "active": false,
+      "archived": true
+    }
+  ],
+  "competitions": [
+    {
+      "id": "comp-league-2026",
+      "seasonId": "season-2026",
+      "name": "Liga 2026/27",
+      "type": "league",
+      "pointsWin": 3,
+      "pointsDraw": 1,
+      "pointsLoss": 0,
+      "federationUrl": ""
+    },
+    {
+      "id": "comp-cup-2026",
+      "seasonId": "season-2026",
+      "name": "Copa 2026/27",
+      "type": "cup",
+      "pointsWin": 3,
+      "pointsDraw": 1,
+      "pointsLoss": 0,
+      "federationUrl": ""
+    },
+    {
+      "id": "comp-friendly-2026",
+      "seasonId": "season-2026",
+      "name": "Amistosos 2026/27",
+      "type": "friendly",
+      "pointsWin": 3,
+      "pointsDraw": 1,
+      "pointsLoss": 0,
+      "federationUrl": ""
+    }
+  ],
+  "activeSeasonId": "season-2026",
+  "activeCompetitionId": "comp-league-2026"
+}

@@ -1,0 +1,10 @@
+{
+  "name": "KamikApp",
+  "short_name": "KamikApp",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#f6f4ef",
+  "theme_color": "#1d4d4f",
+  "description": "Comunicacion, calendario, convocatorias, documentos y asistencia para Kamikazes.",
+  "icons": []
+}

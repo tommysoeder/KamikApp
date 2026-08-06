@@ -1,0 +1,17 @@
+{
+  "name": "kamikapp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "PWA para comunicacion y coordinacion del club Kamikazes.",
+  "scripts": {
+    "start": "node server.js",
+    "check": "node --check app.js && node --check server.js && node --check launch-check.mjs && node --check prepare-beta-state.mjs && node smoke-test.mjs && node server-route-test.mjs && node visual-smoke-test.mjs",
+    "launch:check": "node launch-check.mjs",
+    "beta:prepare": "node prepare-beta-state.mjs",
+    "beta:apply": "node prepare-beta-state.mjs --apply",
+    "start:beta": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
