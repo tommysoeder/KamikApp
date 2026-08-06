@@ -6,5 +6,12 @@
   "background_color": "#f6f4ef",
   "theme_color": "#1d4d4f",
   "description": "Comunicacion, calendario, convocatorias, documentos y asistencia para Kamikazes.",
-  "icons": []
+  "icons": [
+    {
+      "src": "assets/favicon.svg",
+      "sizes": "64x64",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
 }
