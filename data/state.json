@@ -204,8 +204,8 @@
         "announcements": true,
         "messages": true
       },
-      "passwordHash": "8def452b4159430146be908b619374851e9184cb941eebeae0edf2c61878c041",
-      "passwordSalt": "fdd0a8e13e85e1c7ab02ea50545b661f"
+      "passwordHash": "77cb68c79de368d85e7e2fc1dbc766030def2b095f7726973452b8ae5399c0ea",
+      "passwordSalt": "eb8ff0816899acb1c9ab53f9d7b39d59"
     },
     {
       "id": "user-1785163386807-0781df",
