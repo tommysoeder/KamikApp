@@ -104,8 +104,8 @@
         "announcements": true,
         "messages": true
       },
-      "passwordHash": "6f6637da3e8adb0d8cf93f3686b30b1dc9a82762079b21fd298741b43c162c88",
-      "passwordSalt": "7a781724675d52b6b1ac1165abc403d9"
+      "passwordHash": "860983c27b9ba3edc6763dc18afed342bfed0a4bf8fdc6b08fc55ad0a4e56982",
+      "passwordSalt": "30e0945ba6e4c15bd030b60a437e7b47"
     },
     {
       "id": "u-coach",
