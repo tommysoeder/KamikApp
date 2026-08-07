@@ -285,6 +285,66 @@
       },
       "passwordHash": "fdb6d93d29e087bb64598b3f92e2d99ad36db38a5a7dc837e93f97ed901159c8",
       "passwordSalt": "f5ace5cc771d9f420065bc3c09b328c2"
+    },
+    {
+      "id": "u-nacho-seijas",
+      "name": "Nacho Seijas",
+      "roles": [
+        "player"
+      ],
+      "email": "nacho@club.test",
+      "children": [],
+      "disabled": false,
+      "notificationPrefs": {
+        "events": true,
+        "callups": true,
+        "files": true,
+        "announcements": true,
+        "messages": true
+      },
+      "passwordHash": "b8889e1e5d4a049b0e1580add343cf06e0f86581816457df2b6ab9c4da03b0d8",
+      "passwordSalt": "d1737ea4ac22f607ea059cfdb5c71a95",
+      "playerId": "p-nacho-seijas"
+    },
+    {
+      "id": "u-pablo-urtiaga",
+      "name": "Pablo Urtiaga",
+      "roles": [
+        "coach"
+      ],
+      "email": "pablo@club.test",
+      "children": [],
+      "disabled": false,
+      "notificationPrefs": {
+        "events": true,
+        "callups": true,
+        "files": true,
+        "announcements": true,
+        "messages": true
+      },
+      "passwordHash": "433aece91676916effcba9225077322c51bd58d34d3991b2126ec73bb3e0f830",
+      "passwordSalt": "d8808e3351eb765471d0f400961995bd"
+    },
+    {
+      "id": "u-rafa-mas",
+      "name": "Rafa Más",
+      "roles": [
+        "coach",
+        "player"
+      ],
+      "email": "rafa@club.test",
+      "children": [],
+      "disabled": false,
+      "notificationPrefs": {
+        "events": true,
+        "callups": true,
+        "files": true,
+        "announcements": true,
+        "messages": true
+      },
+      "passwordHash": "b4c9729a289c772672c407392fe5ce5fa53fb13d5fce33bc433e5778c9ee36b4",
+      "passwordSalt": "97783e5a9c948ea9392689ddacb6b980",
+      "playerId": "p-rafa-mas"
     }
   ],
   "players": [
@@ -385,6 +445,28 @@
       "notes": "",
       "active": true,
       "userId": "u-beatriz-almendariz",
+      "phone": ""
+    },
+    {
+      "id": "p-nacho-seijas",
+      "name": "Nacho Seijas",
+      "age": "",
+      "teams": [],
+      "guardians": [],
+      "notes": "",
+      "active": true,
+      "userId": "u-nacho-seijas",
+      "phone": ""
+    },
+    {
+      "id": "p-rafa-mas",
+      "name": "Rafa Más",
+      "age": "",
+      "teams": [],
+      "guardians": [],
+      "notes": "",
+      "active": true,
+      "userId": "u-rafa-mas",
       "phone": ""
     }
   ],
