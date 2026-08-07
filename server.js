@@ -156,7 +156,7 @@ function permissionKey(operation, role) {
     attendance: { coach: "coachCanAttendance", delegate: "delegateCanAttendance" },
     manageResults: { coach: "coachCanResults" },
     manageProfiles: { coach: true, delegate: true },
-    messageClub: { coach: true, delegate: true, parent: true, player: true },
+    messageClub: { coach: true, delegate: true, fees: true, parent: true, player: true },
     importMembers: { coach: "coachCanImportMembers", delegate: "delegateCanImportMembers" },
     exportData: { coach: "coachCanExportData", delegate: "delegateCanExportData" },
     backupData: { coach: "coachCanBackupData", delegate: "delegateCanBackupData" },
@@ -165,7 +165,7 @@ function permissionKey(operation, role) {
     uploadDocument: { coach: "coachCanDocuments", delegate: "delegateCanDocuments" },
     editTeam: { coach: "coachCanTeams" },
   };
-  return map[operation]?.[role] ?? "";
+  return map[operation] ? map[operation][role] ?? false : undefined;
 }
 
 function canPerformOperation(actor, baseState) {
@@ -175,8 +175,9 @@ function canPerformOperation(actor, baseState) {
   if (actor.role && !hasRole(actor.user, actor.role)) return false;
   if (["managePermissions", "manageUsers", "cleanDemo"].includes(actor.operation)) return false;
   const key = permissionKey(actor.operation, actor.role);
+  if (key === undefined) return true;
   if (key === true) return true;
-  return key ? Boolean(baseState.permissions?.[key]) : true;
+  return typeof key === "string" ? Boolean(baseState.permissions?.[key]) : false;
 }
 
 function requireOperation(req, res, operation, baseState = readSavedState()) {

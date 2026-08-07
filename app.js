@@ -32,7 +32,7 @@ const APP_MODE = String(APP_CONFIG.mode || "presentation").toLowerCase();
 const IS_PRESENTATION_DEMO = APP_CONFIG.presentationDemo !== false && APP_MODE !== "beta" && APP_MODE !== "production";
 const SHOW_LOGIN_PROFILES = APP_CONFIG.showLoginProfiles !== false;
 
-const roleKeys = ["director", "coach", "delegate", "parent", "player"];
+const roleKeys = ["director", "coach", "delegate", "fees", "parent", "player"];
 
 const copy = {
   es: {
@@ -116,6 +116,7 @@ const copy = {
     director: "Director deportivo",
     coach: "Entrenador",
     delegate: "Delegado",
+    fees: "Gestión de cuotas",
     parent: "Padre/madre",
     player: "Jugador",
     loginTitle: "Acceso privado del club",
@@ -379,6 +380,7 @@ const copy = {
     director: "Sports director",
     coach: "Coach",
     delegate: "Delegate",
+    fees: "Fees management",
     parent: "Parent",
     player: "Player",
     loginTitle: "Private club access",

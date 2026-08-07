@@ -227,6 +227,44 @@
       },
       "passwordHash": "ae58214261f4beb6f9c767151039bd978e90b188b1c54c177130ea19d160ee2a",
       "passwordSalt": "53571546b3e11fc511e7bc82da225b04"
+    },
+    {
+      "id": "u-cuotas",
+      "name": "Nerea Seijas - Gestión de Cuotas",
+      "roles": [
+        "fees"
+      ],
+      "email": "cuotas@club.test",
+      "children": [],
+      "disabled": false,
+      "notificationPrefs": {
+        "events": true,
+        "callups": true,
+        "files": true,
+        "announcements": true,
+        "messages": true
+      },
+      "passwordHash": "56db1836576f5a3534d38a1ef6c30962f773600d2919c0f6f999bf7ef65f5a40",
+      "passwordSalt": "3941eac8bb867c14c77b2e2d3fea940b"
+    },
+    {
+      "id": "u-delegado-junior",
+      "name": "David Contreras",
+      "roles": [
+        "delegate"
+      ],
+      "email": "delegado@club.test",
+      "children": [],
+      "disabled": false,
+      "notificationPrefs": {
+        "events": true,
+        "callups": true,
+        "files": true,
+        "announcements": true,
+        "messages": true
+      },
+      "passwordHash": "e48893a0fa919ca0668ac71caa3354a8c348a48f7337cfe378480349948f5dc6",
+      "passwordSalt": "b873b5e196bbd3a789af0a355f5931e6"
     }
   ],
   "players": [
