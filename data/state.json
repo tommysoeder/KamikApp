@@ -265,6 +265,26 @@
       },
       "passwordHash": "e48893a0fa919ca0668ac71caa3354a8c348a48f7337cfe378480349948f5dc6",
       "passwordSalt": "b873b5e196bbd3a789af0a355f5931e6"
+    },
+    {
+      "id": "u-beatriz-almendariz",
+      "name": "Beatriz Almendariz",
+      "roles": [
+        "player"
+      ],
+      "email": "bea@club.test",
+      "playerId": "p-beatriz-almendariz",
+      "children": [],
+      "disabled": false,
+      "notificationPrefs": {
+        "events": true,
+        "callups": true,
+        "files": true,
+        "announcements": true,
+        "messages": true
+      },
+      "passwordHash": "fdb6d93d29e087bb64598b3f92e2d99ad36db38a5a7dc837e93f97ed901159c8",
+      "passwordSalt": "f5ace5cc771d9f420065bc3c09b328c2"
     }
   ],
   "players": [
@@ -353,6 +373,19 @@
       "notes": "",
       "phone": "+34634556802",
       "active": true
+    },
+    {
+      "id": "p-beatriz-almendariz",
+      "name": "Beatriz Almendariz",
+      "age": "",
+      "teams": [
+        "team-1784715025005-0c429d"
+      ],
+      "guardians": [],
+      "notes": "",
+      "active": true,
+      "userId": "u-beatriz-almendariz",
+      "phone": ""
     }
   ],
   "announcements": [
