@@ -230,9 +230,10 @@
     },
     {
       "id": "u-cuotas",
-      "name": "Nerea Seijas - Gestión de Cuotas",
+      "name": "Nerea Seijas",
       "roles": [
-        "fees"
+        "fees",
+        "player"
       ],
       "email": "cuotas@club.test",
       "children": [],
@@ -245,7 +246,8 @@
         "messages": true
       },
       "passwordHash": "56db1836576f5a3534d38a1ef6c30962f773600d2919c0f6f999bf7ef65f5a40",
-      "passwordSalt": "3941eac8bb867c14c77b2e2d3fea940b"
+      "passwordSalt": "3941eac8bb867c14c77b2e2d3fea940b",
+      "playerId": "p-nerea-seijas"
     },
     {
       "id": "u-delegado-junior",
@@ -467,6 +469,19 @@
       "notes": "",
       "active": true,
       "userId": "u-rafa-mas",
+      "phone": ""
+    },
+    {
+      "id": "p-nerea-seijas",
+      "name": "Nerea Seijas",
+      "age": "",
+      "teams": [
+        "team-1784715025005-0c429d"
+      ],
+      "guardians": [],
+      "notes": "",
+      "active": true,
+      "userId": "u-cuotas",
       "phone": ""
     }
   ],
