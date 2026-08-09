@@ -11,12 +11,12 @@ const DATA_DIR = process.env.DATA_DIR || path.join(ROOT, "data");
 const STATE_FILE = path.join(DATA_DIR, "state.json");
 const BACKUP_DIR = path.join(DATA_DIR, "backups");
 const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
-const APP_VERSION = "v100";
+const APP_VERSION = "v101";
 const APP_MODE = String(process.env.APP_MODE || "presentation").toLowerCase();
 const APP_LABEL = process.env.APP_LABEL || (APP_MODE === "beta" ? "Beta privada" : "");
 const SHOW_LOGIN_PROFILES = process.env.SHOW_LOGIN_PROFILES === "1" || (APP_MODE !== "beta" && APP_MODE !== "production");
 const PRESENTATION_DEMO = process.env.PRESENTATION_DEMO !== "0" && APP_MODE !== "beta" && APP_MODE !== "production";
-const SESSION_TTL_MS = Number(process.env.SESSION_TTL_HOURS || 24) * 60 * 60 * 1000;
+const SESSION_TTL_MS = Number(process.env.SESSION_TTL_HOURS || 168) * 60 * 60 * 1000;
 const sessions = new Map();
 const MAX_UPLOAD_BYTES = Number(process.env.MAX_UPLOAD_MB || 30) * 1024 * 1024;
 const ALLOWED_UPLOAD_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/gif", "application/pdf", "video/mp4", "video/quicktime", "video/webm"]);
@@ -249,7 +249,23 @@ function sanitizeStateForRead(state, actor) {
   if (!state) return state;
   const copy = JSON.parse(JSON.stringify(state));
   copy.users = (copy.users || []).map(publicUser);
-  if (!actor?.authenticated || !actor.user || hasRole(actor.user, "director")) return copy;
+  if (!actor?.authenticated || !actor.user) {
+    copy.users = [];
+    copy.teams = [];
+    copy.players = [];
+    copy.events = [];
+    copy.trainings = [];
+    copy.callups = [];
+    copy.results = [];
+    copy.documents = [];
+    copy.documentFolders = [];
+    copy.announcements = [];
+    copy.notifications = [];
+    copy.threads = [];
+    copy.auditLog = [];
+    return copy;
+  }
+  if (hasRole(actor.user, "director")) return copy;
 
   const visiblePlayerIds = playerIdsForUser(actor.user, state);
   const visibleTeamIds = teamIdsForUser(actor.user, state);
@@ -945,6 +961,10 @@ async function handleApi(req, res, url) {
     }
     const state = readSavedState();
     const actor = actorFromRequest(req, state);
+    if (!actor.authenticated || !actor.user) {
+      send(res, 401, JSON.stringify({ error: "Sesion caducada. Vuelve a entrar." }), { "Content-Type": types[".json"], "Cache-Control": "no-store" });
+      return true;
+    }
     send(res, 200, JSON.stringify(sanitizeStateForRead(state, actor)), { "Content-Type": types[".json"] });
     return true;
   }

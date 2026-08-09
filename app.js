@@ -1224,7 +1224,11 @@ async function sendRemoteState(operation, body) {
         const payload = await response.json();
         if (payload?.error) message = payload.error;
       } catch {}
-      showRemoteSaveError(message, { renderToast: response.status !== 403 });
+      if (response.status === 401 || /sesion caducada|no autorizado|invalid login/i.test(message)) {
+        expireSession(message);
+        return;
+      }
+      showRemoteSaveError(message, { renderToast: true });
     }
   } catch {
     showRemoteSaveError("Sin conexion con el servidor", { renderToast: false });
@@ -1236,6 +1240,16 @@ function showRemoteSaveError(message, options = {}) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   persistSession();
   if (options.renderToast && typeof document !== "undefined" && state.session) render();
+}
+
+function expireSession(message = "Sesion caducada. Vuelve a entrar.") {
+  state.session = null;
+  state.toast = message;
+  remoteStateLoaded = false;
+  remoteSavePaused = false;
+  localStorage.removeItem?.(AUTH_KEY);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  if (typeof document !== "undefined") render();
 }
 
 async function loadRemoteState() {
@@ -1253,6 +1267,15 @@ async function refreshRemoteState({ keepToast = false } = {}) {
   lastRemoteRefreshAt = nowMs;
   try {
     const response = await fetch(API_STATE_URL, { cache: "no-store", headers: requestHeaders("readState") });
+    if (response.status === 401) {
+      let message = "Sesion caducada. Vuelve a entrar.";
+      try {
+        const payload = await response.json();
+        if (payload?.error) message = payload.error;
+      } catch {}
+      expireSession(message);
+      return;
+    }
     if (!response.ok) return;
     const raw = await response.text();
     if (!raw || raw === lastRemoteSnapshot) return;
