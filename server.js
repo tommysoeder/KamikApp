@@ -11,7 +11,7 @@ const DATA_DIR = process.env.DATA_DIR || path.join(ROOT, "data");
 const STATE_FILE = path.join(DATA_DIR, "state.json");
 const BACKUP_DIR = path.join(DATA_DIR, "backups");
 const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
-const APP_VERSION = "v101";
+const APP_VERSION = "v102";
 const APP_MODE = String(process.env.APP_MODE || "presentation").toLowerCase();
 const APP_LABEL = process.env.APP_LABEL || (APP_MODE === "beta" ? "Beta privada" : "");
 const SHOW_LOGIN_PROFILES = process.env.SHOW_LOGIN_PROFILES === "1" || (APP_MODE !== "beta" && APP_MODE !== "production");
@@ -157,6 +157,7 @@ function permissionKey(operation, role) {
     manageResults: { coach: "coachCanResults" },
     manageProfiles: { coach: true, delegate: true },
     messageClub: { coach: true, delegate: true, fees: true, parent: true, player: true },
+    markRead: { coach: true, delegate: true, fees: true, parent: true, player: true },
     importMembers: { coach: "coachCanImportMembers", delegate: "delegateCanImportMembers" },
     exportData: { coach: "coachCanExportData", delegate: "delegateCanExportData" },
     backupData: { coach: "coachCanBackupData", delegate: "delegateCanBackupData" },
@@ -393,9 +394,9 @@ const domainOperations = {
   teams: ["manageUsers", "editTeam", "importMembers", "manageProfiles", "restoreData", "undoBulk"],
   players: ["manageProfiles", "importMembers", "editTeam", "manageUsers", "restoreData", "undoBulk"],
   users: ["manageUsers", "importMembers", "manageProfiles", "restoreData", "undoBulk"],
-  threads: ["messageClub", "restoreData", "undoBulk"],
-  notifications: ["cleanDemo", "manageEvents", "manageCallup", "uploadDocument", "publishAnnouncement", "restoreData", "undoBulk"],
-  readAnnouncementIds: ["cleanDemo", "publishAnnouncement", "restoreData", "undoBulk"],
+  threads: ["messageClub", "markRead", "restoreData", "undoBulk"],
+  notifications: ["markRead", "cleanDemo", "manageEvents", "manageCallup", "uploadDocument", "publishAnnouncement", "restoreData", "undoBulk"],
+  readAnnouncementIds: ["markRead", "cleanDemo", "publishAnnouncement", "restoreData", "undoBulk"],
   activeDocumentTeamId: ["cleanDemo", "uploadDocument", "restoreData", "undoBulk"],
   activeDocumentFolderId: ["cleanDemo", "uploadDocument", "restoreData", "undoBulk"],
   resultsCursor: ["cleanDemo", "manageResults", "restoreData", "undoBulk"],
@@ -494,6 +495,7 @@ const stateWriteRoutes = {
   "/api/files/meta": "uploadDocument",
   "/api/members/import": "importMembers",
   "/api/messages": "messageClub",
+  "/api/read-state": "markRead",
   "/api/operations/undo": "undoBulk",
   "/api/permissions": "managePermissions",
   "/api/profiles": "manageProfiles",
@@ -514,6 +516,7 @@ const operationDomains = {
   manageProfiles: ["players", "users", "auditLog"],
   manageResults: ["results", "seasons", "competitions", "auditLog", "resultsCursor", "activeSeasonId", "activeCompetitionId", "activeView"],
   manageUsers: ["users", "teams", "players", "auditLog"],
+  markRead: ["notifications", "readAnnouncementIds", "threads", "activeThreadId"],
   cleanDemo: ["events", "trainings", "callups", "results", "announcements", "documents", "documentFolders", "notifications", "readAnnouncementIds", "auditLog", "activeDocumentTeamId", "activeDocumentFolderId", "resultsCursor", "calendarCursor"],
   messageClub: ["threads", "auditLog", "activeThreadId"],
   publishAnnouncement: ["announcements", "readAnnouncementIds", "auditLog"],

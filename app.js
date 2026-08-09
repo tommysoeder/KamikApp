@@ -13,6 +13,7 @@ const API_OPERATION_ENDPOINTS = {
   managePermissions: "/api/permissions",
   manageEvents: "/api/events",
   manageCallup: "/api/callups",
+  markRead: "/api/read-state",
   messageClub: "/api/messages",
   publishAnnouncement: "/api/announcements",
   restoreData: "/api/backups/restore",
@@ -1614,14 +1615,14 @@ function usersForPlayer(playerId) {
 function markAnnouncementRead(announcementId) {
   state.readAnnouncementIds ||= [];
   if (!state.readAnnouncementIds.includes(announcementId)) state.readAnnouncementIds.push(announcementId);
-  save();
+  save("markRead");
   render();
 }
 
 function markNotificationRead(notificationId) {
   const notice = state.notifications.find((item) => item.id === notificationId);
   if (notice) notice.read = true;
-  save();
+  save("markRead");
   render();
 }
 
@@ -1630,7 +1631,7 @@ function markNotificationsSeen(predicate, shouldRender = true) {
     if (predicate(notice)) notice.read = true;
   });
   if (shouldRender) {
-    save();
+    save("markRead");
     render();
   }
 }
@@ -1641,7 +1642,7 @@ function markVisibleAnnouncementsRead(shouldRender = true) {
     if (!state.readAnnouncementIds.includes(announcement.id)) state.readAnnouncementIds.push(announcement.id);
   });
   if (shouldRender) {
-    save();
+    save("markRead");
     render();
   }
 }
@@ -1653,7 +1654,7 @@ function markVisibleThreadsSeen(shouldRender = true) {
     thread.seenBy[user.id] = thread.messages.length;
   });
   if (shouldRender) {
-    save();
+    save("markRead");
     render();
   }
 }
@@ -1673,6 +1674,8 @@ function pushNotification(title, body) {
 
 function notifyUnreadVisibleItems() {
   if (typeof localStorage === "undefined") return;
+  const runtime = typeof window !== "undefined" ? window : globalThis;
+  runtime.__kamikPushedNotices ||= new Set();
   let storedSeen = [];
   try {
     storedSeen = JSON.parse(localStorage.getItem("kamik-pushed-notices") || "[]");
@@ -1680,16 +1683,20 @@ function notifyUnreadVisibleItems() {
     storedSeen = [];
   }
   const seen = new Set(Array.isArray(storedSeen) ? storedSeen : []);
+  runtime.__kamikPushedNotices.forEach((key) => seen.add(key));
   unreadAnnouncements().forEach((announcement) => {
     const key = `ann:${announcement.id}`;
     if (seen.has(key)) return;
     pushNotification(announcement.title, announcement.body || "");
     seen.add(key);
+    runtime.__kamikPushedNotices.add(key);
   });
   unreadNotifications().forEach((notice) => {
-    if (seen.has(notice.id)) return;
+    const key = `notice:${notificationCanonicalKey(notice)}`;
+    if (seen.has(key)) return;
     pushNotification(notice.title, notice.body || "");
-    seen.add(notice.id);
+    seen.add(key);
+    runtime.__kamikPushedNotices.add(key);
   });
   localStorage.setItem("kamik-pushed-notices", JSON.stringify([...seen].slice(-80)));
 }

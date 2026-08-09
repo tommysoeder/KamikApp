@@ -1,7 +1,7 @@
 {
   "lang": "es",
   "activeView": "results",
-  "activeThreadId": "thread-1784647410851-4df5ff",
+  "activeThreadId": "",
   "mobileMenuOpen": false,
   "calendarCursor": "2026-07-01",
   "permissions": {
@@ -757,129 +757,7 @@
       "competitionId": ""
     }
   ],
-  "threads": [
-    {
-      "id": "thread-1784647410851-4df5ff",
-      "subject": "Leo Martin -> Direccion deportiva: erthrthrthrhrt",
-      "assignedToId": "u-director",
-      "relatedPlayerIds": [
-        "p-2"
-      ],
-      "participantUserIds": [
-        "u-player"
-      ],
-      "messages": [
-        {
-          "from": "user",
-          "text": "shtrthrthr",
-          "at": "17:23"
-        },
-        {
-          "from": "club",
-          "text": "Recibido",
-          "at": "17:24"
-        },
-        {
-          "from": "club",
-          "text": "Push!",
-          "at": "17:31"
-        },
-        {
-          "from": "club",
-          "text": "Holaaa",
-          "at": "17:52"
-        },
-        {
-          "from": "user",
-          "text": "dime",
-          "at": "17:53"
-        },
-        {
-          "from": "club",
-          "text": "Epa",
-          "at": "18:29"
-        },
-        {
-          "from": "club",
-          "text": "Hey que tal",
-          "at": "20:55"
-        },
-        {
-          "from": "user",
-          "text": "bien",
-          "at": "20:56"
-        },
-        {
-          "from": "user",
-          "text": "hoikhl",
-          "at": "20:59"
-        },
-        {
-          "from": "club",
-          "text": "Hola",
-          "at": "21:03"
-        }
-      ],
-      "seenBy": {
-        "u-player": 10,
-        "u-director": 10
-      }
-    },
-    {
-      "id": "thread-1",
-      "subject": "Familia Martin -> Direccion deportiva",
-      "assignedToId": "u-director",
-      "relatedPlayerIds": [
-        "p-1",
-        "p-2"
-      ],
-      "participantUserIds": [
-        "u-parent"
-      ],
-      "messages": [
-        {
-          "from": "user",
-          "text": "Hola, Leo llegara diez minutos tarde el martes.",
-          "at": "09:20"
-        },
-        {
-          "from": "club",
-          "text": "Recibido, lo dejamos anotado para el entrenador.",
-          "at": "09:26"
-        },
-        {
-          "from": "club",
-          "text": "Holaaa",
-          "at": "17:22"
-        }
-      ],
-      "seenBy": {
-        "u-director": 3
-      }
-    },
-    {
-      "id": "thread-2",
-      "subject": "Leo Martin -> Entrenador Senior Oro",
-      "assignedToId": "u-coach",
-      "relatedPlayerIds": [
-        "p-2"
-      ],
-      "participantUserIds": [
-        "u-player"
-      ],
-      "messages": [
-        {
-          "from": "user",
-          "text": "Puedo llegar antes para calentar?",
-          "at": "17:10"
-        }
-      ],
-      "seenBy": {
-        "u-player": 1,
-        "u-director": 1
-      }
-    }
-  ],
+  "threads": [],
   "documents": [
     {
       "id": "doc-1",
@@ -1431,6 +1309,16 @@
     }
   ],
   "auditLog": [
+    {
+      "id": "audit-1786299425261",
+      "at": "2026-08-09T18:17:05.261Z",
+      "action": "limpiar mensajes",
+      "area": "messages",
+      "title": "Mensajes borrados",
+      "details": {
+        "threads": 3
+      }
+    },
     {
       "id": "audit-1785164706191-b834ca",
       "action": "login",
