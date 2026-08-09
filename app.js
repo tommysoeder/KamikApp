@@ -1244,22 +1244,25 @@ function showRemoteSaveError(message, options = {}) {
 }
 
 function expireSession(message = "Sesion caducada. Vuelve a entrar.") {
+  const hadSession = Boolean(state.session);
   state.session = null;
   state.toast = message;
   remoteStateLoaded = false;
   remoteSavePaused = false;
   localStorage.removeItem?.(AUTH_KEY);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  if (typeof document !== "undefined") render();
+  if (hadSession && typeof document !== "undefined") render();
 }
 
 async function loadRemoteState() {
+  if (!state.session?.token) return;
   if (remoteStateLoaded || typeof fetch === "undefined" || location.protocol === "file:") return;
   remoteStateLoaded = true;
   await refreshRemoteState();
 }
 
 async function refreshRemoteState({ keepToast = false } = {}) {
+  if (!state.session?.token) return;
   if (typeof fetch === "undefined" || location.protocol === "file:") return;
   if (remoteRefreshInFlight) return;
   const nowMs = Date.now();
@@ -1303,11 +1306,15 @@ async function refreshRemoteState({ keepToast = false } = {}) {
 function startRemoteSync() {
   if (typeof window === "undefined" || typeof fetch === "undefined" || location.protocol === "file:") return;
   window.clearInterval(window.__kamikRemoteSync);
-  window.__kamikRemoteSync = window.setInterval(() => refreshRemoteState(), 4000);
+  window.__kamikRemoteSync = window.setInterval(() => {
+    if (state.session?.token) refreshRemoteState();
+  }, 4000);
   document.addEventListener("visibilitychange", () => {
-    if (!document.hidden) refreshRemoteState();
+    if (!document.hidden && state.session?.token) refreshRemoteState();
   });
-  window.addEventListener("focus", () => refreshRemoteState());
+  window.addEventListener("focus", () => {
+    if (state.session?.token) refreshRemoteState();
+  });
 }
 
 function t(key) {
