@@ -1124,7 +1124,8 @@ function save(operation = "general") {
   state.notifications = dedupeNotifications(state.notifications || []);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   persistSession();
-  queueRemoteSave(operation);
+  if (API_OPERATION_ENDPOINTS[operation]) saveRemoteNow(operation);
+  else queueRemoteSave(operation);
 }
 
 function persistSession() {
@@ -1223,7 +1224,6 @@ async function sendRemoteState(operation, body) {
         const payload = await response.json();
         if (payload?.error) message = payload.error;
       } catch {}
-      if (response.status === 403) remoteSavePaused = true;
       showRemoteSaveError(message, { renderToast: response.status !== 403 });
     }
   } catch {
@@ -1279,7 +1279,7 @@ async function refreshRemoteState({ keepToast = false } = {}) {
 function startRemoteSync() {
   if (typeof window === "undefined" || typeof fetch === "undefined" || location.protocol === "file:") return;
   window.clearInterval(window.__kamikRemoteSync);
-  window.__kamikRemoteSync = window.setInterval(() => refreshRemoteState(), 12000);
+  window.__kamikRemoteSync = window.setInterval(() => refreshRemoteState(), 4000);
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden) refreshRemoteState();
   });
