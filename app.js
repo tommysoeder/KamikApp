@@ -903,6 +903,8 @@ let lastRemoteSnapshot = "";
 let remoteRefreshInFlight = false;
 let lastRemoteRefreshAt = 0;
 let remoteSavePaused = false;
+let remoteSaveInFlight = false;
+let lastRemoteSaveAt = 0;
 let resetScrollAfterRender = false;
 let pendingPlayerImportRows = [];
 
@@ -1296,6 +1298,7 @@ function queueRemoteSave(operation = "general") {
   if (remoteSavePaused || typeof fetch === "undefined" || location.protocol === "file:") return;
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
+    saveTimer = null;
     const body = JSON.stringify(persistentState());
     lastRemoteSnapshot = body;
     sendRemoteState(operation, body);
@@ -1305,12 +1308,15 @@ function queueRemoteSave(operation = "general") {
 function saveRemoteNow(operation = "general") {
   if (remoteSavePaused || typeof fetch === "undefined" || location.protocol === "file:") return;
   clearTimeout(saveTimer);
+  saveTimer = null;
   const body = JSON.stringify(persistentState());
   lastRemoteSnapshot = body;
   sendRemoteState(operation, body);
 }
 
 async function sendRemoteState(operation, body) {
+  remoteSaveInFlight = true;
+  lastRemoteSaveAt = Date.now();
   try {
     const response = await fetch(apiUrlForOperation(operation), {
       method: "PUT",
@@ -1324,13 +1330,16 @@ async function sendRemoteState(operation, body) {
         if (payload?.error) message = payload.error;
       } catch {}
       if (response.status === 401 || /sesion caducada|no autorizado|invalid login/i.test(message)) {
-        expireSession(message);
+        expireSession(message, { silent: false });
         return;
       }
       showRemoteSaveError(message, { renderToast: true });
     }
   } catch {
     showRemoteSaveError("Sin conexion con el servidor", { renderToast: false });
+  } finally {
+    remoteSaveInFlight = false;
+    lastRemoteSaveAt = Date.now();
   }
 }
 
@@ -1341,10 +1350,10 @@ function showRemoteSaveError(message, options = {}) {
   if (options.renderToast && typeof document !== "undefined" && state.session) render();
 }
 
-function expireSession(message = "Sesion caducada. Vuelve a entrar.") {
+function expireSession(message = "Sesion caducada. Vuelve a entrar.", options = {}) {
   const hadSession = Boolean(state.session);
   state.session = null;
-  state.toast = message;
+  state.toast = options.silent ? "" : message;
   remoteStateLoaded = false;
   remoteSavePaused = false;
   localStorage.removeItem?.(AUTH_KEY);
@@ -1362,6 +1371,7 @@ async function loadRemoteState() {
 async function refreshRemoteState({ keepToast = false } = {}) {
   if (!state.session?.token) return;
   if (typeof fetch === "undefined" || location.protocol === "file:") return;
+  if (remoteSaveInFlight || Date.now() - lastRemoteSaveAt < 1200 || saveTimer) return;
   if (remoteRefreshInFlight) return;
   const nowMs = Date.now();
   if (nowMs - lastRemoteRefreshAt < 2500) return;
@@ -1375,7 +1385,7 @@ async function refreshRemoteState({ keepToast = false } = {}) {
         const payload = await response.json();
         if (payload?.error) message = payload.error;
       } catch {}
-      expireSession(message);
+      expireSession(message, { silent: true });
       return;
     }
     if (!response.ok) return;
@@ -1734,6 +1744,12 @@ function markAnnouncementRead(announcementId) {
   render();
 }
 
+function markAnnouncementUnread(announcementId) {
+  state.readAnnouncementIds = (state.readAnnouncementIds || []).filter((id) => id !== announcementId);
+  save("markRead");
+  render();
+}
+
 function markNotificationRead(notificationId) {
   const notice = state.notifications.find((item) => item.id === notificationId);
   if (notice) notice.read = true;
@@ -2061,9 +2077,8 @@ function setView(view) {
   state.activeView = view;
   state.mobileMenuOpen = false;
   state.globalSearchOpen = false;
-  const clearsReadState = ["messages", "announcements", "calendar", "callups", "documents"].includes(view);
+  const clearsReadState = ["messages", "calendar", "callups", "documents"].includes(view);
   if (view === "messages") markVisibleThreadsSeen(false);
-  if (view === "announcements") markVisibleAnnouncementsRead(false);
   if (view === "calendar") markNotificationsSeen((notice) => Boolean(notice.eventId), false);
   if (view === "callups") markNotificationsSeen((notice) => notice.title.toLowerCase().includes("convocatoria"), false);
   if (view === "documents") markNotificationsSeen((notice) => Boolean(notice.documentId) || notice.title === t("fileAlert"), false);
@@ -4346,7 +4361,7 @@ function renderAnnouncementItem(announcement) {
       <p class="clamped-text">${escapeHtml(announcement.body)}</p>
       <div class="actions inline-actions">
         ${long ? `<button class="btn" type="button" onclick="openAnnouncementDetail('${announcement.id}')">${t("open")}</button>` : ""}
-        ${!read ? `<button class="btn" type="button" onclick="markAnnouncementRead('${announcement.id}')">${t("markRead")}</button>` : ""}
+        ${!read ? `<button class="btn" type="button" onclick="markAnnouncementRead('${announcement.id}')">${t("markRead")}</button>` : `<button class="btn" type="button" onclick="markAnnouncementUnread('${announcement.id}')">Marcar no leído</button>`}
         ${canPublishAnnouncement() ? `<button class="btn" type="button" onclick="openEditAnnouncementModal('${announcement.id}')">${t("edit")}</button>` : ""}
         ${canPublishAnnouncement() ? `<button class="btn danger" type="button" onclick="deleteAnnouncement('${announcement.id}')">${t("delete")}</button>` : ""}
       </div>
@@ -4357,7 +4372,11 @@ function renderAnnouncementItem(announcement) {
 function openAnnouncementDetail(announcementId) {
   const announcement = state.announcements.find((item) => item.id === announcementId);
   if (!announcement) return;
-  markAnnouncementRead(announcementId);
+  if (!(state.readAnnouncementIds || []).includes(announcementId)) {
+    state.readAnnouncementIds ||= [];
+    state.readAnnouncementIds.push(announcementId);
+    save("markRead");
+  }
   openModal(
     escapeHtml(announcement.title),
     `<article class="article-detail">
@@ -6059,22 +6078,46 @@ function openAbsenceModal(trainingId, playerId) {
 }
 
 function openThreadModal() {
-  const userPlayers = visiblePlayerIds(currentUser());
+  const user = currentUser();
+  const staffMode = isExecutive(user) || hasRole(user, "coach") || hasRole(user, "delegate") || hasRole(user, "president") || hasRole(user, "fees");
+  const userPlayers = staffMode ? state.players.map((player) => player.id) : visiblePlayerIds(user);
+  const recipientUsers = state.users
+    .filter((item) => !item.disabled && item.id !== user.id)
+    .map((item) => {
+      const linked = item.playerId ? getPlayer(item.playerId)?.name : "";
+      const children = (item.children || []).map((id) => getPlayer(id)?.name).filter(Boolean).join(", ");
+      return { ...item, recipientMeta: [item.roles.map(roleLabel).join(" + "), linked || children].filter(Boolean).join(" · ") };
+    });
   openModal(
     t("newThread"),
     `<form class="form" onsubmit="createThread(event)">
-      <div class="form-row">
-        <label>${t("employee")}</label>
-        <input type="search" placeholder="Buscar empleado..." oninput="filterRecipients(this.value)" />
-        <div id="recipient-list" class="recipient-list">
-          ${employees().map((user, index) => `
-            <label class="recipient-option" data-search="${escapeHtml(`${user.name} ${user.roles.map(roleLabel).join(" ")}`.toLowerCase())}">
-              <input type="radio" name="assignedToId" value="${user.id}" ${index === 0 ? "checked" : ""} required />
-              <span><strong>${user.name}</strong><em>${user.roles.map(roleLabel).join(" + ")}</em></span>
-            </label>
-          `).join("")}
-        </div>
-      </div>
+      ${
+        staffMode
+          ? `<div class="form-row">
+              <label>Destinatario</label>
+              <input type="search" placeholder="Buscar usuario..." oninput="filterRecipients(this.value)" />
+              <div id="recipient-list" class="recipient-list">
+                ${recipientUsers.map((recipient, index) => `
+                  <label class="recipient-option" data-search="${escapeHtml(`${recipient.name} ${recipient.email} ${recipient.recipientMeta}`.toLowerCase())}">
+                    <input type="radio" name="recipientUserId" value="${recipient.id}" ${index === 0 ? "checked" : ""} required />
+                    <span><strong>${escapeHtml(recipient.name)}</strong><em>${escapeHtml(recipient.recipientMeta || recipient.email)}</em></span>
+                  </label>
+                `).join("")}
+              </div>
+            </div>`
+          : `<div class="form-row">
+              <label>${t("employee")}</label>
+              <input type="search" placeholder="Buscar empleado..." oninput="filterRecipients(this.value)" />
+              <div id="recipient-list" class="recipient-list">
+                ${employees().map((employee, index) => `
+                  <label class="recipient-option" data-search="${escapeHtml(`${employee.name} ${employee.roles.map(roleLabel).join(" ")}`.toLowerCase())}">
+                    <input type="radio" name="assignedToId" value="${employee.id}" ${index === 0 ? "checked" : ""} required />
+                    <span><strong>${employee.name}</strong><em>${employee.roles.map(roleLabel).join(" + ")}</em></span>
+                  </label>
+                `).join("")}
+              </div>
+            </div>`
+      }
       <div class="form-row">
         <label>${t("selectedPlayers")}</label>
         <select name="playerId"><option value="">Sin jugador vinculado</option>${userPlayers.map((id) => `<option value="${id}">${getPlayer(id)?.name}</option>`).join("")}</select>
@@ -7642,15 +7685,18 @@ function deleteCallup(callupId) {
 function createThread(event) {
   event.preventDefault();
   const form = new FormData(event.currentTarget);
-  const assigned = state.users.find((user) => user.id === form.get("assignedToId"));
+  const recipientUserId = String(form.get("recipientUserId") || "");
+  const assignedToId = recipientUserId ? currentUser().id : String(form.get("assignedToId") || "");
+  const assigned = state.users.find((user) => user.id === assignedToId);
+  const recipient = state.users.find((user) => user.id === recipientUserId);
   const playerId = form.get("playerId");
   const thread = {
     id: uid("thread"),
-    subject: `${currentUser().name} -> ${assigned?.name || "Club"}: ${form.get("subject")}`,
-    assignedToId: form.get("assignedToId"),
+    subject: `${currentUser().name} -> ${recipient?.name || assigned?.name || "Club"}: ${form.get("subject")}`,
+    assignedToId,
     relatedPlayerIds: playerId ? [playerId] : [],
-    participantUserIds: [currentUser().id],
-    messages: [{ from: "user", text: form.get("message"), at: currentTime() }],
+    participantUserIds: [...new Set([currentUser().id, recipientUserId].filter(Boolean))],
+    messages: [{ from: recipientUserId ? "club" : "user", text: form.get("message"), at: currentTime() }],
   };
   state.threads.unshift(thread);
   state.activeThreadId = thread.id;
