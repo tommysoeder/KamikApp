@@ -1318,7 +1318,7 @@ async function sendRemoteState(operation, body) {
   remoteSaveInFlight = true;
   lastRemoteSaveAt = Date.now();
   try {
-    const response = await fetch(apiUrlForOperation(operation), {
+    const response = await fetch(apiEndpoint(apiUrlForOperation(operation)), {
       method: "PUT",
       headers: { "Content-Type": "application/json", ...requestHeaders(operation) },
       body,
@@ -1333,10 +1333,19 @@ async function sendRemoteState(operation, body) {
         expireSession(message, { silent: false });
         return;
       }
-      showRemoteSaveError(message, { renderToast: true });
+      const silentReadSave = operation === "markRead";
+      const readableOperation = {
+        publishAnnouncement: "publicar anuncio",
+        manageEvents: "guardar evento",
+        manageCallup: "guardar convocatoria",
+        uploadDocument: "guardar archivo",
+        messageClub: "enviar mensaje",
+        markRead: "marcar como visto",
+      }[operation] || operation;
+      showRemoteSaveError(`${readableOperation}: ${message}`, { renderToast: !silentReadSave });
     }
   } catch {
-    showRemoteSaveError("Sin conexion con el servidor", { renderToast: false });
+    showRemoteSaveError(`${operation}: sin conexion con el servidor`, { renderToast: false });
   } finally {
     remoteSaveInFlight = false;
     lastRemoteSaveAt = Date.now();
@@ -1344,6 +1353,7 @@ async function sendRemoteState(operation, body) {
 }
 
 function showRemoteSaveError(message, options = {}) {
+  if (options.silent) return;
   state.toast = message;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   persistSession();
@@ -5588,6 +5598,15 @@ function renderDiagnostics() {
                 <span class="meta">${escapeHtml(diagnostics?.mode || "Sin cargar")} · ${diagnostics?.stateFile?.exists ? "state.json existe" : "state.json no confirmado"}</span>
               </div>
               <span class="pill">${diagnostics?.stateFile?.size ? formatSize(diagnostics.stateFile.size) : "-"}</span>
+            </div>
+          </article>
+          <article class="item">
+            <div class="item-row">
+              <div>
+                <strong>Prueba de escritura</strong>
+                <span class="meta">${diagnostics?.writeProbe?.ok ? "El servidor puede guardar cambios en la carpeta persistente" : diagnostics?.writeProbe?.error ? escapeHtml(diagnostics.writeProbe.error) : "Pendiente"}</span>
+              </div>
+              <span class="pill ${diagnostics?.writeProbe?.ok ? "green" : diagnostics ? "red" : ""}">${diagnostics?.writeProbe?.ok ? "OK" : diagnostics ? "Revisar" : "-"}</span>
             </div>
           </article>
         </div>

@@ -11,7 +11,7 @@ const DATA_DIR = process.env.DATA_DIR || (process.env.RENDER ? path.join("/var",
 const STATE_FILE = path.join(DATA_DIR, "state.json");
 const BACKUP_DIR = path.join(DATA_DIR, "backups");
 const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
-const APP_VERSION = "v111";
+const APP_VERSION = "v112";
 const APP_MODE = String(process.env.APP_MODE || "presentation").toLowerCase();
 const APP_LABEL = process.env.APP_LABEL || (APP_MODE === "beta" ? "Beta privada" : "");
 const SHOW_LOGIN_PROFILES = process.env.SHOW_LOGIN_PROFILES === "1" || (APP_MODE !== "beta" && APP_MODE !== "production");
@@ -698,6 +698,17 @@ function stateSummary(state) {
 }
 
 function diagnosticsPayload(req, state) {
+  const writeProbe = (() => {
+    try {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+      const probeFile = path.join(DATA_DIR, ".write-probe");
+      fs.writeFileSync(probeFile, new Date().toISOString());
+      fs.unlinkSync(probeFile);
+      return { ok: true };
+    } catch (error) {
+      return { ok: false, error: error.message };
+    }
+  })();
   return {
     ok: true,
     name: "KamikApp",
@@ -707,6 +718,7 @@ function diagnosticsPayload(req, state) {
     uptimeSeconds: Math.round(process.uptime()),
     serverTime: new Date().toISOString(),
     dataDir: DATA_DIR,
+    writeProbe,
     uploadLimitMb: Math.round(MAX_UPLOAD_BYTES / 1024 / 1024),
     activeSessions: sessions.size,
     sessionTtlHours: Math.round(SESSION_TTL_MS / 60 / 60 / 1000),
