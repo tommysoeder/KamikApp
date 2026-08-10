@@ -23,6 +23,9 @@ Tambien puedes hacer doble click en `start-kamikapp.bat`.
 
 La app guarda los cambios en `data/state.json` cuando se sirve con `npm start`, y mantiene `localStorage` como respaldo para pruebas.
 
+En Render, los datos deben guardarse en un Disk persistente montado en `/var/data`.
+El servidor usa `DATA_DIR=/var/data/kamikapp` en producción/beta para conservar perfiles, eventos, archivos y backups entre despliegues.
+
 Antes de una demo o beta:
 
 ```bash

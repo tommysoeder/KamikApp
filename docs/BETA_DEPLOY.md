@@ -74,10 +74,30 @@ Si quieres empezar sin archivos subidos, no subas `data/uploads` o dejala vacia.
 
 ## Avisos importantes
 
-- Si el servidor gratuito no conserva disco, `data/state.json` y `data/uploads` pueden perderse al reiniciar.
-- Para tres semanas de prueba puede valer si haces backups frecuentes.
+- En Render hay que activar un Disk persistente. Sin Disk, cada redeploy puede perder perfiles, asignaciones, eventos y archivos creados desde la web.
+- Render no permite Persistent Disks en servicios gratuitos: hay que cambiar el servicio a una instancia de pago mínima antes de añadir el Disk.
+- Montaje recomendado: `/var/data`.
+- Variable recomendada: `DATA_DIR=/var/data/kamikapp`.
+- El repo incluye `render.yaml` con un Disk de 1 GB (`kamikapp-data`) para servicios gestionados como Blueprint.
 - Para uso real con equipos, conviene migrar a base de datos y almacenamiento externo.
 - No publiques `data/beta-credentials.txt` en una carpeta servida como web estatica.
+
+## Activar Disk en Render si el servicio ya existe
+
+1. Entra en Render y abre el servicio `kamikapp-beta`.
+2. Ve a `Settings`.
+3. Busca `Disks`.
+4. Pulsa `Add Disk`.
+5. Usa:
+   - Name: `kamikapp-data`
+   - Mount Path: `/var/data`
+   - Size: `1 GB`
+6. En `Environment`, comprueba o añade:
+   - `DATA_DIR=/var/data/kamikapp`
+   - `APP_MODE=beta`
+   - `PRESENTATION_DEMO=0`
+7. Guarda cambios. Render redeployará la app.
+8. Después del deploy, entra como dirección y revisa `Diagnóstico`: `dataDir` debe mostrar `/var/data/kamikapp`.
 
 ## Prueba despues de subir
 
