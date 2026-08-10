@@ -1223,10 +1223,14 @@ function requestHeaders(operation = "general") {
 }
 
 function save(operation = "general") {
+  saveLocalState();
+  if (API_OPERATION_ENDPOINTS[operation]) saveRemoteNow(operation);
+}
+
+function saveLocalState() {
   state.notifications = dedupeNotifications(state.notifications || []);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   persistSession();
-  if (API_OPERATION_ENDPOINTS[operation]) saveRemoteNow(operation);
 }
 
 function persistSession() {
@@ -1306,12 +1310,12 @@ function queueRemoteSave(operation = "general") {
 }
 
 function saveRemoteNow(operation = "general") {
-  if (remoteSavePaused || typeof fetch === "undefined" || location.protocol === "file:") return;
+  if (remoteSavePaused || typeof fetch === "undefined" || location.protocol === "file:") return Promise.resolve(true);
   clearTimeout(saveTimer);
   saveTimer = null;
   const body = JSON.stringify(persistentState());
   lastRemoteSnapshot = body;
-  sendRemoteState(operation, body);
+  return sendRemoteState(operation, body);
 }
 
 async function sendRemoteState(operation, body) {
@@ -1331,7 +1335,7 @@ async function sendRemoteState(operation, body) {
       } catch {}
       if (response.status === 401 || /sesion caducada|no autorizado|invalid login/i.test(message)) {
         expireSession(message, { silent: false });
-        return;
+        return false;
       }
       const silentReadSave = operation === "markRead";
       const readableOperation = {
@@ -1343,9 +1347,12 @@ async function sendRemoteState(operation, body) {
         markRead: "marcar como visto",
       }[operation] || operation;
       showRemoteSaveError(`${readableOperation}: ${message}`, { renderToast: !silentReadSave });
+      return false;
     }
+    return true;
   } catch {
     showRemoteSaveError(`${operation}: sin conexion con el servidor`, { renderToast: false });
+    return false;
   } finally {
     remoteSaveInFlight = false;
     lastRemoteSaveAt = Date.now();
@@ -8131,8 +8138,15 @@ function csvCell(value) {
   return `"${String(value || "").replaceAll('"', '""')}"`;
 }
 
-function saveAndClose(operation = "general") {
-  save(operation);
+async function saveAndClose(operation = "general") {
+  saveLocalState();
+  if (API_OPERATION_ENDPOINTS[operation]) {
+    const saved = await saveRemoteNow(operation);
+    if (!saved) {
+      render();
+      return;
+    }
+  }
   closeModal();
   render();
 }
