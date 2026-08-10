@@ -11,7 +11,7 @@ const DATA_DIR = process.env.DATA_DIR || path.join(ROOT, "data");
 const STATE_FILE = path.join(DATA_DIR, "state.json");
 const BACKUP_DIR = path.join(DATA_DIR, "backups");
 const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
-const APP_VERSION = "v105";
+const APP_VERSION = "v106";
 const APP_MODE = String(process.env.APP_MODE || "presentation").toLowerCase();
 const APP_LABEL = process.env.APP_LABEL || (APP_MODE === "beta" ? "Beta privada" : "");
 const SHOW_LOGIN_PROFILES = process.env.SHOW_LOGIN_PROFILES === "1" || (APP_MODE !== "beta" && APP_MODE !== "production");
@@ -140,9 +140,14 @@ function hasRole(user, role) {
   return Boolean(user?.roles?.includes(role));
 }
 
+function isExecutive(user) {
+  return hasRole(user, "director") || hasRole(user, "president");
+}
+
 function staffTeamIds(user, state) {
   if (!user || !state) return [];
-  if (hasRole(user, "director")) return (state.teams || []).map((team) => team.id);
+  if (isExecutive(user)) return (state.teams || []).map((team) => team.id);
+  if (hasRole(user, "fees")) return (state.teams || []).map((team) => team.id);
   return (state.teams || [])
     .filter((team) => (hasRole(user, "coach") && team.coachId === user.id) || (hasRole(user, "delegate") && team.delegateId === user.id))
     .map((team) => team.id);
@@ -150,21 +155,22 @@ function staffTeamIds(user, state) {
 
 function permissionKey(operation, role) {
   const map = {
-    publishAnnouncement: { coach: "coachCanAnnouncements", delegate: "delegateCanAnnouncements" },
+    publishAnnouncement: { coach: "coachCanAnnouncements", delegate: "delegateCanAnnouncements", fees: "feesCanAnnouncements" },
     manageEvents: { coach: "coachCanEvents" },
     manageCallup: { coach: "coachCanCallups" },
     attendance: { coach: "coachCanAttendance", delegate: "delegateCanAttendance", parent: true, player: true },
     manageResults: { coach: "coachCanResults" },
-    manageProfiles: { coach: true, delegate: true },
-    messageClub: { coach: true, delegate: true, fees: true, parent: true, player: true },
+    manageProfiles: { coach: true, delegate: true, fees: "feesCanProfiles" },
+    messageClub: { coach: true, delegate: true, fees: "feesCanMessages", parent: true, player: true },
     markRead: { coach: true, delegate: true, fees: true, parent: true, player: true },
-    importMembers: { coach: "coachCanImportMembers", delegate: "delegateCanImportMembers" },
-    exportData: { coach: "coachCanExportData", delegate: "delegateCanExportData" },
-    backupData: { coach: "coachCanBackupData", delegate: "delegateCanBackupData" },
-    restoreData: { coach: "coachCanRestoreData", delegate: "delegateCanRestoreData" },
-    undoBulk: { coach: "coachCanUndoBulk", delegate: "delegateCanUndoBulk" },
-    uploadDocument: { coach: "coachCanDocuments", delegate: "delegateCanDocuments" },
-    editTeam: { coach: "coachCanTeams" },
+    updateSelf: { coach: true, delegate: true, fees: true, parent: true, player: true },
+    importMembers: { coach: "coachCanImportMembers", delegate: "delegateCanImportMembers", fees: "feesCanImportMembers" },
+    exportData: { coach: "coachCanExportData", delegate: "delegateCanExportData", fees: "feesCanExportData" },
+    backupData: { coach: "coachCanBackupData", delegate: "delegateCanBackupData", fees: "feesCanBackupData" },
+    restoreData: { coach: "coachCanRestoreData", delegate: "delegateCanRestoreData", fees: "feesCanRestoreData" },
+    undoBulk: { coach: "coachCanUndoBulk", delegate: "delegateCanUndoBulk", fees: "feesCanUndoBulk" },
+    uploadDocument: { coach: "coachCanDocuments", delegate: "delegateCanDocuments", fees: "feesCanDocuments" },
+    editTeam: { coach: "coachCanTeams", fees: "feesCanTeams" },
   };
   return map[operation] ? map[operation][role] ?? false : undefined;
 }
@@ -172,7 +178,7 @@ function permissionKey(operation, role) {
 function canPerformOperation(actor, baseState) {
   if (!baseState || !actor.user) return true;
   if (!actor.authenticated) return false;
-  if (hasRole(actor.user, "director")) return true;
+  if (isExecutive(actor.user)) return true;
   if (actor.role && !hasRole(actor.user, actor.role)) return false;
   if (["managePermissions", "manageUsers", "cleanDemo"].includes(actor.operation)) return false;
   const key = permissionKey(actor.operation, actor.role);
@@ -214,7 +220,8 @@ function verifyPassword(user, password) {
 
 function playerIdsForUser(user, state) {
   if (!user || !state) return [];
-  if (hasRole(user, "director")) return (state.players || []).map((player) => player.id);
+  if (isExecutive(user)) return (state.players || []).map((player) => player.id);
+  if (hasRole(user, "fees")) return (state.players || []).map((player) => player.id);
   if (hasRole(user, "coach") || hasRole(user, "delegate")) {
     const teams = staffTeamIds(user, state);
     return (state.players || []).filter((player) => (player.teams || []).some((teamId) => teams.includes(teamId))).map((player) => player.id);
@@ -226,7 +233,8 @@ function playerIdsForUser(user, state) {
 
 function teamIdsForUser(user, state) {
   if (!user || !state) return [];
-  if (hasRole(user, "director")) return (state.teams || []).map((team) => team.id);
+  if (isExecutive(user)) return (state.teams || []).map((team) => team.id);
+  if (hasRole(user, "fees")) return (state.teams || []).map((team) => team.id);
   if (hasRole(user, "coach") || hasRole(user, "delegate")) return staffTeamIds(user, state);
   const players = new Set(playerIdsForUser(user, state));
   return [
@@ -266,7 +274,7 @@ function sanitizeStateForRead(state, actor) {
     copy.auditLog = [];
     return copy;
   }
-  if (hasRole(actor.user, "director")) return copy;
+  if (isExecutive(actor.user)) return copy;
 
   const visiblePlayerIds = playerIdsForUser(actor.user, state);
   const visibleTeamIds = teamIdsForUser(actor.user, state);
@@ -393,7 +401,7 @@ const domainOperations = {
   documentFolders: ["uploadDocument", "cleanDemo", "restoreData", "undoBulk"],
   teams: ["manageUsers", "editTeam", "importMembers", "manageProfiles", "restoreData", "undoBulk"],
   players: ["manageProfiles", "importMembers", "editTeam", "manageUsers", "restoreData", "undoBulk"],
-  users: ["manageUsers", "importMembers", "manageProfiles", "restoreData", "undoBulk"],
+  users: ["manageUsers", "importMembers", "manageProfiles", "updateSelf", "restoreData", "undoBulk"],
   threads: ["messageClub", "markRead", "restoreData", "undoBulk"],
   notifications: ["markRead", "cleanDemo", "manageEvents", "manageCallup", "uploadDocument", "publishAnnouncement", "restoreData", "undoBulk"],
   readAnnouncementIds: ["markRead", "cleanDemo", "publishAnnouncement", "restoreData", "undoBulk"],
@@ -429,7 +437,7 @@ function playerWithinTeams(player, teamIds) {
 }
 
 function ownAttendanceOnly(actor, beforeState, afterState) {
-  if (!actor?.user || hasRole(actor.user, "director") || hasRole(actor.user, "coach") || hasRole(actor.user, "delegate")) return "";
+  if (!actor?.user || isExecutive(actor.user) || hasRole(actor.user, "coach") || hasRole(actor.user, "delegate")) return "";
   const allowedPlayers = new Set(playerIdsForUser(actor.user, beforeState));
   const changedCallups = changedItems(beforeState.callups, afterState.callups);
   const changedTrainings = changedItems(beforeState.trainings, afterState.trainings);
@@ -458,7 +466,7 @@ function ownAttendanceOnly(actor, beforeState, afterState) {
 }
 
 function authorizeTeamScope(actor, beforeState, afterState) {
-  if (!beforeState || !afterState || !actor.user || hasRole(actor.user, "director")) return "";
+  if (!beforeState || !afterState || !actor.user || isExecutive(actor.user)) return "";
   if (actor.operation === "attendance") return ownAttendanceOnly(actor, beforeState, afterState);
   const teamIds = staffTeamIds(actor.user, beforeState);
   const blocks = [];
@@ -491,6 +499,38 @@ function authorizeTeamScope(actor, beforeState, afterState) {
   return blocks.length ? `No puedes modificar ${blocks.join(", ")} fuera de tus equipos` : "";
 }
 
+function authorizeSelfUpdate(actor, beforeState, afterState) {
+  if (!actor?.user || !beforeState || !afterState) return "Operacion no permitida para este rol";
+  const beforeUsers = beforeState.users || [];
+  const afterUsers = afterState.users || [];
+  if (beforeUsers.length !== afterUsers.length) return "Solo puedes modificar tu propio perfil";
+  const beforeById = new Map(beforeUsers.map((user) => [user.id, user]));
+  const afterById = new Map(afterUsers.map((user) => [user.id, user]));
+  for (const [id, beforeUser] of beforeById) {
+    const afterUser = afterById.get(id);
+    if (!afterUser) return "Solo puedes modificar tu propio perfil";
+    if (id !== actor.user.id && stable(publicUser(beforeUser)) !== stable(publicUser(afterUser))) return "Solo puedes modificar tu propio perfil";
+  }
+  const beforeSelf = beforeById.get(actor.user.id);
+  const afterSelf = afterById.get(actor.user.id);
+  if (!beforeSelf || !afterSelf) return "Solo puedes modificar tu propio perfil";
+  const lockedBefore = {
+    id: beforeSelf.id,
+    roles: beforeSelf.roles || [],
+    disabled: Boolean(beforeSelf.disabled),
+    playerId: beforeSelf.playerId || "",
+    children: beforeSelf.children || [],
+  };
+  const lockedAfter = {
+    id: afterSelf.id,
+    roles: afterSelf.roles || [],
+    disabled: Boolean(afterSelf.disabled),
+    playerId: afterSelf.playerId || "",
+    children: afterSelf.children || [],
+  };
+  return stable(lockedBefore) === stable(lockedAfter) ? "" : "Solo puedes modificar tus datos personales";
+}
+
 function authorizeChangedDomains(actor, beforeState, afterState) {
   if (!beforeState) return "";
   const changed = changedDomains(beforeState, afterState);
@@ -502,14 +542,15 @@ function authorizeStateWrite(req, nextState) {
   const baseState = readSavedState();
   const actor = actorFromRequest(req, baseState || nextState);
   if (!canPerformOperation(actor, baseState || nextState)) return "Operacion no permitida para este rol";
+  if (actor.operation === "updateSelf") return authorizeSelfUpdate(actor, baseState, nextState);
   const domainError = authorizeChangedDomains(actor, baseState, nextState);
   if (domainError) return domainError;
   const scopeError = authorizeTeamScope(actor, baseState, nextState);
   if (scopeError) return scopeError;
-  if (baseState && permissionsChanged(baseState, nextState) && !hasRole(actor.user, "director")) {
+  if (baseState && permissionsChanged(baseState, nextState) && !isExecutive(actor.user)) {
     return "Solo direccion puede modificar permisos";
   }
-  if (baseState && userSecurityChanged(baseState, nextState) && !hasRole(actor.user, "director") && !["importMembers", "manageProfiles", "restoreData", "undoBulk"].includes(actor.operation)) {
+  if (baseState && userSecurityChanged(baseState, nextState) && !isExecutive(actor.user) && !["importMembers", "manageProfiles", "restoreData", "undoBulk"].includes(actor.operation)) {
     return "Solo direccion puede gestionar usuarios";
   }
   return "";
@@ -525,6 +566,7 @@ const stateWriteRoutes = {
   "/api/files/meta": "uploadDocument",
   "/api/members/import": "importMembers",
   "/api/messages": "messageClub",
+  "/api/me": "updateSelf",
   "/api/read-state": "markRead",
   "/api/operations/undo": "undoBulk",
   "/api/permissions": "managePermissions",
@@ -547,6 +589,7 @@ const operationDomains = {
   manageResults: ["results", "seasons", "competitions", "auditLog", "resultsCursor", "activeSeasonId", "activeCompetitionId", "activeView"],
   manageUsers: ["users", "teams", "players", "auditLog"],
   markRead: ["notifications", "readAnnouncementIds", "threads", "activeThreadId"],
+  updateSelf: ["users", "auditLog"],
   cleanDemo: ["events", "trainings", "callups", "results", "announcements", "documents", "documentFolders", "notifications", "readAnnouncementIds", "auditLog", "activeDocumentTeamId", "activeDocumentFolderId", "resultsCursor", "calendarCursor"],
   messageClub: ["threads", "auditLog", "activeThreadId"],
   publishAnnouncement: ["announcements", "readAnnouncementIds", "auditLog"],
@@ -566,7 +609,7 @@ function mergeCollection(baseItems = [], incomingItems = [], canPrune = () => tr
 }
 
 function prunePredicateForKey(key, actor, baseState) {
-  if (!actor?.user || hasRole(actor.user, "director")) return () => true;
+  if (!actor?.user || isExecutive(actor.user)) return () => true;
   const teamIds = staffTeamIds(actor.user, baseState);
   if (["events", "trainings", "callups", "results", "documents", "documentFolders", "teams"].includes(key)) return (item) => itemWithinTeams(item, teamIds);
   if (key === "players") return (item) => playerWithinTeams(item, teamIds);

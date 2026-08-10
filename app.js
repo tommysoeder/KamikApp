@@ -18,6 +18,7 @@ const API_OPERATION_ENDPOINTS = {
   publishAnnouncement: "/api/announcements",
   restoreData: "/api/backups/restore",
   undoBulk: "/api/operations/undo",
+  updateSelf: "/api/me",
   uploadDocument: "/api/files/meta",
 };
 const API_LOGIN_URL = "/api/login";
@@ -33,7 +34,7 @@ const APP_MODE = String(APP_CONFIG.mode || "presentation").toLowerCase();
 const IS_PRESENTATION_DEMO = APP_CONFIG.presentationDemo !== false && APP_MODE !== "beta" && APP_MODE !== "production";
 const SHOW_LOGIN_PROFILES = APP_CONFIG.showLoginProfiles !== false;
 
-const roleKeys = ["director", "coach", "delegate", "fees", "parent", "player"];
+const roleKeys = ["president", "director", "coach", "delegate", "fees", "parent", "player"];
 
 const copy = {
   es: {
@@ -114,6 +115,7 @@ const copy = {
     documents: "Documentos",
     teams: "Equipos",
     settings: "Permisos",
+    president: "Presidente",
     director: "Director deportivo",
     coach: "Entrenador",
     delegate: "Delegado",
@@ -222,6 +224,16 @@ const copy = {
     delegateCanRestoreData: "Delegados pueden restaurar backup",
     coachCanUndoBulk: "Entrenadores pueden deshacer operaciones masivas",
     delegateCanUndoBulk: "Delegados pueden deshacer operaciones masivas",
+    feesCanAnnouncements: "Gestión de cuotas puede publicar anuncios",
+    feesCanDocuments: "Gestión de cuotas puede subir y editar archivos",
+    feesCanProfiles: "Gestión de cuotas puede crear y editar perfiles",
+    feesCanTeams: "Gestión de cuotas puede editar equipos",
+    feesCanMessages: "Gestión de cuotas puede atender mensajes",
+    feesCanImportMembers: "Gestión de cuotas puede importar socios",
+    feesCanExportData: "Gestión de cuotas puede exportar datos",
+    feesCanBackupData: "Gestión de cuotas puede descargar backup completo",
+    feesCanRestoreData: "Gestión de cuotas puede restaurar backup",
+    feesCanUndoBulk: "Gestión de cuotas puede deshacer operaciones masivas",
     push: "Activar push",
     pending: "Pendiente",
     yes: "Asiste",
@@ -378,6 +390,7 @@ const copy = {
     documents: "Documents",
     teams: "Teams",
     settings: "Permissions",
+    president: "President",
     director: "Sports director",
     coach: "Coach",
     delegate: "Delegate",
@@ -486,6 +499,16 @@ const copy = {
     delegateCanRestoreData: "Delegates can restore backup",
     coachCanUndoBulk: "Coaches can undo bulk operations",
     delegateCanUndoBulk: "Delegates can undo bulk operations",
+    feesCanAnnouncements: "Fees management can publish announcements",
+    feesCanDocuments: "Fees management can upload and edit files",
+    feesCanProfiles: "Fees management can create and edit profiles",
+    feesCanTeams: "Fees management can edit teams",
+    feesCanMessages: "Fees management can handle messages",
+    feesCanImportMembers: "Fees management can import members",
+    feesCanExportData: "Fees management can export data",
+    feesCanBackupData: "Fees management can download full backups",
+    feesCanRestoreData: "Fees management can restore backups",
+    feesCanUndoBulk: "Fees management can undo bulk operations",
     push: "Enable push",
     pending: "Pending",
     yes: "Attending",
@@ -606,6 +629,16 @@ const seed = {
     coachCanResultGallery: true,
     delegateCanResultGallery: true,
     coachCanTeams: true,
+    feesCanAnnouncements: false,
+    feesCanDocuments: false,
+    feesCanProfiles: false,
+    feesCanTeams: false,
+    feesCanMessages: true,
+    feesCanImportMembers: false,
+    feesCanExportData: false,
+    feesCanBackupData: false,
+    feesCanRestoreData: false,
+    feesCanUndoBulk: false,
   },
   pushEnabled: false,
   toast: "",
@@ -886,6 +919,16 @@ function normalize(raw) {
   next.permissions.delegateCanRestoreData ??= false;
   next.permissions.coachCanUndoBulk ??= false;
   next.permissions.delegateCanUndoBulk ??= false;
+  next.permissions.feesCanAnnouncements ??= false;
+  next.permissions.feesCanDocuments ??= false;
+  next.permissions.feesCanProfiles ??= false;
+  next.permissions.feesCanTeams ??= false;
+  next.permissions.feesCanMessages ??= true;
+  next.permissions.feesCanImportMembers ??= false;
+  next.permissions.feesCanExportData ??= false;
+  next.permissions.feesCanBackupData ??= false;
+  next.permissions.feesCanRestoreData ??= false;
+  next.permissions.feesCanUndoBulk ??= false;
   next.mobileMenuOpen ??= false;
   next.toast ||= "";
   if (/operacion no permitida|no se pudo conectar|sin conexion|servidor local/i.test(next.toast)) next.toast = "";
@@ -1111,7 +1154,7 @@ function demoMatchReportForResult(result, index, targetState = state) {
 
 function requestHeaders(operation = "general") {
   const user = currentUser();
-  const role = user && hasRole(user, "director") ? "director" : state.session?.activeRole || user?.roles?.[0] || "";
+  const role = user && isExecutive(user) ? activeRole(user) || "director" : state.session?.activeRole || user?.roles?.[0] || "";
   const headers = {
     "X-Kamik-User": user?.id || "",
     "X-Kamik-Role": role,
@@ -1354,27 +1397,33 @@ function hasRole(user, role) {
   return Boolean(user?.roles?.includes(role));
 }
 
+function isExecutive(user) {
+  return hasRole(user, "director") || hasRole(user, "president");
+}
+
 const permissionByAction = {
-  publishAnnouncement: { coach: "coachCanAnnouncements", delegate: "delegateCanAnnouncements" },
+  publishAnnouncement: { coach: "coachCanAnnouncements", delegate: "delegateCanAnnouncements", fees: "feesCanAnnouncements" },
   manageEvents: { coach: "coachCanEvents" },
   manageCallup: { coach: "coachCanCallups" },
-  uploadDocument: { coach: "coachCanDocuments", delegate: "delegateCanDocuments" },
-  editTeam: { coach: "coachCanTeams" },
+  uploadDocument: { coach: "coachCanDocuments", delegate: "delegateCanDocuments", fees: "feesCanDocuments" },
+  editTeam: { coach: "coachCanTeams", fees: "feesCanTeams" },
   viewStats: { coach: true },
   manageResults: { coach: "coachCanResults" },
   manageResultGallery: { coach: "coachCanResultGallery", delegate: "delegateCanResultGallery" },
   attendance: { coach: "coachCanAttendance", delegate: "delegateCanAttendance" },
-  management: { coach: true, delegate: true },
-  importMembers: { coach: "coachCanImportMembers", delegate: "delegateCanImportMembers" },
-  exportData: { coach: "coachCanExportData", delegate: "delegateCanExportData" },
-  backupData: { coach: "coachCanBackupData", delegate: "delegateCanBackupData" },
-  restoreData: { coach: "coachCanRestoreData", delegate: "delegateCanRestoreData" },
-  undoBulk: { coach: "coachCanUndoBulk", delegate: "delegateCanUndoBulk" },
+  management: { coach: true, delegate: true, fees: true },
+  manageProfiles: { coach: true, delegate: true, fees: "feesCanProfiles" },
+  messageClub: { coach: true, delegate: true, fees: "feesCanMessages", parent: true, player: true },
+  importMembers: { coach: "coachCanImportMembers", delegate: "delegateCanImportMembers", fees: "feesCanImportMembers" },
+  exportData: { coach: "coachCanExportData", delegate: "delegateCanExportData", fees: "feesCanExportData" },
+  backupData: { coach: "coachCanBackupData", delegate: "delegateCanBackupData", fees: "feesCanBackupData" },
+  restoreData: { coach: "coachCanRestoreData", delegate: "delegateCanRestoreData", fees: "feesCanRestoreData" },
+  undoBulk: { coach: "coachCanUndoBulk", delegate: "delegateCanUndoBulk", fees: "feesCanUndoBulk" },
 };
 
 function canDo(action, user = currentUser()) {
   if (!user) return false;
-  if (hasRole(user, "director")) return true;
+  if (isExecutive(user)) return true;
   const rules = permissionByAction[action] || {};
   return user.roles.some((role) => {
     const rule = rules[role];
@@ -1474,8 +1523,8 @@ function playerCanSeeItem(item, user = currentUser()) {
 }
 
 function staffCanSeeTeam(teamId, user = currentUser()) {
-  if (!teamId) return hasRole(user, "director");
-  return hasRole(user, "director") || staffTeamIds(user).includes(teamId);
+  if (!teamId) return isExecutive(user);
+  return isExecutive(user) || staffTeamIds(user).includes(teamId);
 }
 
 function visibleNotifications(user = currentUser(), limit = 8) {
@@ -1484,7 +1533,7 @@ function visibleNotifications(user = currentUser(), limit = 8) {
   state.notifications = dedupeNotifications(state.notifications || []);
   const seen = new Set();
   return (state.notifications || [])
-    .filter((notice) => notice.userId === user.id || (!hasRole(user, "director") && !hasRole(user, "coach") && !hasRole(user, "delegate") && notice.playerId && players.includes(notice.playerId)))
+    .filter((notice) => notice.userId === user.id || (!isExecutive(user) && !hasRole(user, "coach") && !hasRole(user, "delegate") && notice.playerId && players.includes(notice.playerId)))
     .filter((notice) => notificationPreferenceEnabled(notificationType(notice), user))
     .filter((notice) => {
       const key = notificationVisibleKey(notice, user);
@@ -1519,18 +1568,22 @@ function notifyAffectedPlayers(playerIds, title, body, eventId = "") {
 
 function notifyTeam(teamId, title, body, documentId = "") {
   const playerIds = state.players.filter((player) => player.teams.includes(teamId)).map((player) => player.id);
+  const recipients = new Map();
   [...new Set(playerIds)].forEach((playerId) => {
     usersForPlayer(playerId).forEach((user) => {
-      addNotification({
-        id: uid("notice"),
-        userId: user.id,
-        playerId,
-        documentId,
-        title,
-        body,
-        createdAt: iso(0),
-        read: false,
-      });
+      if (!recipients.has(user.id)) recipients.set(user.id, { user, playerId });
+    });
+  });
+  recipients.forEach(({ user, playerId }) => {
+    addNotification({
+      id: uid("notice"),
+      userId: user.id,
+      playerId,
+      documentId,
+      title,
+      body,
+      createdAt: iso(0),
+      read: false,
     });
   });
 }
@@ -1721,7 +1774,8 @@ function notifyUnreadVisibleItems() {
 
 function visiblePlayerIds(user = currentUser()) {
   if (!user) return [];
-  if (hasRole(user, "director")) return state.players.map((player) => player.id);
+  if (isExecutive(user)) return state.players.map((player) => player.id);
+  if (hasRole(user, "fees") && canDo("manageProfiles", user)) return state.players.map((player) => player.id);
   const ids = new Set();
   if (hasRole(user, "parent")) (user.children || []).forEach((id) => ids.add(id));
   if (hasRole(user, "player") && user.playerId) ids.add(user.playerId);
@@ -1736,7 +1790,8 @@ function visiblePlayerIds(user = currentUser()) {
 
 function visibleTeamIds(user = currentUser()) {
   const ids = new Set();
-  if (hasRole(user, "director")) state.teams.forEach((team) => ids.add(team.id));
+  if (isExecutive(user)) state.teams.forEach((team) => ids.add(team.id));
+  if (hasRole(user, "fees") && (canDo("manageProfiles", user) || canDo("editTeam", user) || canDo("uploadDocument", user))) state.teams.forEach((team) => ids.add(team.id));
   visiblePlayerIds(user).forEach((playerId) => {
     const player = getPlayer(playerId);
     (player?.teams || []).forEach((teamId) => ids.add(teamId));
@@ -1749,7 +1804,7 @@ function visibleTeamIds(user = currentUser()) {
 
 function staffTeamIds(user = currentUser()) {
   if (!user) return [];
-  if (hasRole(user, "director")) return state.teams.map((team) => team.id);
+  if (isExecutive(user)) return state.teams.map((team) => team.id);
   return state.teams
     .filter((team) => (hasRole(user, "coach") && team.coachId === user.id) || (hasRole(user, "delegate") && team.delegateId === user.id))
     .map((team) => team.id);
@@ -1761,25 +1816,25 @@ function canPublishAnnouncement(user = currentUser()) {
 
 function canCreateEvent(user = currentUser()) {
   if (!canDo("manageEvents", user)) return false;
-  return hasRole(user, "director") || editableEventTeamIds(user).length > 0;
+  return isExecutive(user) || editableEventTeamIds(user).length > 0;
 }
 
 function editableEventTeamIds(user = currentUser()) {
   if (!user) return [];
-  if (hasRole(user, "director")) return state.teams.map((team) => team.id);
+  if (isExecutive(user)) return state.teams.map((team) => team.id);
   if (!canDo("manageEvents", user) || !hasRole(user, "coach")) return [];
   return state.teams.filter((team) => team.coachId === user.id).map((team) => team.id);
 }
 
 function canManageScheduleItem(item, user = currentUser()) {
   if (!item || !user) return false;
-  if (hasRole(user, "director")) return true;
+  if (isExecutive(user)) return true;
   return Boolean(item.teamId && editableEventTeamIds(user).includes(item.teamId));
 }
 
 function canUseEventTeam(teamId, user = currentUser()) {
   if (!user) return false;
-  if (hasRole(user, "director")) return true;
+  if (isExecutive(user)) return true;
   return Boolean(teamId && editableEventTeamIds(user).includes(teamId));
 }
 
@@ -1789,7 +1844,7 @@ function canCreateCallup(user = currentUser()) {
 
 function canManageCallup(callup, user = currentUser()) {
   if (!callup) return false;
-  if (hasRole(user, "director")) return true;
+  if (isExecutive(user)) return true;
   return canDo("manageCallup", user) && hasRole(user, "coach") && getTeam(callup.teamId)?.coachId === user.id;
 }
 
@@ -1798,7 +1853,8 @@ function canUploadDocument(user = currentUser()) {
 }
 
 function canEditTeam(team, user = currentUser()) {
-  if (hasRole(user, "director")) return true;
+  if (isExecutive(user)) return true;
+  if (hasRole(user, "fees")) return canDo("editTeam", user);
   return canDo("editTeam", user) && hasRole(user, "coach") && team?.coachId === user.id;
 }
 
@@ -1815,7 +1871,7 @@ function canUseManagement(user = currentUser()) {
 }
 
 function canManageUsers(user = currentUser()) {
-  return hasRole(user, "director");
+  return isExecutive(user);
 }
 
 function canImportMembers(user = currentUser()) {
@@ -1844,14 +1900,15 @@ function canUseDataTools(user = currentUser()) {
 
 function canEditPlayerProfile(player, user = currentUser()) {
   if (!player || !user) return false;
-  if (hasRole(user, "director")) return true;
+  if (isExecutive(user)) return true;
+  if (hasRole(user, "fees")) return canDo("manageProfiles", user);
   const teams = staffTeamIds(user);
   return (hasRole(user, "coach") || hasRole(user, "delegate")) && (player.teams || []).some((teamId) => teams.includes(teamId));
 }
 
 function canManageResultGallery(result, user = currentUser()) {
   if (!result || !user) return false;
-  if (hasRole(user, "director")) return true;
+  if (isExecutive(user)) return true;
   const team = getTeam(result.teamId);
   return (
     (canDo("manageResultGallery", user) && hasRole(user, "coach") && team?.coachId === user.id) ||
@@ -1862,7 +1919,7 @@ function canManageResultGallery(result, user = currentUser()) {
 function canManage(view) {
   const user = currentUser();
   if (!user) return false;
-  if (hasRole(user, "director")) return true;
+  if (isExecutive(user)) return true;
   if (view === "attendance") return canDo("attendance", user);
   if (view === "documents") return canUploadDocument(user);
   return false;
@@ -1875,7 +1932,7 @@ function canSee(view) {
   if (view === "management") return canUseManagement(user);
   if (view === "users") return canUseDataTools(user);
   if (view === "diagnostics") return canBackupData(user) || canRestoreData(user) || canManageUsers(user);
-  if (view === "settings") return hasRole(user, "director");
+  if (view === "settings") return isExecutive(user);
   return false;
 }
 
@@ -1941,12 +1998,13 @@ function setView(view) {
   state.activeView = view;
   state.mobileMenuOpen = false;
   state.globalSearchOpen = false;
+  const clearsReadState = ["messages", "announcements", "calendar", "callups", "documents"].includes(view);
   if (view === "messages") markVisibleThreadsSeen(false);
   if (view === "announcements") markVisibleAnnouncementsRead(false);
   if (view === "calendar") markNotificationsSeen((notice) => Boolean(notice.eventId), false);
   if (view === "callups") markNotificationsSeen((notice) => notice.title.toLowerCase().includes("convocatoria"), false);
   if (view === "documents") markNotificationsSeen((notice) => Boolean(notice.documentId) || notice.title === t("fileAlert"), false);
-  save();
+  save(clearsReadState ? "markRead" : "general");
   render();
   resetPageScroll();
 }
@@ -1995,7 +2053,6 @@ function render() {
     return;
   }
   if (!canSee(state.activeView)) state.activeView = "dashboard";
-  clearActiveViewBadges();
   app.innerHTML = `
     <div class="shell ${state.mobileMenuOpen ? "menu-open" : ""}">
       ${state.mobileMenuOpen ? `<button class="mobile-menu-scrim" type="button" onclick="closeMobileMenu()" aria-label="Cerrar menu"></button>` : ""}
@@ -2003,7 +2060,7 @@ function render() {
       <main class="main">
         ${renderBetaBanner()}
         <header class="mobile-header">
-          <button class="mobile-menu-button" type="button" onclick="toggleMobileMenu()" aria-label="Abrir menu"><span></span><span></span><span></span></button>
+          <button class="mobile-menu-button" type="button" onclick="toggleMobileMenu()" aria-label="Abrir menu"><span></span><span></span><span></span>${mobileMenuBadge()}</button>
           <button class="mobile-logo-button" type="button" onclick="setView('dashboard')" aria-label="${t("dashboard")}">
             <img class="mobile-full-logo" src="assets/kamikazes-logo.png" alt="Kamikazes" />
           </button>
@@ -2071,6 +2128,10 @@ function toggleMobileMenu() {
 function unreadBadge(view) {
   const count = badgeCount(view);
   return count ? `<i class="unread-dot" aria-label="${count} pendiente${count === 1 ? "" : "s"}"></i>` : "";
+}
+
+function mobileMenuBadge() {
+  return ["notifications", "announcements", "messages", "calendar", "callups", "documents"].some((view) => badgeCount(view) > 0) ? `<i class="unread-dot menu-dot" aria-label="Pendientes"></i>` : "";
 }
 
 function badgeCount(view) {
@@ -2364,6 +2425,7 @@ function renderSidebar(user) {
                 .join("")}</select>`
             : ""
         }
+        <button class="btn compact account-btn" type="button" onclick="openMyAccountModal()">Mi perfil</button>
       </div>
       ${renderGlobalSearch("sidebar")}
       <nav class="nav">
@@ -2717,7 +2779,7 @@ function viewTitle(view) {
 
 function topbarText(user) {
   const count = visiblePlayerIds(user).length;
-  if (hasRole(user, "director")) return `${state.teams.length} equipos · ${state.players.length} jugadores · ${state.users.length} usuarios`;
+  if (isExecutive(user)) return `${state.teams.length} equipos · ${state.players.length} jugadores · ${state.users.length} usuarios`;
   return `${roleLabel(activeRole(user))} · ${count} jugador${count === 1 ? "" : "es"} visible${count === 1 ? "" : "s"}`;
 }
 
@@ -2752,9 +2814,9 @@ function renderDashboard() {
   const weekItems = weeklyScheduleItems();
   const weekendResults = currentWeekendResults();
   const statCards = [
-    `<article class="card stat clickable-item" onclick="setView('teams')"><span>${t("teams")}</span><strong>${state.teams.length}</strong><span>${state.categories.length} categorias configurables</span></article>`,
     `<article class="card stat clickable-item" onclick="setView('calendar')"><span>${t("calendar")}</span><strong>${weekItems.length}</strong><span>eventos y entrenos esta semana</span></article>`,
     unread.length ? `<article class="card stat clickable-item" onclick="setView('notifications')"><span>${t("unreadNotices")}</span><strong>${unread.length}</strong><span>${visible.length} jugadores vinculados/visibles</span></article>` : "",
+    `<article class="card stat clickable-item dashboard-teams-stat" onclick="setView('teams')"><span>${t("teams")}</span><strong>${state.teams.length}</strong><span>${state.categories.length} categorias configurables</span></article>`,
   ].filter(Boolean);
   return `
     <section class="panel results-hero ${weekendResults.length >= 4 ? "compact-results" : ""} ${weekendResults.length === 4 ? "four-results" : ""} ${weekendResults.length >= 5 ? "many-results" : ""}" onclick="setView('results')">
@@ -2818,7 +2880,7 @@ function renderManagement() {
     canManageResults() ? { label: t("addResult"), hint: "Marcador, crónica y galería posterior.", action: "openResultModal()" } : null,
     canUploadDocument() ? { label: t("newDocument"), hint: "Archivos, fotos o vídeos del equipo.", action: "openDocumentModal()" } : null,
     { label: t("history"), hint: "Consultar eventos y convocatorias ya archivados.", action: "setView('history')" },
-    hasRole(user, "director") ? { label: t("addTeam"), hint: "Crear equipo y asignar jugadores.", action: "openTeamModal()" } : null,
+    isExecutive(user) ? { label: t("addTeam"), hint: "Crear equipo y asignar jugadores.", action: "openTeamModal()" } : null,
   ].filter(Boolean);
   return `
     <div class="management-layout">
@@ -4535,10 +4597,14 @@ function renderProfiles() {
   if (players.length && !players.some((player) => player.id === state.activeProfilePlayerId)) state.activeProfilePlayerId = players[0].id;
   const activePlayer = allPlayers.find((player) => player.id === state.activeProfilePlayerId);
   const teams = visibleTeamIds().map(getTeam).filter(Boolean);
+  const profileActions = [
+    canImportMembers() ? `<button class="btn primary" type="button" onclick="openQuickPlayerModal()">${t("quickPlayerSignup")}</button>` : "",
+    canManageUsers() ? `<button class="btn" type="button" onclick="openUserModal()">${t("newUser")}</button>` : "",
+  ].filter(Boolean).join("");
   return `
     <div class="profiles-layout">
       <section class="panel">
-        <div class="panel-header"><div><h2>${t("playerProfiles")}</h2><p>Ficha completa con equipos, calendario, convocatorias, asistencia, archivos y familia.</p></div></div>
+        <div class="panel-header"><div><h2>${t("playerProfiles")}</h2><p>Ficha completa con equipos, calendario, convocatorias, asistencia, archivos y familia.</p></div><div class="actions inline-actions">${profileActions}</div></div>
         <div class="profile-directory">
           <aside class="profile-list-panel">
             <div class="profile-filters">
@@ -4600,7 +4666,7 @@ function renderPlayerProfileCard(player) {
   const absent = rows.filter((row) => row.status === "no" || row.absence).length;
   const attendancePct = rows.length ? Math.round((present / rows.length) * 100) : 0;
   const editable = canEditPlayerProfile(player);
-  const staffNotes = hasRole(currentUser(), "director") || hasRole(currentUser(), "coach") || hasRole(currentUser(), "delegate");
+  const staffNotes = isExecutive(currentUser()) || hasRole(currentUser(), "coach") || hasRole(currentUser(), "delegate");
   return `
     <article class="player-profile item ${player.active === false ? "disabled" : ""}">
       <div class="profile-head">
@@ -5101,7 +5167,7 @@ function renderTrainingItem(training) {
 function attendancePlayersForTraining(training) {
   const user = currentUser();
   const base = state.players.filter((player) => (training.playerIds?.length ? training.playerIds.includes(player.id) : !training.teamId || player.teams.includes(training.teamId)));
-  if (hasRole(user, "director") || hasRole(user, "coach") || hasRole(user, "delegate")) return base;
+  if (isExecutive(user) || hasRole(user, "coach") || hasRole(user, "delegate")) return base;
   const visible = new Set(visiblePlayerIds(user));
   return base.filter((player) => visible.has(player.id));
 }
@@ -5152,12 +5218,12 @@ function employeeName(userId) {
 }
 
 function employees() {
-  return state.users.filter((user) => !user.disabled && user.roles.some((role) => ["director", "coach", "delegate"].includes(role)));
+  return state.users.filter((user) => !user.disabled && user.roles.some((role) => ["president", "director", "coach", "delegate", "fees"].includes(role)));
 }
 
 function visibleThreads() {
   const user = currentUser();
-  if (hasRole(user, "director")) return state.threads;
+  if (isExecutive(user)) return state.threads;
   if (hasRole(user, "coach") || hasRole(user, "delegate")) return state.threads.filter((thread) => thread.assignedToId === user.id);
   return state.threads.filter((thread) => thread.participantUserIds.includes(user.id));
 }
@@ -5276,7 +5342,7 @@ function renderTeams() {
       <section class="panel">
         <div class="panel-header">
           <div><h2>${t("teams")}</h2><p>Numero de equipos editable cuando cierres A/B y categorias.</p></div>
-          ${hasRole(currentUser(), "director") ? `<button class="btn primary" type="button" onclick="openTeamModal()">${t("addTeam")}</button>` : ""}
+          ${isExecutive(currentUser()) ? `<button class="btn primary" type="button" onclick="openTeamModal()">${t("addTeam")}</button>` : ""}
         </div>
         <div class="list">${state.teams.map(renderTeamItem).join("")}</div>
       </section>
@@ -5487,22 +5553,22 @@ function renderSettings() {
 
 function permissionMatrixRows() {
   return [
-    { label: t("publishAnnouncements"), director: "always", coach: "coachCanAnnouncements", delegate: "delegateCanAnnouncements", parent: "no", player: "no" },
-    { label: t("createEvents"), director: "always", coach: "coachCanEvents", delegate: "no", parent: "no", player: "no" },
-    { label: t("manageCallups"), director: "always", coach: "coachCanCallups", delegate: "no", parent: "no", player: "no" },
-    { label: t("confirmAttendanceAction"), director: "always", coach: "coachCanAttendance", delegate: "delegateCanAttendance", parent: "own", player: "own" },
-    { label: t("uploadFilesAction"), director: "always", coach: "coachCanDocuments", delegate: "delegateCanDocuments", parent: "no", player: "no" },
-    { label: t("viewFilesAction"), director: "always", coach: "team", delegate: "team", parent: "own", player: "own" },
-    { label: t("manageResultsAction"), director: "always", coach: "coachCanResults", delegate: "no", parent: "no", player: "no" },
-    { label: t("manageGalleriesAction"), director: "always", coach: "coachCanResultGallery", delegate: "delegateCanResultGallery", parent: "no", player: "no" },
-    { label: t("editTeamsAction"), director: "always", coach: "coachCanTeams", delegate: "no", parent: "no", player: "no" },
-    { label: t("manageUsersAction"), director: "always", coach: "no", delegate: "no", parent: "no", player: "no" },
-    { label: t("importMembersAction"), director: "always", coach: "coachCanImportMembers", delegate: "delegateCanImportMembers", parent: "no", player: "no" },
-    { label: t("exportDataAction"), director: "always", coach: "coachCanExportData", delegate: "delegateCanExportData", parent: "no", player: "no" },
-    { label: t("backupDataAction"), director: "always", coach: "coachCanBackupData", delegate: "delegateCanBackupData", parent: "no", player: "no" },
-    { label: t("restoreDataAction"), director: "always", coach: "coachCanRestoreData", delegate: "delegateCanRestoreData", parent: "no", player: "no" },
-    { label: t("undoBulkAction"), director: "always", coach: "coachCanUndoBulk", delegate: "delegateCanUndoBulk", parent: "no", player: "no" },
-    { label: t("messageClubAction"), director: "always", coach: "team", delegate: "team", parent: "own", player: "own" },
+    { label: t("publishAnnouncements"), president: "always", director: "always", coach: "coachCanAnnouncements", delegate: "delegateCanAnnouncements", fees: "feesCanAnnouncements", parent: "no", player: "no" },
+    { label: t("createEvents"), president: "always", director: "always", coach: "coachCanEvents", delegate: "no", fees: "no", parent: "no", player: "no" },
+    { label: t("manageCallups"), president: "always", director: "always", coach: "coachCanCallups", delegate: "no", fees: "no", parent: "no", player: "no" },
+    { label: t("confirmAttendanceAction"), president: "always", director: "always", coach: "coachCanAttendance", delegate: "delegateCanAttendance", fees: "no", parent: "own", player: "own" },
+    { label: t("uploadFilesAction"), president: "always", director: "always", coach: "coachCanDocuments", delegate: "delegateCanDocuments", fees: "feesCanDocuments", parent: "no", player: "no" },
+    { label: t("viewFilesAction"), president: "always", director: "always", coach: "team", delegate: "team", fees: "team", parent: "own", player: "own" },
+    { label: t("manageResultsAction"), president: "always", director: "always", coach: "coachCanResults", delegate: "no", fees: "no", parent: "no", player: "no" },
+    { label: t("manageGalleriesAction"), president: "always", director: "always", coach: "coachCanResultGallery", delegate: "delegateCanResultGallery", fees: "no", parent: "no", player: "no" },
+    { label: t("editTeamsAction"), president: "always", director: "always", coach: "coachCanTeams", delegate: "no", fees: "feesCanTeams", parent: "no", player: "no" },
+    { label: t("manageUsersAction"), president: "always", director: "always", coach: "no", delegate: "no", fees: "feesCanProfiles", parent: "no", player: "no" },
+    { label: t("importMembersAction"), president: "always", director: "always", coach: "coachCanImportMembers", delegate: "delegateCanImportMembers", fees: "feesCanImportMembers", parent: "no", player: "no" },
+    { label: t("exportDataAction"), president: "always", director: "always", coach: "coachCanExportData", delegate: "delegateCanExportData", fees: "feesCanExportData", parent: "no", player: "no" },
+    { label: t("backupDataAction"), president: "always", director: "always", coach: "coachCanBackupData", delegate: "delegateCanBackupData", fees: "feesCanBackupData", parent: "no", player: "no" },
+    { label: t("restoreDataAction"), president: "always", director: "always", coach: "coachCanRestoreData", delegate: "delegateCanRestoreData", fees: "feesCanRestoreData", parent: "no", player: "no" },
+    { label: t("undoBulkAction"), president: "always", director: "always", coach: "coachCanUndoBulk", delegate: "delegateCanUndoBulk", fees: "feesCanUndoBulk", parent: "no", player: "no" },
+    { label: t("messageClubAction"), president: "always", director: "always", coach: "team", delegate: "team", fees: "feesCanMessages", parent: "own", player: "own" },
   ];
 }
 
@@ -5539,8 +5605,8 @@ function openModal(title, body) {
   document.querySelector("#modal-root").innerHTML = `
     <div class="modal-backdrop">
       <div class="modal">
-        <div class="modal-head"><h2>${title}</h2><button class="btn icon-only" type="button" onclick="closeModal()" aria-label="${t("close")}">X</button></div>
-        ${body}
+        <div class="modal-head"><h2>${title}</h2><button class="modal-close" type="button" onclick="closeModal()" aria-label="${t("close")}">X</button></div>
+        <div class="modal-body">${body}</div>
       </div>
     </div>
   `;
@@ -5552,7 +5618,7 @@ function closeModal() {
 
 function openResultModal() {
   if (!canManageResults()) return;
-  const teams = hasRole(currentUser(), "director") ? state.teams : state.teams.filter((team) => team.coachId === currentUser().id);
+  const teams = isExecutive(currentUser()) ? state.teams : state.teams.filter((team) => team.coachId === currentUser().id);
   const competitions = state.competitions.filter((competition) => competition.seasonId === state.activeSeasonId);
   openModal(
     t("addResult"),
@@ -5577,7 +5643,7 @@ function openResultModal() {
 function openEditResultModal(resultId) {
   const result = state.results.find((item) => item.id === resultId);
   if (!result || !canManageResults()) return;
-  const teams = hasRole(currentUser(), "director") ? state.teams : state.teams.filter((team) => team.coachId === currentUser().id);
+  const teams = isExecutive(currentUser()) ? state.teams : state.teams.filter((team) => team.coachId === currentUser().id);
   const competitions = state.competitions.filter((competition) => competition.seasonId === (result.seasonId || state.activeSeasonId));
   openModal(
     t("results"),
@@ -5601,7 +5667,7 @@ function openEditResultModal(resultId) {
 
 function openAnnouncementModal() {
   const user = currentUser();
-  const canSendAll = hasRole(user, "director");
+  const canSendAll = isExecutive(user);
   openModal(
     t("newAnnouncement"),
     `<form class="form" onsubmit="createAnnouncement(event)">
@@ -5628,7 +5694,7 @@ function openEditAnnouncementModal(announcementId) {
   const announcement = state.announcements.find((item) => item.id === announcementId);
   if (!announcement || !canPublishAnnouncement()) return;
   const user = currentUser();
-  const canSendAll = hasRole(user, "director");
+  const canSendAll = isExecutive(user);
   openModal(
     t("newAnnouncement"),
     `<form class="form" onsubmit="updateAnnouncement(event,'${announcement.id}')">
@@ -5658,7 +5724,7 @@ function renderTargetOptions(type, selectedCsv = "") {
     root.innerHTML = `<label>${t("target")}</label><input value="${t("allClub")}" disabled />`;
     return;
   }
-  const availableTeams = hasRole(currentUser(), "director") ? state.teams : state.teams.filter((team) => staffTeamIds().includes(team.id));
+  const availableTeams = isExecutive(currentUser()) ? state.teams : state.teams.filter((team) => staffTeamIds().includes(team.id));
   const selected = new Set(String(selectedCsv || "").split(",").filter(Boolean));
   const options =
     type === "team"
@@ -5670,7 +5736,7 @@ function renderTargetOptions(type, selectedCsv = "") {
 function openEventModal() {
   const teams = editableEventTeamIds().map(getTeam).filter(Boolean);
   const initialTeamId = teams[0]?.id || "";
-  const allClubOption = hasRole(currentUser(), "director") ? `<option value="">${t("allClub")}</option>` : "";
+  const allClubOption = isExecutive(currentUser()) ? `<option value="">${t("allClub")}</option>` : "";
   const competitions = state.competitions.filter((competition) => competition.seasonId === state.activeSeasonId);
   openModal(
     t("newEvent"),
@@ -5704,7 +5770,7 @@ function openEditEventModal(eventId) {
   const eventItem = state.events.find((item) => item.id === eventId);
   if (!eventItem || !canManageScheduleItem(eventItem)) return;
   const teams = editableEventTeamIds().map(getTeam).filter(Boolean);
-  const allClubOption = hasRole(currentUser(), "director") ? `<option value="">${t("allClub")}</option>` : "";
+  const allClubOption = isExecutive(currentUser()) ? `<option value="">${t("allClub")}</option>` : "";
   const competitions = state.competitions.filter((competition) => competition.seasonId === (eventItem.seasonId || state.activeSeasonId));
   openModal(
     t("editEvent"),
@@ -5730,7 +5796,7 @@ function openEditTrainingModal(trainingId) {
   const training = state.trainings.find((item) => item.id === trainingId);
   if (!training || !canManageScheduleItem(training)) return;
   const teams = editableEventTeamIds().map(getTeam).filter(Boolean);
-  const allClubOption = hasRole(currentUser(), "director") ? `<option value="">${t("allClub")}</option>` : "";
+  const allClubOption = isExecutive(currentUser()) ? `<option value="">${t("allClub")}</option>` : "";
   openModal(
     t("training"),
     `<form class="form" onsubmit="updateTraining(event,'${training.id}')">
@@ -5752,7 +5818,7 @@ function openDuplicateEventModal(eventId) {
   const eventItem = state.events.find((item) => item.id === eventId);
   if (!eventItem || !canManageScheduleItem(eventItem)) return;
   const teams = editableEventTeamIds().map(getTeam).filter(Boolean);
-  const allClubOption = hasRole(currentUser(), "director") ? `<option value="">${t("allClub")}</option>` : "";
+  const allClubOption = isExecutive(currentUser()) ? `<option value="">${t("allClub")}</option>` : "";
   openModal(
     t("duplicateEvent"),
     `<form class="form" onsubmit="duplicateEvent(event,'${eventItem.id}')">
@@ -5776,7 +5842,7 @@ function openDuplicateTrainingModal(trainingId) {
   const training = state.trainings.find((item) => item.id === trainingId);
   if (!training || !canManageScheduleItem(training)) return;
   const teams = editableEventTeamIds().map(getTeam).filter(Boolean);
-  const allClubOption = hasRole(currentUser(), "director") ? `<option value="">${t("allClub")}</option>` : "";
+  const allClubOption = isExecutive(currentUser()) ? `<option value="">${t("allClub")}</option>` : "";
   openModal(
     t("duplicate"),
     `<form class="form" onsubmit="duplicateTraining(event,'${training.id}')">
@@ -5831,7 +5897,7 @@ function renderEventPlayerOptions(teamId, selectedCsv = "") {
 }
 
 function openCallupModal() {
-  const teams = hasRole(currentUser(), "director") ? state.teams : state.teams.filter((team) => team.coachId === currentUser().id);
+  const teams = isExecutive(currentUser()) ? state.teams : state.teams.filter((team) => team.coachId === currentUser().id);
   const competitions = state.competitions.filter((competition) => competition.seasonId === state.activeSeasonId);
   openModal(
     t("newCallup"),
@@ -5857,7 +5923,7 @@ function openCallupModal() {
 function openEditCallupModal(callupId) {
   const callup = state.callups.find((item) => item.id === callupId);
   if (!canManageCallup(callup)) return;
-  const teams = hasRole(currentUser(), "director") ? state.teams : state.teams.filter((team) => team.coachId === currentUser().id);
+  const teams = isExecutive(currentUser()) ? state.teams : state.teams.filter((team) => team.coachId === currentUser().id);
   openModal(
     t("newCallup"),
     `<form class="form" onsubmit="updateCallup(event,'${callup.id}')">
@@ -5959,7 +6025,7 @@ function openPlayerMessageModal(playerId) {
   const player = getPlayer(playerId);
   if (!player) return;
   const team = (player.teams || []).map(getTeam).find(Boolean);
-  const assignedId = team?.coachId || team?.delegateId || state.users.find((user) => hasRole(user, "director"))?.id || "";
+  const assignedId = team?.coachId || team?.delegateId || state.users.find((user) => isExecutive(user))?.id || "";
   openModal(
     t("newThread"),
     `<form class="form" onsubmit="createThread(event)">
@@ -5976,7 +6042,7 @@ function openEditPlayerProfileModal(playerId) {
   const player = getPlayer(playerId);
   if (!canEditPlayerProfile(player)) return;
   const user = currentUser();
-  const manageableTeams = hasRole(user, "director") ? state.teams : state.teams.filter((team) => staffTeamIds(user).includes(team.id));
+  const manageableTeams = isExecutive(user) ? state.teams : state.teams.filter((team) => staffTeamIds(user).includes(team.id));
   const playerUsers = state.users.filter((item) => !item.disabled && item.roles.includes("player"));
   const familyUsers = state.users.filter((item) => !item.disabled && item.roles.includes("parent"));
   openModal(
@@ -6038,7 +6104,7 @@ function filterRecipients(query) {
 }
 
 function openDocumentModal() {
-  const teams = hasRole(currentUser(), "director") ? state.teams : state.teams.filter((team) => staffTeamIds().includes(team.id));
+  const teams = isExecutive(currentUser()) ? state.teams : state.teams.filter((team) => staffTeamIds().includes(team.id));
   const initialTeamId = state.activeDocumentTeamId || teams[0]?.id || "";
   openModal(
     t("newDocument"),
@@ -6046,7 +6112,7 @@ function openDocumentModal() {
       <div class="form-grid">
         <div class="form-row"><label>${t("team")}</label><select name="teamId" onchange="renderDocumentFolderOptions(this.value)" required>${teams.map((team) => `<option value="${team.id}" ${team.id === initialTeamId ? "selected" : ""}>${team.name}</option>`).join("")}</select></div>
         <div class="form-row" id="document-folder-options"></div>
-        <div class="form-row"><label>${t("file")}</label><input name="file" type="file" multiple required /></div>
+        <div class="form-row file-row"><label>${t("file")}</label><input class="modern-file-input" name="file" type="file" multiple required /></div>
       </div>
       <div class="form-row"><label>${t("notes")}</label><textarea name="notes"></textarea></div>
       <button class="btn primary" type="submit">${t("save")}</button>
@@ -6063,7 +6129,7 @@ function renderDocumentFolderOptions(teamId, selectedFolderId = "") {
 }
 
 function openFolderModal() {
-  const teams = hasRole(currentUser(), "director") ? state.teams : state.teams.filter((team) => staffTeamIds().includes(team.id));
+  const teams = isExecutive(currentUser()) ? state.teams : state.teams.filter((team) => staffTeamIds().includes(team.id));
   const initialTeamId = state.activeDocumentTeamId || teams[0]?.id || "";
   openModal(
     t("newFolder"),
@@ -6179,12 +6245,30 @@ function userFormFields(user = {}) {
     <div class="form-grid">
       <div class="form-row"><label>${t("title")}</label><input name="name" value="${escapeHtml(user.name || "")}" required /></div>
       <div class="form-row"><label>${t("email")}</label><input name="email" type="email" value="${escapeHtml(user.email || "")}" required /></div>
+      <div class="form-row"><label>Teléfono</label><input name="phone" type="tel" value="${escapeHtml(user.phone || "")}" /></div>
       <div class="form-row"><label>${t("password")}</label><input name="password" type="text" value="${user.id ? "" : "demo1234"}" ${user.id ? `placeholder="Dejar en blanco para mantener"` : "required"} /></div>
       <div class="form-row"><label>${t("linkedPlayer")}</label><select name="playerId"><option value="">Sin jugador</option>${state.players.map((player) => `<option value="${player.id}" ${user.playerId === player.id ? "selected" : ""}>${escapeHtml(player.name)}</option>`).join("")}</select></div>
     </div>
     <div class="form-row"><label>${t("roles")}</label>${roleCheckboxList(user.roles || ["player"])}</div>
     <div class="form-row"><label>${t("familyPlayers")}</label>${familyPlayerCheckboxList(user.children || [])}</div>
   `;
+}
+
+function openMyAccountModal() {
+  const user = currentUser();
+  if (!user) return;
+  openModal(
+    "Mi perfil",
+    `<form class="form" onsubmit="updateMyAccount(event)">
+      <div class="form-grid">
+        <div class="form-row"><label>${t("title")}</label><input name="name" value="${escapeHtml(user.name || "")}" required /></div>
+        <div class="form-row"><label>${t("email")}</label><input name="email" type="email" value="${escapeHtml(user.email || "")}" required /></div>
+        <div class="form-row"><label>Teléfono</label><input name="phone" type="tel" value="${escapeHtml(user.phone || "")}" /></div>
+        <div class="form-row"><label>${t("password")}</label><input name="password" type="password" placeholder="Dejar en blanco para mantener" autocomplete="new-password" /></div>
+      </div>
+      <button class="btn primary" type="submit">${t("save")}</button>
+    </form>`
+  );
 }
 
 function roleCheckboxList(selectedRoles = []) {
@@ -6286,6 +6370,7 @@ function userFromForm(form, id = uid("user"), existing = {}) {
     name: String(form.get("name") || "").trim(),
     email: String(form.get("email") || "").trim(),
     password: String(form.get("password") || existing.password || ""),
+    phone: String(form.get("phone") || "").trim(),
     roles,
     playerId: roles.includes("player") ? String(form.get("playerId") || "") : "",
     children: roles.includes("parent") ? form.getAll("children") : [],
@@ -6914,6 +6999,29 @@ function updateUser(event, userId) {
   saveAndClose("manageUsers");
 }
 
+function updateMyAccount(event) {
+  event.preventDefault();
+  const user = currentUser();
+  if (!user) return;
+  const form = new FormData(event.currentTarget);
+  const email = String(form.get("email") || "").trim();
+  if (state.users.some((item) => item.id !== user.id && item.email.toLowerCase() === email.toLowerCase())) {
+    state.toast = "Ese email ya esta en uso";
+    closeModal();
+    render();
+    return;
+  }
+  user.name = String(form.get("name") || "").trim();
+  user.email = email;
+  user.phone = String(form.get("phone") || "").trim();
+  const password = String(form.get("password") || "");
+  if (password) user.password = password;
+  state.session.email = user.email;
+  state.toast = "Perfil actualizado";
+  appendAudit("editar mi perfil", "user", user.name);
+  saveAndClose("updateSelf");
+}
+
 function toggleUserDisabled(userId) {
   if (!canManageUsers()) return;
   const user = state.users.find((item) => item.id === userId);
@@ -6956,7 +7064,7 @@ function updatePlayerProfile(event, playerId) {
   if (!canEditPlayerProfile(player)) return;
   const form = new FormData(event.currentTarget);
   const user = currentUser();
-  const manageableTeamIds = hasRole(user, "director") ? state.teams.map((team) => team.id) : staffTeamIds(user);
+  const manageableTeamIds = isExecutive(user) ? state.teams.map((team) => team.id) : staffTeamIds(user);
   const selectedTeamIds = form.getAll("teamIds");
   const preservedTeamIds = (player.teams || []).filter((teamId) => !manageableTeamIds.includes(teamId));
   const nextTeamIds = [...new Set([...preservedTeamIds, ...selectedTeamIds])];
@@ -7022,7 +7130,7 @@ function createResult(event) {
   event.preventDefault();
   if (!canManageResults()) return;
   const form = new FormData(event.currentTarget);
-  const allowed = hasRole(currentUser(), "director") ? state.teams.map((team) => team.id) : state.teams.filter((team) => team.coachId === currentUser().id).map((team) => team.id);
+  const allowed = isExecutive(currentUser()) ? state.teams.map((team) => team.id) : state.teams.filter((team) => team.coachId === currentUser().id).map((team) => team.id);
   if (!allowed.includes(form.get("teamId"))) return;
   const result = resultFromForm(form);
   state.results ||= [];
@@ -7040,7 +7148,7 @@ function updateResult(event, resultId) {
   const index = state.results.findIndex((item) => item.id === resultId);
   if (index < 0) return;
   const form = new FormData(event.currentTarget);
-  const allowed = hasRole(currentUser(), "director") ? state.teams.map((team) => team.id) : state.teams.filter((team) => team.coachId === currentUser().id).map((team) => team.id);
+  const allowed = isExecutive(currentUser()) ? state.teams.map((team) => team.id) : state.teams.filter((team) => team.coachId === currentUser().id).map((team) => team.id);
   if (!allowed.includes(form.get("teamId"))) return;
   state.results[index] = resultFromForm(form, resultId, state.results[index]);
   state.resultsCursor = toLocalDateKey(mondayOf(new Date(`${state.results[index].date}T00:00:00`)));
@@ -7094,7 +7202,7 @@ function createAnnouncement(event) {
   const form = new FormData(event.currentTarget);
   let targetType = form.get("targetType");
   let targetIds = targetType === "all" ? [] : form.getAll("targetId");
-  if (!hasRole(currentUser(), "director")) {
+  if (!isExecutive(currentUser())) {
     targetType = "team";
     const allowed = staffTeamIds();
     targetIds = targetIds.filter((id) => allowed.includes(id));
@@ -7121,7 +7229,7 @@ function updateAnnouncement(event, announcementId) {
   const form = new FormData(event.currentTarget);
   let targetType = form.get("targetType");
   let targetIds = targetType === "all" ? [] : form.getAll("targetId");
-  if (!hasRole(currentUser(), "director")) {
+  if (!isExecutive(currentUser())) {
     targetType = "team";
     const allowed = staffTeamIds();
     targetIds = targetIds.filter((id) => allowed.includes(id));
@@ -7392,7 +7500,7 @@ function createCallup(event) {
   event.preventDefault();
   if (!canCreateCallup()) return;
   const form = new FormData(event.currentTarget);
-  const allowed = hasRole(currentUser(), "director") ? state.teams.map((team) => team.id) : state.teams.filter((team) => team.coachId === currentUser().id).map((team) => team.id);
+  const allowed = isExecutive(currentUser()) ? state.teams.map((team) => team.id) : state.teams.filter((team) => team.coachId === currentUser().id).map((team) => team.id);
   if (!allowed.includes(form.get("teamId"))) return;
   const playerIds = form.getAll("playerIds");
   if (!playerIds.length) return;
@@ -7482,7 +7590,7 @@ async function createDocument(event) {
   event.preventDefault();
   if (!canUploadDocument()) return;
   const form = new FormData(event.currentTarget);
-  const allowed = hasRole(currentUser(), "director") ? state.teams.map((team) => team.id) : staffTeamIds();
+  const allowed = isExecutive(currentUser()) ? state.teams.map((team) => team.id) : staffTeamIds();
   if (!allowed.includes(form.get("teamId"))) return;
   const files = [...event.currentTarget.file.files];
   if (!files.length) return;
@@ -7607,7 +7715,7 @@ async function uploadDocumentFile(file) {
 
 function createTeam(event) {
   event.preventDefault();
-  if (!hasRole(currentUser(), "director")) return;
+  if (!isExecutive(currentUser())) return;
   const form = new FormData(event.currentTarget);
   const team = {
     id: uid("team"),
@@ -7637,13 +7745,13 @@ function updateTeam(event, teamId) {
   team.federationTeamName = form.get("federationTeamName") || "";
   team.federationUrl = form.get("federationUrl") || "";
   team.standingsUrl = form.get("standingsUrl") || "";
-  if (hasRole(currentUser(), "director")) {
+  if (isExecutive(currentUser())) {
     team.coachId = form.get("coachId");
     team.delegateId = form.get("delegateId");
   }
   assignPlayersToTeam(team.id, form.getAll("playerIds"));
   appendAudit("editar equipo", "team", team.name);
-  saveAndClose(hasRole(currentUser(), "director") ? "manageUsers" : "editTeam");
+  saveAndClose(isExecutive(currentUser()) ? "manageUsers" : "editTeam");
 }
 
 function assignPlayersToTeam(teamId, playerIds) {
@@ -7712,7 +7820,7 @@ function sendMessage(event, threadId) {
   const user = currentUser();
   const thread = state.threads.find((item) => item.id === threadId);
   thread.messages.push({
-    from: thread.assignedToId === user.id || hasRole(user, "director") ? "club" : "user",
+    from: thread.assignedToId === user.id || isExecutive(user) ? "club" : "user",
     text,
     at: currentTime(),
   });
