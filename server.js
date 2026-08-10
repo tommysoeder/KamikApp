@@ -11,7 +11,7 @@ const DATA_DIR = process.env.DATA_DIR || path.join(ROOT, "data");
 const STATE_FILE = path.join(DATA_DIR, "state.json");
 const BACKUP_DIR = path.join(DATA_DIR, "backups");
 const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
-const APP_VERSION = "v106";
+const APP_VERSION = "v107";
 const APP_MODE = String(process.env.APP_MODE || "presentation").toLowerCase();
 const APP_LABEL = process.env.APP_LABEL || (APP_MODE === "beta" ? "Beta privada" : "");
 const SHOW_LOGIN_PROFILES = process.env.SHOW_LOGIN_PROFILES === "1" || (APP_MODE !== "beta" && APP_MODE !== "production");
@@ -141,12 +141,13 @@ function hasRole(user, role) {
 }
 
 function isExecutive(user) {
-  return hasRole(user, "director") || hasRole(user, "president");
+  return hasRole(user, "director");
 }
 
 function staffTeamIds(user, state) {
   if (!user || !state) return [];
   if (isExecutive(user)) return (state.teams || []).map((team) => team.id);
+  if (hasRole(user, "president")) return (state.teams || []).map((team) => team.id);
   if (hasRole(user, "fees")) return (state.teams || []).map((team) => team.id);
   return (state.teams || [])
     .filter((team) => (hasRole(user, "coach") && team.coachId === user.id) || (hasRole(user, "delegate") && team.delegateId === user.id))
@@ -155,22 +156,22 @@ function staffTeamIds(user, state) {
 
 function permissionKey(operation, role) {
   const map = {
-    publishAnnouncement: { coach: "coachCanAnnouncements", delegate: "delegateCanAnnouncements", fees: "feesCanAnnouncements" },
-    manageEvents: { coach: "coachCanEvents" },
-    manageCallup: { coach: "coachCanCallups" },
+    publishAnnouncement: { president: "presidentCanAnnouncements", coach: "coachCanAnnouncements", delegate: "delegateCanAnnouncements", fees: "feesCanAnnouncements" },
+    manageEvents: { president: "presidentCanEvents", coach: "coachCanEvents" },
+    manageCallup: { president: "presidentCanCallups", coach: "coachCanCallups" },
     attendance: { coach: "coachCanAttendance", delegate: "delegateCanAttendance", parent: true, player: true },
-    manageResults: { coach: "coachCanResults" },
-    manageProfiles: { coach: true, delegate: true, fees: "feesCanProfiles" },
-    messageClub: { coach: true, delegate: true, fees: "feesCanMessages", parent: true, player: true },
-    markRead: { coach: true, delegate: true, fees: true, parent: true, player: true },
-    updateSelf: { coach: true, delegate: true, fees: true, parent: true, player: true },
-    importMembers: { coach: "coachCanImportMembers", delegate: "delegateCanImportMembers", fees: "feesCanImportMembers" },
-    exportData: { coach: "coachCanExportData", delegate: "delegateCanExportData", fees: "feesCanExportData" },
-    backupData: { coach: "coachCanBackupData", delegate: "delegateCanBackupData", fees: "feesCanBackupData" },
-    restoreData: { coach: "coachCanRestoreData", delegate: "delegateCanRestoreData", fees: "feesCanRestoreData" },
-    undoBulk: { coach: "coachCanUndoBulk", delegate: "delegateCanUndoBulk", fees: "feesCanUndoBulk" },
-    uploadDocument: { coach: "coachCanDocuments", delegate: "delegateCanDocuments", fees: "feesCanDocuments" },
-    editTeam: { coach: "coachCanTeams", fees: "feesCanTeams" },
+    manageResults: { president: "presidentCanResults", coach: "coachCanResults" },
+    manageProfiles: { president: "presidentCanProfiles", coach: true, delegate: true, fees: "feesCanProfiles" },
+    messageClub: { president: "presidentCanMessages", coach: true, delegate: true, fees: "feesCanMessages", parent: true, player: true },
+    markRead: { president: true, coach: true, delegate: true, fees: true, parent: true, player: true },
+    updateSelf: { president: true, coach: true, delegate: true, fees: true, parent: true, player: true },
+    importMembers: { president: "presidentCanImportMembers", coach: "coachCanImportMembers", delegate: "delegateCanImportMembers", fees: "feesCanImportMembers" },
+    exportData: { president: "presidentCanExportData", coach: "coachCanExportData", delegate: "delegateCanExportData", fees: "feesCanExportData" },
+    backupData: { president: "presidentCanBackupData", coach: "coachCanBackupData", delegate: "delegateCanBackupData", fees: "feesCanBackupData" },
+    restoreData: { president: "presidentCanRestoreData", coach: "coachCanRestoreData", delegate: "delegateCanRestoreData", fees: "feesCanRestoreData" },
+    undoBulk: { president: "presidentCanUndoBulk", coach: "coachCanUndoBulk", delegate: "delegateCanUndoBulk", fees: "feesCanUndoBulk" },
+    uploadDocument: { president: "presidentCanDocuments", coach: "coachCanDocuments", delegate: "delegateCanDocuments", fees: "feesCanDocuments" },
+    editTeam: { president: "presidentCanTeams", coach: "coachCanTeams", fees: "feesCanTeams" },
   };
   return map[operation] ? map[operation][role] ?? false : undefined;
 }
@@ -221,6 +222,7 @@ function verifyPassword(user, password) {
 function playerIdsForUser(user, state) {
   if (!user || !state) return [];
   if (isExecutive(user)) return (state.players || []).map((player) => player.id);
+  if (hasRole(user, "president")) return (state.players || []).map((player) => player.id);
   if (hasRole(user, "fees")) return (state.players || []).map((player) => player.id);
   if (hasRole(user, "coach") || hasRole(user, "delegate")) {
     const teams = staffTeamIds(user, state);
@@ -234,6 +236,7 @@ function playerIdsForUser(user, state) {
 function teamIdsForUser(user, state) {
   if (!user || !state) return [];
   if (isExecutive(user)) return (state.teams || []).map((team) => team.id);
+  if (hasRole(user, "president")) return (state.teams || []).map((team) => team.id);
   if (hasRole(user, "fees")) return (state.teams || []).map((team) => team.id);
   if (hasRole(user, "coach") || hasRole(user, "delegate")) return staffTeamIds(user, state);
   const players = new Set(playerIdsForUser(user, state));

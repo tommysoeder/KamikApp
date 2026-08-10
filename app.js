@@ -224,6 +224,20 @@ const copy = {
     delegateCanRestoreData: "Delegados pueden restaurar backup",
     coachCanUndoBulk: "Entrenadores pueden deshacer operaciones masivas",
     delegateCanUndoBulk: "Delegados pueden deshacer operaciones masivas",
+    presidentCanAnnouncements: "Presidente puede publicar anuncios",
+    presidentCanEvents: "Presidente puede crear y editar eventos",
+    presidentCanCallups: "Presidente puede crear y editar convocatorias",
+    presidentCanDocuments: "Presidente puede subir y editar archivos",
+    presidentCanResults: "Presidente puede subir y editar resultados",
+    presidentCanResultGallery: "Presidente puede gestionar galerias",
+    presidentCanTeams: "Presidente puede editar equipos",
+    presidentCanProfiles: "Presidente puede crear y editar perfiles",
+    presidentCanMessages: "Presidente puede atender mensajes",
+    presidentCanImportMembers: "Presidente puede importar socios",
+    presidentCanExportData: "Presidente puede exportar datos",
+    presidentCanBackupData: "Presidente puede descargar backup completo",
+    presidentCanRestoreData: "Presidente puede restaurar backup",
+    presidentCanUndoBulk: "Presidente puede deshacer operaciones masivas",
     feesCanAnnouncements: "Gestión de cuotas puede publicar anuncios",
     feesCanDocuments: "Gestión de cuotas puede subir y editar archivos",
     feesCanProfiles: "Gestión de cuotas puede crear y editar perfiles",
@@ -499,6 +513,20 @@ const copy = {
     delegateCanRestoreData: "Delegates can restore backup",
     coachCanUndoBulk: "Coaches can undo bulk operations",
     delegateCanUndoBulk: "Delegates can undo bulk operations",
+    presidentCanAnnouncements: "President can publish announcements",
+    presidentCanEvents: "President can create and edit events",
+    presidentCanCallups: "President can create and edit call-ups",
+    presidentCanDocuments: "President can upload and edit files",
+    presidentCanResults: "President can upload and edit results",
+    presidentCanResultGallery: "President can manage galleries",
+    presidentCanTeams: "President can edit teams",
+    presidentCanProfiles: "President can create and edit profiles",
+    presidentCanMessages: "President can handle messages",
+    presidentCanImportMembers: "President can import members",
+    presidentCanExportData: "President can export data",
+    presidentCanBackupData: "President can download full backups",
+    presidentCanRestoreData: "President can restore backups",
+    presidentCanUndoBulk: "President can undo bulk operations",
     feesCanAnnouncements: "Fees management can publish announcements",
     feesCanDocuments: "Fees management can upload and edit files",
     feesCanProfiles: "Fees management can create and edit profiles",
@@ -629,6 +657,20 @@ const seed = {
     coachCanResultGallery: true,
     delegateCanResultGallery: true,
     coachCanTeams: true,
+    presidentCanAnnouncements: false,
+    presidentCanEvents: false,
+    presidentCanCallups: false,
+    presidentCanDocuments: false,
+    presidentCanResults: false,
+    presidentCanResultGallery: false,
+    presidentCanTeams: false,
+    presidentCanProfiles: false,
+    presidentCanMessages: true,
+    presidentCanImportMembers: false,
+    presidentCanExportData: false,
+    presidentCanBackupData: false,
+    presidentCanRestoreData: false,
+    presidentCanUndoBulk: false,
     feesCanAnnouncements: false,
     feesCanDocuments: false,
     feesCanProfiles: false,
@@ -919,6 +961,20 @@ function normalize(raw) {
   next.permissions.delegateCanRestoreData ??= false;
   next.permissions.coachCanUndoBulk ??= false;
   next.permissions.delegateCanUndoBulk ??= false;
+  next.permissions.presidentCanAnnouncements ??= false;
+  next.permissions.presidentCanEvents ??= false;
+  next.permissions.presidentCanCallups ??= false;
+  next.permissions.presidentCanDocuments ??= false;
+  next.permissions.presidentCanResults ??= false;
+  next.permissions.presidentCanResultGallery ??= false;
+  next.permissions.presidentCanTeams ??= false;
+  next.permissions.presidentCanProfiles ??= false;
+  next.permissions.presidentCanMessages ??= true;
+  next.permissions.presidentCanImportMembers ??= false;
+  next.permissions.presidentCanExportData ??= false;
+  next.permissions.presidentCanBackupData ??= false;
+  next.permissions.presidentCanRestoreData ??= false;
+  next.permissions.presidentCanUndoBulk ??= false;
   next.permissions.feesCanAnnouncements ??= false;
   next.permissions.feesCanDocuments ??= false;
   next.permissions.feesCanProfiles ??= false;
@@ -1398,27 +1454,27 @@ function hasRole(user, role) {
 }
 
 function isExecutive(user) {
-  return hasRole(user, "director") || hasRole(user, "president");
+  return hasRole(user, "director");
 }
 
 const permissionByAction = {
-  publishAnnouncement: { coach: "coachCanAnnouncements", delegate: "delegateCanAnnouncements", fees: "feesCanAnnouncements" },
-  manageEvents: { coach: "coachCanEvents" },
-  manageCallup: { coach: "coachCanCallups" },
-  uploadDocument: { coach: "coachCanDocuments", delegate: "delegateCanDocuments", fees: "feesCanDocuments" },
-  editTeam: { coach: "coachCanTeams", fees: "feesCanTeams" },
+  publishAnnouncement: { president: "presidentCanAnnouncements", coach: "coachCanAnnouncements", delegate: "delegateCanAnnouncements", fees: "feesCanAnnouncements" },
+  manageEvents: { president: "presidentCanEvents", coach: "coachCanEvents" },
+  manageCallup: { president: "presidentCanCallups", coach: "coachCanCallups" },
+  uploadDocument: { president: "presidentCanDocuments", coach: "coachCanDocuments", delegate: "delegateCanDocuments", fees: "feesCanDocuments" },
+  editTeam: { president: "presidentCanTeams", coach: "coachCanTeams", fees: "feesCanTeams" },
   viewStats: { coach: true },
-  manageResults: { coach: "coachCanResults" },
-  manageResultGallery: { coach: "coachCanResultGallery", delegate: "delegateCanResultGallery" },
+  manageResults: { president: "presidentCanResults", coach: "coachCanResults" },
+  manageResultGallery: { president: "presidentCanResultGallery", coach: "coachCanResultGallery", delegate: "delegateCanResultGallery" },
   attendance: { coach: "coachCanAttendance", delegate: "delegateCanAttendance" },
-  management: { coach: true, delegate: true, fees: true },
-  manageProfiles: { coach: true, delegate: true, fees: "feesCanProfiles" },
-  messageClub: { coach: true, delegate: true, fees: "feesCanMessages", parent: true, player: true },
-  importMembers: { coach: "coachCanImportMembers", delegate: "delegateCanImportMembers", fees: "feesCanImportMembers" },
-  exportData: { coach: "coachCanExportData", delegate: "delegateCanExportData", fees: "feesCanExportData" },
-  backupData: { coach: "coachCanBackupData", delegate: "delegateCanBackupData", fees: "feesCanBackupData" },
-  restoreData: { coach: "coachCanRestoreData", delegate: "delegateCanRestoreData", fees: "feesCanRestoreData" },
-  undoBulk: { coach: "coachCanUndoBulk", delegate: "delegateCanUndoBulk", fees: "feesCanUndoBulk" },
+  management: { president: true, coach: true, delegate: true, fees: true },
+  manageProfiles: { president: "presidentCanProfiles", coach: true, delegate: true, fees: "feesCanProfiles" },
+  messageClub: { president: "presidentCanMessages", coach: true, delegate: true, fees: "feesCanMessages", parent: true, player: true },
+  importMembers: { president: "presidentCanImportMembers", coach: "coachCanImportMembers", delegate: "delegateCanImportMembers", fees: "feesCanImportMembers" },
+  exportData: { president: "presidentCanExportData", coach: "coachCanExportData", delegate: "delegateCanExportData", fees: "feesCanExportData" },
+  backupData: { president: "presidentCanBackupData", coach: "coachCanBackupData", delegate: "delegateCanBackupData", fees: "feesCanBackupData" },
+  restoreData: { president: "presidentCanRestoreData", coach: "coachCanRestoreData", delegate: "delegateCanRestoreData", fees: "feesCanRestoreData" },
+  undoBulk: { president: "presidentCanUndoBulk", coach: "coachCanUndoBulk", delegate: "delegateCanUndoBulk", fees: "feesCanUndoBulk" },
 };
 
 function canDo(action, user = currentUser()) {
@@ -1775,6 +1831,7 @@ function notifyUnreadVisibleItems() {
 function visiblePlayerIds(user = currentUser()) {
   if (!user) return [];
   if (isExecutive(user)) return state.players.map((player) => player.id);
+  if (hasRole(user, "president") && canDo("manageProfiles", user)) return state.players.map((player) => player.id);
   if (hasRole(user, "fees") && canDo("manageProfiles", user)) return state.players.map((player) => player.id);
   const ids = new Set();
   if (hasRole(user, "parent")) (user.children || []).forEach((id) => ids.add(id));
@@ -1791,6 +1848,7 @@ function visiblePlayerIds(user = currentUser()) {
 function visibleTeamIds(user = currentUser()) {
   const ids = new Set();
   if (isExecutive(user)) state.teams.forEach((team) => ids.add(team.id));
+  if (hasRole(user, "president") && (canDo("manageEvents", user) || canDo("manageCallup", user) || canDo("manageProfiles", user) || canDo("editTeam", user) || canDo("uploadDocument", user) || canDo("manageResults", user))) state.teams.forEach((team) => ids.add(team.id));
   if (hasRole(user, "fees") && (canDo("manageProfiles", user) || canDo("editTeam", user) || canDo("uploadDocument", user))) state.teams.forEach((team) => ids.add(team.id));
   visiblePlayerIds(user).forEach((playerId) => {
     const player = getPlayer(playerId);
@@ -1805,6 +1863,7 @@ function visibleTeamIds(user = currentUser()) {
 function staffTeamIds(user = currentUser()) {
   if (!user) return [];
   if (isExecutive(user)) return state.teams.map((team) => team.id);
+  if (hasRole(user, "president") && (canDo("manageEvents", user) || canDo("manageCallup", user) || canDo("manageProfiles", user) || canDo("editTeam", user) || canDo("uploadDocument", user) || canDo("manageResults", user))) return state.teams.map((team) => team.id);
   return state.teams
     .filter((team) => (hasRole(user, "coach") && team.coachId === user.id) || (hasRole(user, "delegate") && team.delegateId === user.id))
     .map((team) => team.id);
@@ -1822,6 +1881,7 @@ function canCreateEvent(user = currentUser()) {
 function editableEventTeamIds(user = currentUser()) {
   if (!user) return [];
   if (isExecutive(user)) return state.teams.map((team) => team.id);
+  if (hasRole(user, "president") && canDo("manageEvents", user)) return state.teams.map((team) => team.id);
   if (!canDo("manageEvents", user) || !hasRole(user, "coach")) return [];
   return state.teams.filter((team) => team.coachId === user.id).map((team) => team.id);
 }
@@ -1845,6 +1905,7 @@ function canCreateCallup(user = currentUser()) {
 function canManageCallup(callup, user = currentUser()) {
   if (!callup) return false;
   if (isExecutive(user)) return true;
+  if (hasRole(user, "president")) return canDo("manageCallup", user);
   return canDo("manageCallup", user) && hasRole(user, "coach") && getTeam(callup.teamId)?.coachId === user.id;
 }
 
@@ -1854,6 +1915,7 @@ function canUploadDocument(user = currentUser()) {
 
 function canEditTeam(team, user = currentUser()) {
   if (isExecutive(user)) return true;
+  if (hasRole(user, "president")) return canDo("editTeam", user);
   if (hasRole(user, "fees")) return canDo("editTeam", user);
   return canDo("editTeam", user) && hasRole(user, "coach") && team?.coachId === user.id;
 }
@@ -1901,6 +1963,7 @@ function canUseDataTools(user = currentUser()) {
 function canEditPlayerProfile(player, user = currentUser()) {
   if (!player || !user) return false;
   if (isExecutive(user)) return true;
+  if (hasRole(user, "president")) return canDo("manageProfiles", user);
   if (hasRole(user, "fees")) return canDo("manageProfiles", user);
   const teams = staffTeamIds(user);
   return (hasRole(user, "coach") || hasRole(user, "delegate")) && (player.teams || []).some((teamId) => teams.includes(teamId));
@@ -2816,7 +2879,6 @@ function renderDashboard() {
   const statCards = [
     `<article class="card stat clickable-item" onclick="setView('calendar')"><span>${t("calendar")}</span><strong>${weekItems.length}</strong><span>eventos y entrenos esta semana</span></article>`,
     unread.length ? `<article class="card stat clickable-item" onclick="setView('notifications')"><span>${t("unreadNotices")}</span><strong>${unread.length}</strong><span>${visible.length} jugadores vinculados/visibles</span></article>` : "",
-    `<article class="card stat clickable-item dashboard-teams-stat" onclick="setView('teams')"><span>${t("teams")}</span><strong>${state.teams.length}</strong><span>${state.categories.length} categorias configurables</span></article>`,
   ].filter(Boolean);
   return `
     <section class="panel results-hero ${weekendResults.length >= 4 ? "compact-results" : ""} ${weekendResults.length === 4 ? "four-results" : ""} ${weekendResults.length >= 5 ? "many-results" : ""}" onclick="setView('results')">
@@ -2851,6 +2913,9 @@ function renderDashboard() {
         <div class="panel-header"><div><h2>${t("callups")}</h2><p>Convocatorias activas de tus perfiles.</p></div></div>
         <div class="list">${callups.map(renderCallupItem).join("") || `<div class="empty">Sin convocatorias.</div>`}</div>
       </section>
+    </div>
+    <div class="grid two dashboard-bottom-stat" style="margin-top:16px">
+      <article class="card stat clickable-item dashboard-teams-stat" onclick="setView('teams')"><span>${t("teams")}</span><strong>${state.teams.length}</strong><span>${state.categories.length} categorias configurables</span></article>
     </div>
   `;
 }
@@ -5224,7 +5289,7 @@ function employees() {
 function visibleThreads() {
   const user = currentUser();
   if (isExecutive(user)) return state.threads;
-  if (hasRole(user, "coach") || hasRole(user, "delegate")) return state.threads.filter((thread) => thread.assignedToId === user.id);
+  if (hasRole(user, "coach") || hasRole(user, "delegate") || hasRole(user, "president") || hasRole(user, "fees")) return state.threads.filter((thread) => thread.assignedToId === user.id || thread.participantUserIds.includes(user.id));
   return state.threads.filter((thread) => thread.participantUserIds.includes(user.id));
 }
 
@@ -5553,22 +5618,22 @@ function renderSettings() {
 
 function permissionMatrixRows() {
   return [
-    { label: t("publishAnnouncements"), president: "always", director: "always", coach: "coachCanAnnouncements", delegate: "delegateCanAnnouncements", fees: "feesCanAnnouncements", parent: "no", player: "no" },
-    { label: t("createEvents"), president: "always", director: "always", coach: "coachCanEvents", delegate: "no", fees: "no", parent: "no", player: "no" },
-    { label: t("manageCallups"), president: "always", director: "always", coach: "coachCanCallups", delegate: "no", fees: "no", parent: "no", player: "no" },
-    { label: t("confirmAttendanceAction"), president: "always", director: "always", coach: "coachCanAttendance", delegate: "delegateCanAttendance", fees: "no", parent: "own", player: "own" },
-    { label: t("uploadFilesAction"), president: "always", director: "always", coach: "coachCanDocuments", delegate: "delegateCanDocuments", fees: "feesCanDocuments", parent: "no", player: "no" },
-    { label: t("viewFilesAction"), president: "always", director: "always", coach: "team", delegate: "team", fees: "team", parent: "own", player: "own" },
-    { label: t("manageResultsAction"), president: "always", director: "always", coach: "coachCanResults", delegate: "no", fees: "no", parent: "no", player: "no" },
-    { label: t("manageGalleriesAction"), president: "always", director: "always", coach: "coachCanResultGallery", delegate: "delegateCanResultGallery", fees: "no", parent: "no", player: "no" },
-    { label: t("editTeamsAction"), president: "always", director: "always", coach: "coachCanTeams", delegate: "no", fees: "feesCanTeams", parent: "no", player: "no" },
-    { label: t("manageUsersAction"), president: "always", director: "always", coach: "no", delegate: "no", fees: "feesCanProfiles", parent: "no", player: "no" },
-    { label: t("importMembersAction"), president: "always", director: "always", coach: "coachCanImportMembers", delegate: "delegateCanImportMembers", fees: "feesCanImportMembers", parent: "no", player: "no" },
-    { label: t("exportDataAction"), president: "always", director: "always", coach: "coachCanExportData", delegate: "delegateCanExportData", fees: "feesCanExportData", parent: "no", player: "no" },
-    { label: t("backupDataAction"), president: "always", director: "always", coach: "coachCanBackupData", delegate: "delegateCanBackupData", fees: "feesCanBackupData", parent: "no", player: "no" },
-    { label: t("restoreDataAction"), president: "always", director: "always", coach: "coachCanRestoreData", delegate: "delegateCanRestoreData", fees: "feesCanRestoreData", parent: "no", player: "no" },
-    { label: t("undoBulkAction"), president: "always", director: "always", coach: "coachCanUndoBulk", delegate: "delegateCanUndoBulk", fees: "feesCanUndoBulk", parent: "no", player: "no" },
-    { label: t("messageClubAction"), president: "always", director: "always", coach: "team", delegate: "team", fees: "feesCanMessages", parent: "own", player: "own" },
+    { label: t("publishAnnouncements"), president: "presidentCanAnnouncements", director: "always", coach: "coachCanAnnouncements", delegate: "delegateCanAnnouncements", fees: "feesCanAnnouncements", parent: "no", player: "no" },
+    { label: t("createEvents"), president: "presidentCanEvents", director: "always", coach: "coachCanEvents", delegate: "no", fees: "no", parent: "no", player: "no" },
+    { label: t("manageCallups"), president: "presidentCanCallups", director: "always", coach: "coachCanCallups", delegate: "no", fees: "no", parent: "no", player: "no" },
+    { label: t("confirmAttendanceAction"), president: "no", director: "always", coach: "coachCanAttendance", delegate: "delegateCanAttendance", fees: "no", parent: "own", player: "own" },
+    { label: t("uploadFilesAction"), president: "presidentCanDocuments", director: "always", coach: "coachCanDocuments", delegate: "delegateCanDocuments", fees: "feesCanDocuments", parent: "no", player: "no" },
+    { label: t("viewFilesAction"), president: "team", director: "always", coach: "team", delegate: "team", fees: "team", parent: "own", player: "own" },
+    { label: t("manageResultsAction"), president: "presidentCanResults", director: "always", coach: "coachCanResults", delegate: "no", fees: "no", parent: "no", player: "no" },
+    { label: t("manageGalleriesAction"), president: "presidentCanResultGallery", director: "always", coach: "coachCanResultGallery", delegate: "delegateCanResultGallery", fees: "no", parent: "no", player: "no" },
+    { label: t("editTeamsAction"), president: "presidentCanTeams", director: "always", coach: "coachCanTeams", delegate: "no", fees: "feesCanTeams", parent: "no", player: "no" },
+    { label: t("manageUsersAction"), president: "presidentCanProfiles", director: "always", coach: "no", delegate: "no", fees: "feesCanProfiles", parent: "no", player: "no" },
+    { label: t("importMembersAction"), president: "presidentCanImportMembers", director: "always", coach: "coachCanImportMembers", delegate: "delegateCanImportMembers", fees: "feesCanImportMembers", parent: "no", player: "no" },
+    { label: t("exportDataAction"), president: "presidentCanExportData", director: "always", coach: "coachCanExportData", delegate: "delegateCanExportData", fees: "feesCanExportData", parent: "no", player: "no" },
+    { label: t("backupDataAction"), president: "presidentCanBackupData", director: "always", coach: "coachCanBackupData", delegate: "delegateCanBackupData", fees: "feesCanBackupData", parent: "no", player: "no" },
+    { label: t("restoreDataAction"), president: "presidentCanRestoreData", director: "always", coach: "coachCanRestoreData", delegate: "delegateCanRestoreData", fees: "feesCanRestoreData", parent: "no", player: "no" },
+    { label: t("undoBulkAction"), president: "presidentCanUndoBulk", director: "always", coach: "coachCanUndoBulk", delegate: "delegateCanUndoBulk", fees: "feesCanUndoBulk", parent: "no", player: "no" },
+    { label: t("messageClubAction"), president: "presidentCanMessages", director: "always", coach: "team", delegate: "team", fees: "feesCanMessages", parent: "own", player: "own" },
   ];
 }
 
@@ -6012,7 +6077,7 @@ function openThreadModal() {
       </div>
       <div class="form-row">
         <label>${t("selectedPlayers")}</label>
-        <select name="playerId">${userPlayers.map((id) => `<option value="${id}">${getPlayer(id)?.name}</option>`).join("")}</select>
+        <select name="playerId"><option value="">Sin jugador vinculado</option>${userPlayers.map((id) => `<option value="${id}">${getPlayer(id)?.name}</option>`).join("")}</select>
       </div>
       <div class="form-row"><label>${t("title")}</label><input name="subject" required /></div>
       <div class="form-row"><label>${t("body")}</label><textarea name="message" required></textarea></div>
@@ -6188,10 +6253,10 @@ function openQuickPlayerModal() {
   openModal(
     t("quickPlayerSignup"),
     `<form class="form" onsubmit="createQuickPlayer(event)">
-      <div class="form-grid">
+      <div class="form-grid quick-signup-grid">
         <div class="form-row"><label>${t("player")}</label><input name="playerName" required /></div>
         <div class="form-row"><label>Edad</label><input name="age" type="number" min="1" max="99" /></div>
-        <div class="form-row"><label>${t("team")}</label><select name="teamIds" multiple size="5">${state.teams.map((team) => `<option value="${team.id}">${escapeHtml(team.name)}</option>`).join("")}</select></div>
+        <div class="form-row quick-signup-teams"><label>${t("team")}</label><select name="teamIds" multiple size="5">${state.teams.map((team) => `<option value="${team.id}">${escapeHtml(team.name)}</option>`).join("")}</select></div>
         <div class="form-row"><label>${t("email")} jugador</label><input name="playerEmail" type="email" /></div>
         <div class="form-row"><label>${t("family")}</label><input name="guardianName" /></div>
         <div class="form-row"><label>${t("email")} familiar</label><input name="guardianEmail" type="email" /></div>
@@ -7130,7 +7195,7 @@ function createResult(event) {
   event.preventDefault();
   if (!canManageResults()) return;
   const form = new FormData(event.currentTarget);
-  const allowed = isExecutive(currentUser()) ? state.teams.map((team) => team.id) : state.teams.filter((team) => team.coachId === currentUser().id).map((team) => team.id);
+  const allowed = isExecutive(currentUser()) || hasRole(currentUser(), "president") ? state.teams.map((team) => team.id) : state.teams.filter((team) => team.coachId === currentUser().id).map((team) => team.id);
   if (!allowed.includes(form.get("teamId"))) return;
   const result = resultFromForm(form);
   state.results ||= [];
@@ -7148,7 +7213,7 @@ function updateResult(event, resultId) {
   const index = state.results.findIndex((item) => item.id === resultId);
   if (index < 0) return;
   const form = new FormData(event.currentTarget);
-  const allowed = isExecutive(currentUser()) ? state.teams.map((team) => team.id) : state.teams.filter((team) => team.coachId === currentUser().id).map((team) => team.id);
+  const allowed = isExecutive(currentUser()) || hasRole(currentUser(), "president") ? state.teams.map((team) => team.id) : state.teams.filter((team) => team.coachId === currentUser().id).map((team) => team.id);
   if (!allowed.includes(form.get("teamId"))) return;
   state.results[index] = resultFromForm(form, resultId, state.results[index]);
   state.resultsCursor = toLocalDateKey(mondayOf(new Date(`${state.results[index].date}T00:00:00`)));
@@ -7262,7 +7327,13 @@ function createEvent(event) {
   const type = form.get("type");
   const playerIds = form.getAll("playerIds");
   const teamId = String(form.get("teamId") || "");
-  if (!canUseEventTeam(teamId)) return;
+  if (!canUseEventTeam(teamId)) {
+    state.toast = "No tienes permiso para crear eventos en ese equipo";
+    save();
+    closeModal();
+    render();
+    return;
+  }
   if (type === "training") {
     const dates = recurrenceDates(date, Number(form.get("weeks") || 1), form.getAll("weekdays"));
     const trainings = dates.map((trainingDate) => trainingFromForm(form, teamId, playerIds, trainingDate));
@@ -7271,11 +7342,12 @@ function createEvent(event) {
     state.toast = trainings.length === 1 ? "Entreno guardado en el calendario" : `${trainings.length} entrenos guardados`;
     appendAudit("crear entreno", "training", `${trainings.length} · ${getTeam(teamId)?.name || t("allClub")}`);
   } else {
-    if (!String(form.get("title") || "").trim()) return;
+    const fallbackTitle = `${t(type)} ${getTeam(teamId)?.name || t("allClub")}`.trim();
+    const title = String(form.get("title") || fallbackTitle).trim();
     const eventItem = {
     id: uid("ev"),
     type,
-    title: form.get("title"),
+    title,
     teamId,
     seasonId: seasonIdForDate(date),
     competitionId: form.get("competitionId") || "",

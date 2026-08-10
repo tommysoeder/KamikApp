@@ -4719,10 +4719,18 @@ input[type="file"]::file-selector-button:hover {
 }
 
 @media (max-width: 760px) {
-  .mobile-header {
-    position: sticky;
+  .mobile-header,
+  body.force-mobile .mobile-header {
+    position: fixed;
     top: 0;
+    left: 0;
+    right: 0;
     z-index: 30;
+  }
+
+  .main,
+  body.force-mobile .main {
+    padding-top: 58px;
   }
 
   .modal {
@@ -4739,4 +4747,28 @@ input[type="file"]::file-selector-button:hover {
     width: 100%;
     justify-content: flex-start;
   }
+}
+
+body.force-mobile .mobile-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 30;
+}
+
+body.force-mobile .main {
+  padding-top: 58px;
+}
+
+.quick-signup-grid {
+  align-items: start;
+}
+
+.quick-signup-grid .form-row {
+  min-height: 0;
+}
+
+.quick-signup-teams {
+  grid-row: span 2;
 }
