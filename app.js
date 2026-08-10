@@ -1704,6 +1704,18 @@ function notifyUnreadVisibleItems() {
     seen.add(key);
     runtime.__kamikPushedNotices.add(key);
   });
+  visibleThreads().forEach((thread) => {
+    const user = currentUser();
+    const last = thread.messages?.[thread.messages.length - 1];
+    if (!user || !last) return;
+    const incoming = thread.assignedToId === user.id ? last.from === "user" : last.from === "club";
+    if (!incoming || thread.seenBy?.[user.id] === thread.messages.length) return;
+    const key = `thread:${thread.id}:${thread.messages.length}`;
+    if (seen.has(key)) return;
+    pushNotification(t("messages"), last.text || thread.subject || "");
+    seen.add(key);
+    runtime.__kamikPushedNotices.add(key);
+  });
   localStorage.setItem("kamik-pushed-notices", JSON.stringify([...seen].slice(-80)));
 }
 
@@ -7688,7 +7700,7 @@ function selectThread(threadId) {
     thread.seenBy ||= {};
     thread.seenBy[currentUser().id] = thread.messages.length;
   }
-  save();
+  save("markRead");
   render();
 }
 

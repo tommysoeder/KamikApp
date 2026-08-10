@@ -11,7 +11,7 @@ const DATA_DIR = process.env.DATA_DIR || path.join(ROOT, "data");
 const STATE_FILE = path.join(DATA_DIR, "state.json");
 const BACKUP_DIR = path.join(DATA_DIR, "backups");
 const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
-const APP_VERSION = "v104";
+const APP_VERSION = "v105";
 const APP_MODE = String(process.env.APP_MODE || "presentation").toLowerCase();
 const APP_LABEL = process.env.APP_LABEL || (APP_MODE === "beta" ? "Beta privada" : "");
 const SHOW_LOGIN_PROFILES = process.env.SHOW_LOGIN_PROFILES === "1" || (APP_MODE !== "beta" && APP_MODE !== "production");
@@ -153,7 +153,7 @@ function permissionKey(operation, role) {
     publishAnnouncement: { coach: "coachCanAnnouncements", delegate: "delegateCanAnnouncements" },
     manageEvents: { coach: "coachCanEvents" },
     manageCallup: { coach: "coachCanCallups" },
-    attendance: { coach: "coachCanAttendance", delegate: "delegateCanAttendance" },
+    attendance: { coach: "coachCanAttendance", delegate: "delegateCanAttendance", parent: true, player: true },
     manageResults: { coach: "coachCanResults" },
     manageProfiles: { coach: true, delegate: true },
     messageClub: { coach: true, delegate: true, fees: true, parent: true, player: true },
@@ -428,8 +428,38 @@ function playerWithinTeams(player, teamIds) {
   return (player?.teams || []).some((teamId) => teamIds.includes(teamId));
 }
 
+function ownAttendanceOnly(actor, beforeState, afterState) {
+  if (!actor?.user || hasRole(actor.user, "director") || hasRole(actor.user, "coach") || hasRole(actor.user, "delegate")) return "";
+  const allowedPlayers = new Set(playerIdsForUser(actor.user, beforeState));
+  const changedCallups = changedItems(beforeState.callups, afterState.callups);
+  const changedTrainings = changedItems(beforeState.trainings, afterState.trainings);
+  const unsafeCallup = changedCallups.some((afterCallup) => {
+    const beforeCallup = (beforeState.callups || []).find((item) => item.id === afterCallup.id) || {};
+    const beforeResponses = beforeCallup.responses || {};
+    const afterResponses = afterCallup.responses || {};
+    const responseKeys = new Set([...Object.keys(beforeResponses), ...Object.keys(afterResponses)]);
+    return [...responseKeys].some((playerId) => !allowedPlayers.has(playerId) && beforeResponses[playerId] !== afterResponses[playerId]);
+  });
+  if (unsafeCallup) return "Solo puedes confirmar tu propia asistencia";
+  const unsafeTraining = changedTrainings.some((afterTraining) => {
+    const beforeTraining = (beforeState.trainings || []).find((item) => item.id === afterTraining.id) || {};
+    const beforeAbsences = beforeTraining.absences || {};
+    const afterAbsences = afterTraining.absences || {};
+    const absenceKeys = new Set([...Object.keys(beforeAbsences), ...Object.keys(afterAbsences)]);
+    const beforeAttendance = beforeTraining.attendance || {};
+    const afterAttendance = afterTraining.attendance || {};
+    const attendanceKeys = new Set([...Object.keys(beforeAttendance), ...Object.keys(afterAttendance)]);
+    return (
+      [...absenceKeys].some((playerId) => !allowedPlayers.has(playerId) && beforeAbsences[playerId] !== afterAbsences[playerId]) ||
+      [...attendanceKeys].some((playerId) => !allowedPlayers.has(playerId) && beforeAttendance[playerId] !== afterAttendance[playerId])
+    );
+  });
+  return unsafeTraining ? "Solo puedes marcar tu propia asistencia" : "";
+}
+
 function authorizeTeamScope(actor, beforeState, afterState) {
   if (!beforeState || !afterState || !actor.user || hasRole(actor.user, "director")) return "";
+  if (actor.operation === "attendance") return ownAttendanceOnly(actor, beforeState, afterState);
   const teamIds = staffTeamIds(actor.user, beforeState);
   const blocks = [];
   const ensure = (label, items, predicate = itemWithinTeams) => {
