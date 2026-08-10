@@ -1654,6 +1654,44 @@ function notifyTeam(teamId, title, body, documentId = "") {
   });
 }
 
+function usersForAnnouncement(announcement) {
+  const users = new Map();
+  const add = (user) => {
+    if (user && !user.disabled) users.set(user.id, user);
+  };
+  if (announcement.targetType === "all") {
+    state.users.forEach(add);
+  } else if (announcement.targetType === "role") {
+    state.users.filter((user) => (announcement.targetIds || []).some((role) => hasRole(user, role))).forEach(add);
+  } else if (announcement.targetType === "team") {
+    const teamIds = new Set(announcement.targetIds || []);
+    state.players
+      .filter((player) => (player.teams || []).some((teamId) => teamIds.has(teamId)))
+      .forEach((player) => usersForPlayer(player.id).forEach(add));
+    state.teams
+      .filter((team) => teamIds.has(team.id))
+      .forEach((team) => {
+        add(state.users.find((user) => user.id === team.coachId));
+        add(state.users.find((user) => user.id === team.delegateId));
+      });
+  }
+  return [...users.values()];
+}
+
+function notifyAnnouncement(announcement) {
+  usersForAnnouncement(announcement).forEach((user) => {
+    addNotification({
+      id: uid("notice"),
+      userId: user.id,
+      announcementId: announcement.id,
+      title: announcement.title,
+      body: announcement.body,
+      createdAt: iso(0),
+      read: false,
+    });
+  });
+}
+
 function notificationKey(notice) {
   return notificationCanonicalKey(notice);
 }
@@ -1668,6 +1706,7 @@ function notificationDedupeKey(notice) {
 
 function notificationCanonicalKey(notice, user = null) {
   const audience = notice.userId || user?.id || "";
+  if (notice.announcementId) return `${audience}:ann:${notice.announcementId}`;
   if (notice.documentId) return `${audience}:doc:${notice.documentId}`;
   if (notice.eventId) return `${audience}:event:${notice.eventId}:${notificationType(notice)}`;
   return `${audience}:notice:${normalizeSearchText(`${notice.title || ""} ${notice.body || ""}`)}`;
@@ -1710,6 +1749,7 @@ function dedupeNotifications(notifications) {
 
 function notificationType(notice) {
   const text = `${notice.title || ""} ${notice.body || ""}`.toLowerCase();
+  if (notice.announcementId) return "announcements";
   if (notice.documentId) return "files";
   if (notice.eventId && text.includes("convocatoria")) return "callups";
   if (notice.eventId) return "events";
@@ -7321,6 +7361,7 @@ function createAnnouncement(event) {
     createdAt: iso(0),
   };
   state.announcements.unshift(announcement);
+  notifyAnnouncement(announcement);
   appendAudit("crear anuncio", "announcement", announcement.title);
   saveAndClose("publishAnnouncement");
 }

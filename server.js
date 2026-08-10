@@ -7,11 +7,11 @@ const path = require("node:path");
 const PORT = Number(process.env.PORT || 4173);
 const HOST = process.env.HOST || "0.0.0.0";
 const ROOT = __dirname;
-const DATA_DIR = process.env.DATA_DIR || path.join(ROOT, "data");
+const DATA_DIR = process.env.DATA_DIR || (process.env.RENDER ? path.join("/var", "data", "kamikapp") : path.join(ROOT, "data"));
 const STATE_FILE = path.join(DATA_DIR, "state.json");
 const BACKUP_DIR = path.join(DATA_DIR, "backups");
 const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
-const APP_VERSION = "v109";
+const APP_VERSION = "v110";
 const APP_MODE = String(process.env.APP_MODE || "presentation").toLowerCase();
 const APP_LABEL = process.env.APP_LABEL || (APP_MODE === "beta" ? "Beta privada" : "");
 const SHOW_LOGIN_PROFILES = process.env.SHOW_LOGIN_PROFILES === "1" || (APP_MODE !== "beta" && APP_MODE !== "production");
@@ -598,13 +598,16 @@ const operationDomains = {
   updateSelf: ["users", "auditLog"],
   cleanDemo: ["events", "trainings", "callups", "results", "announcements", "documents", "documentFolders", "notifications", "readAnnouncementIds", "auditLog", "activeDocumentTeamId", "activeDocumentFolderId", "resultsCursor", "calendarCursor"],
   messageClub: ["threads", "auditLog", "activeThreadId"],
-  publishAnnouncement: ["announcements", "readAnnouncementIds", "auditLog"],
+  publishAnnouncement: ["announcements", "readAnnouncementIds", "notifications", "auditLog"],
   restoreData: null,
   undoBulk: null,
   uploadDocument: ["documents", "documentFolders", "results", "notifications", "auditLog", "activeDocumentTeamId", "activeDocumentFolderId"],
 };
 
 function mergeCollection(baseItems = [], incomingItems = [], canPrune = () => true) {
+  if ([...baseItems, ...incomingItems].every((item) => item === null || typeof item !== "object")) {
+    return [...new Set(incomingItems)];
+  }
   const incomingById = new Map((incomingItems || []).map((item) => [item.id, item]));
   const removedIds = new Set((baseItems || []).filter((item) => canPrune(item)).map((item) => item.id).filter((id) => !incomingById.has(id)));
   const merged = (baseItems || []).filter((item) => !removedIds.has(item.id)).map((item) => incomingById.get(item.id) || item);

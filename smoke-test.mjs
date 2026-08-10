@@ -170,6 +170,35 @@ if (delegatedPermissionSmoke !== "true|true|true") {
 
 vm.runInContext("state.session = { userId: 'u-director', email: 'direccion@club.test', activeRole: 'director' }; render();", context, { filename: "smoke-reset-director.js" });
 
+const announcementNoticeSmoke = vm.runInContext(
+  `(() => {
+    const before = state.notifications.length;
+    createAnnouncement({
+      preventDefault() {},
+      currentTarget: {
+        values: {
+          title: "Anuncio smoke",
+          body: "Aviso visible para todos",
+          targetType: "all",
+          important: true
+        }
+      }
+    });
+    const notice = state.notifications.find((item) => item.announcementId && item.title === "Anuncio smoke");
+    markAnnouncementRead(state.announcements[0].id);
+    const marked = state.readAnnouncementIds.includes(state.announcements[0].id);
+    markAnnouncementUnread(state.announcements[0].id);
+    const unmarked = !state.readAnnouncementIds.includes(state.announcements[0].id);
+    return [state.notifications.length > before, notificationType(notice), marked, unmarked].join("|");
+  })()`,
+  context,
+  { filename: "smoke-announcement-notice.js" }
+);
+
+if (announcementNoticeSmoke !== "true|announcements|true|true") {
+  throw new Error(`Announcement notice smoke failed: ${announcementNoticeSmoke}`);
+}
+
 const undoSmoke = vm.runInContext(
   `(() => {
     const before = state.players.length;

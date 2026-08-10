@@ -123,6 +123,16 @@ try {
   const afterDirectorEvent = JSON.parse(await fs.readFile(path.join(dataDir, "state.json"), "utf8"));
   if (!afterDirectorEvent.events.some((event) => event.id === "ev-test")) throw new Error("Director event route did not persist the new event");
 
+  const readState = { ...afterDirectorEvent, readAnnouncementIds: ["ann-1", "ann-2"] };
+  const markReadRoute = await request(baseUrl, "/api/read-state", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${login.body.token}`, "X-Kamik-Role": "director" },
+    body: JSON.stringify(readState),
+  });
+  if (!markReadRoute.response.ok) throw new Error(`Mark-read route rejected primitive array: ${markReadRoute.response.status} ${JSON.stringify(markReadRoute.body)}`);
+  const afterMarkRead = JSON.parse(await fs.readFile(path.join(dataDir, "state.json"), "utf8"));
+  if (afterMarkRead.readAnnouncementIds.join("|") !== "ann-1|ann-2") throw new Error("Primitive readAnnouncementIds were not persisted correctly");
+
   const diagnostics = await request(baseUrl, "/api/diagnostics", {
     headers: { Authorization: `Bearer ${login.body.token}`, "X-Kamik-Role": "director" },
   });
