@@ -221,6 +221,29 @@ if (!createdEventVisible) {
   throw new Error("Created event did not appear in calendar schedule items");
 }
 
+const expiredCalendarSmoke = vm.runInContext(
+  `(() => {
+    state.events.push({
+      id: "ev-expired-calendar",
+      type: "event",
+      title: "Evento antiguo visible en calendario",
+      teamId: "team-1",
+      date: "2026-01-10",
+      time: "11:00",
+      place: "Pista antigua",
+      playerIds: []
+    });
+    state.calendarCursor = "2026-01-01";
+    return [scheduleItems().some((item) => item.id === "ev-expired-calendar"), renderMonthCalendar().includes("ev-expired-calendar")].join("|");
+  })()`,
+  context,
+  { filename: "smoke-expired-calendar-event.js" }
+);
+
+if (expiredCalendarSmoke !== "false|true") {
+  throw new Error(`Expired calendar visibility failed: ${expiredCalendarSmoke}`);
+}
+
 vm.runInContext(
   `createEvent({
     preventDefault() {},

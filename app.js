@@ -4372,11 +4372,6 @@ function renderAnnouncementItem(announcement) {
 function openAnnouncementDetail(announcementId) {
   const announcement = state.announcements.find((item) => item.id === announcementId);
   if (!announcement) return;
-  if (!(state.readAnnouncementIds || []).includes(announcementId)) {
-    state.readAnnouncementIds ||= [];
-    state.readAnnouncementIds.push(announcementId);
-    save("markRead");
-  }
   openModal(
     escapeHtml(announcement.title),
     `<article class="article-detail">
@@ -4421,15 +4416,16 @@ function renderCalendar() {
   `;
 }
 
-function scheduleItems() {
+function scheduleItems(options = {}) {
+  const includeExpired = Boolean(options.includeExpired);
   const teams = visibleTeamIds();
   const user = currentUser();
   const events = state.events
-    .filter((event) => isWithinVisibleGrace(event))
+    .filter((event) => includeExpired || isWithinVisibleGrace(event))
     .filter((event) => !event.teamId || staffCanSeeTeam(event.teamId, user) || (teams.includes(event.teamId) && playerCanSeeItem(event, user)))
     .map((event) => ({ ...event, source: "event", color: event.type === "match" ? "blue" : event.type === "tournament" ? "gold" : "green" }));
   const trainings = state.trainings
-    .filter((training) => isWithinVisibleGrace(training))
+    .filter((training) => includeExpired || isWithinVisibleGrace(training))
     .filter((training) => (!training.teamId || teams.includes(training.teamId)) && (staffCanSeeTeam(training.teamId, user) || playerCanSeeItem(training, user)))
     .map((training) => ({
       id: training.id,
@@ -4595,7 +4591,7 @@ function renderMonthCalendar() {
   const cursor = new Date(`${state.calendarCursor}T00:00:00`);
   const first = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
   const start = mondayOf(first);
-  const items = scheduleItems();
+  const items = scheduleItems({ includeExpired: true });
   const monthName = cursor.toLocaleDateString(state.lang === "es" ? "es-ES" : "en-US", { month: "long", year: "numeric" });
   const days = Array.from({ length: 42 }, (_, index) => {
     const day = new Date(start);
@@ -4657,7 +4653,7 @@ function isAwayMatch(item) {
 
 function renderMonthActivityList() {
   const cursor = new Date(`${state.calendarCursor}T00:00:00`);
-  const items = scheduleItems().filter((item) => {
+  const items = scheduleItems({ includeExpired: true }).filter((item) => {
     const date = new Date(`${item.date}T00:00:00`);
     return date.getFullYear() === cursor.getFullYear() && date.getMonth() === cursor.getMonth();
   });

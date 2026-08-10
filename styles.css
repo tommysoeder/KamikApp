@@ -4192,14 +4192,14 @@ body::-webkit-scrollbar-thumb,
 .modal-backdrop,
 body.force-desktop .modal-backdrop,
 body.force-mobile .modal-backdrop {
-  z-index: 500;
+  z-index: 2000 !important;
 }
 
 .modal,
 body.force-desktop .modal,
 body.force-mobile .modal {
   position: relative;
-  z-index: 501;
+  z-index: 2001 !important;
 }
 
 /* V58 - make search suggestions fully interactive */
@@ -4772,6 +4772,17 @@ body.force-mobile .main {
 
   .main {
     padding-top: 58px !important;
+  }
+
+  .topbar,
+  body.force-mobile .topbar {
+    display: none !important;
+  }
+
+  .modal-backdrop,
+  body.force-mobile .modal-backdrop {
+    z-index: 2000 !important;
+    padding-top: max(12px, env(safe-area-inset-top)) !important;
   }
 }
 

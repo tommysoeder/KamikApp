@@ -120,6 +120,8 @@ try {
     body: JSON.stringify(changedEvents),
   });
   if (!eventRoute.response.ok) throw new Error(`Event route rejected director write: ${eventRoute.response.status} ${JSON.stringify(eventRoute.body)}`);
+  const afterDirectorEvent = JSON.parse(await fs.readFile(path.join(dataDir, "state.json"), "utf8"));
+  if (!afterDirectorEvent.events.some((event) => event.id === "ev-test")) throw new Error("Director event route did not persist the new event");
 
   const diagnostics = await request(baseUrl, "/api/diagnostics", {
     headers: { Authorization: `Bearer ${login.body.token}`, "X-Kamik-Role": "director" },
