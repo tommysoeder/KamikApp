@@ -3481,6 +3481,15 @@ body::-webkit-scrollbar-thumb,
   min-height: 116px;
 }
 
+.section-kicker {
+  margin: 14px 0 8px;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
 .management-task-list {
   display: grid;
   gap: 10px;

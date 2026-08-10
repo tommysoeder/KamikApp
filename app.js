@@ -2064,7 +2064,7 @@ function canManage(view) {
 function canSee(view) {
   const user = currentUser();
   if (!user) return false;
-  if (["dashboard", "notifications", "announcements", "results", "calendar", "callups", "history", "attendance", "messages", "documents", "teams", "profiles"].includes(view)) return true;
+  if (["dashboard", "notifications", "announcements", "results", "calendar", "clubEvents", "callups", "history", "attendance", "messages", "documents", "teams", "profiles"].includes(view)) return true;
   if (view === "management") return canUseManagement(user);
   if (view === "users") return canUseDataTools(user);
   if (view === "diagnostics") return canBackupData(user) || canRestoreData(user) || canManageUsers(user);
@@ -2453,6 +2453,7 @@ function iconForView(view) {
     announcements: iconMegaphone,
     results: iconScoreboard,
     calendar: iconCalendar,
+    clubEvents: iconMegaphone,
     profiles: iconUsers,
     history: iconScroll,
     callups: iconList,
@@ -2529,6 +2530,7 @@ function renderSidebar(user) {
     ["announcements", t("announcements")],
     ["results", t("results")],
     ["calendar", t("calendar")],
+    ["clubEvents", "Eventos"],
     ["profiles", t("profiles")],
     ["callups", t("callups")],
     ["history", t("history")],
@@ -2899,6 +2901,7 @@ function viewTitle(view) {
     announcements: t("announcements"),
     results: t("results"),
     calendar: t("calendar"),
+    clubEvents: "Eventos",
     profiles: t("profiles"),
     callups: t("callups"),
     history: t("history"),
@@ -2927,6 +2930,7 @@ function renderView() {
     announcements: renderAnnouncements,
     results: renderResults,
     calendar: renderCalendar,
+    clubEvents: renderClubEvents,
     profiles: renderProfiles,
     callups: renderCallups,
     history: renderHistory,
@@ -4294,9 +4298,19 @@ function renderNotificationItem(notice) {
         <span class="pill ${type === "files" ? "blue" : type === "callups" ? "gold" : "green"}">${notificationTypeLabel(type)}${notice.count > 1 ? ` · ${notice.count}` : ""}</span>
       </div>
       <p class="meta">${escapeHtml(notice.body || "")}</p>
-      ${!notice.read ? `<button class="btn" type="button" onclick="event.stopPropagation(); markNotificationRead('${notice.id}')">${t("markRead")}</button>` : ""}
+      <div class="actions inline-actions">
+        ${!notice.read ? `<button class="btn" type="button" onclick="event.stopPropagation(); markNotificationRead('${notice.id}')">${t("markRead")}</button>` : ""}
+        <button class="btn danger" type="button" onclick="event.stopPropagation(); deleteNotification('${notice.id}')">${t("delete")}</button>
+      </div>
     </article>
   `;
+}
+
+function deleteNotification(notificationId) {
+  state.notifications = (state.notifications || []).filter((notice) => notice.id !== notificationId);
+  state.toast = "Aviso borrado";
+  save("markRead");
+  render();
 }
 
 function renderNotifications() {
@@ -4471,6 +4485,65 @@ function renderCalendar() {
       </section>
     </div>
   `;
+}
+
+function renderClubEvents() {
+  const cursor = new Date(`${state.calendarCursor}T00:00:00`);
+  const items = monthlyClubEvents();
+  const monthName = cursor.toLocaleDateString(state.lang === "es" ? "es-ES" : "en-US", { month: "long", year: "numeric" });
+  const visibleTeams = visibleTeamIds().map(getTeam).filter(Boolean);
+  const byTeam = new Map();
+  items.forEach((item) => {
+    const key = item.teamId || "all";
+    if (!byTeam.has(key)) byTeam.set(key, []);
+    byTeam.get(key).push(item);
+  });
+  return `
+    <div class="calendar-layout">
+      <section class="panel">
+        <div class="panel-header">
+          <div><h2>Eventos del mes</h2><p>${escapeHtml(monthName)} · actividades que no son partidos ni entrenos.</p></div>
+          <div class="actions calendar-actions">
+            <button class="btn icon-only calendar-arrow" type="button" onclick="moveMonth(-1)" aria-label="Mes anterior">&lt;</button>
+            <button class="btn" type="button" onclick="goToCurrentMonth()">Hoy</button>
+            <input class="month-input" type="month" value="${state.calendarCursor.slice(0, 7)}" onchange="setCalendarMonth(this.value)" />
+            <button class="btn icon-only calendar-arrow" type="button" onclick="moveMonth(1)" aria-label="Mes siguiente">&gt;</button>
+            ${canCreateEvent() ? `<button class="btn primary" type="button" onclick="openEventModal('event')">${t("newEvent")}</button>` : ""}
+          </div>
+        </div>
+        <div class="grid three management-stats">
+          <article class="card stat"><span>Eventos</span><strong>${items.length}</strong><span>${escapeHtml(monthName)}</span></article>
+          <article class="card stat"><span>Equipos</span><strong>${new Set(items.map((item) => item.teamId || "all")).size || 0}</strong><span>${visibleTeams.length} visibles</span></article>
+          <article class="card stat clickable-item" onclick="setView('calendar')"><span>${t("calendar")}</span><strong>${scheduleItems({ includeExpired: true }).filter((item) => item.date?.slice(0, 7) === state.calendarCursor.slice(0, 7)).length}</strong><span>Ver calendario completo</span></article>
+        </div>
+      </section>
+      <section class="panel">
+        <div class="panel-header"><div><h2>Listado</h2><p>Pulsa cualquier evento para abrir detalle, editar o borrar.</p></div></div>
+        <div class="list">
+          ${
+            items.length
+              ? [...byTeam.entries()]
+                  .map(([teamId, teamItems]) => `
+                    <div class="section-kicker">${teamId === "all" ? t("allClub") : escapeHtml(getTeam(teamId)?.name || "Equipo")}</div>
+                    ${teamItems.map(renderScheduleItem).join("")}
+                  `)
+                  .join("")
+              : `<div class="empty">No hay eventos publicados en este mes.</div>`
+          }
+        </div>
+      </section>
+    </div>
+  `;
+}
+
+function monthlyClubEvents() {
+  const cursor = new Date(`${state.calendarCursor}T00:00:00`);
+  return scheduleItems({ includeExpired: true })
+    .filter((item) => item.source === "event" && item.type === "event")
+    .filter((item) => {
+      const date = new Date(`${item.date}T00:00:00`);
+      return date.getFullYear() === cursor.getFullYear() && date.getMonth() === cursor.getMonth();
+    });
 }
 
 function scheduleItems(options = {}) {
@@ -5900,17 +5973,18 @@ function renderTargetOptions(type, selectedCsv = "") {
   root.innerHTML = `<label>${type === "team" ? t("team") : t("roles")}</label><select name="targetId" multiple size="5">${options}</select>`;
 }
 
-function openEventModal() {
+function openEventModal(defaultType = "match") {
   const teams = editableEventTeamIds().map(getTeam).filter(Boolean);
   const initialTeamId = teams[0]?.id || "";
   const allClubOption = isExecutive(currentUser()) ? `<option value="">${t("allClub")}</option>` : "";
   const competitions = state.competitions.filter((competition) => competition.seasonId === state.activeSeasonId);
+  const selectedType = ["match", "tournament", "event", "training"].includes(defaultType) ? defaultType : "match";
   openModal(
     t("newEvent"),
     `<form class="form" onsubmit="createEvent(event)">
       <div class="form-grid">
         <div class="form-row"><label>${t("title")}</label><input name="title" placeholder="Solo necesario para partido, torneo o evento" /></div>
-        <div class="form-row"><label>${t("type")}</label><select name="type"><option value="match">${t("match")}</option><option value="tournament">${t("tournament")}</option><option value="event">${t("event")}</option><option value="training">${t("training")}</option></select></div>
+        <div class="form-row"><label>${t("type")}</label><select name="type"><option value="match" ${selectedType === "match" ? "selected" : ""}>${t("match")}</option><option value="tournament" ${selectedType === "tournament" ? "selected" : ""}>${t("tournament")}</option><option value="event" ${selectedType === "event" ? "selected" : ""}>${t("event")}</option><option value="training" ${selectedType === "training" ? "selected" : ""}>${t("training")}</option></select></div>
         <div class="form-row"><label>${t("team")}</label><select name="teamId" onchange="renderEventPlayerOptions(this.value)">${allClubOption}${teams.map((team) => `<option value="${team.id}" ${team.id === initialTeamId ? "selected" : ""}>${team.name}</option>`).join("")}</select></div>
         <div class="form-row"><label>${t("competition")}</label><select name="competitionId"><option value="">Sin competición</option>${competitions.map((competition) => `<option value="${competition.id}" ${competition.id === state.activeCompetitionId ? "selected" : ""}>${escapeHtml(competition.name)}</option>`).join("")}</select></div>
         <div class="form-row"><label>${t("place")}</label><input name="place" required /></div>
@@ -7440,6 +7514,7 @@ function deleteAnnouncement(announcementId) {
   if (!canPublishAnnouncement() || !confirm("Borrar este anuncio?")) return;
   state.announcements = state.announcements.filter((item) => item.id !== announcementId);
   state.readAnnouncementIds = (state.readAnnouncementIds || []).filter((id) => id !== announcementId);
+  state.notifications = (state.notifications || []).filter((notice) => notice.announcementId !== announcementId);
   state.toast = "Anuncio borrado";
   appendAudit("borrar anuncio", "announcement", announcementId);
   save("publishAnnouncement");
@@ -7490,7 +7565,7 @@ function createEvent(event) {
     appendAudit("crear evento", "event", eventItem.title);
   }
   if (date) state.calendarCursor = `${date.slice(0, 7)}-01`;
-  goView("calendar");
+  goView(type === "event" ? "clubEvents" : "calendar");
   saveAndClose("manageEvents");
 }
 
