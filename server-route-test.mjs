@@ -82,6 +82,33 @@ function testState() {
   };
 }
 
+const bootPort = await freePort();
+const bootDataDir = await fs.mkdtemp(path.join(os.tmpdir(), "kamikapp-boot-test-"));
+const bootServer = spawn(process.execPath, ["server.js"], {
+  cwd: process.cwd(),
+  env: { ...process.env, PORT: String(bootPort), HOST: "127.0.0.1", DATA_DIR: bootDataDir },
+  stdio: ["ignore", "pipe", "pipe"],
+});
+
+try {
+  const bootBaseUrl = `http://127.0.0.1:${bootPort}`;
+  await waitForServer(bootBaseUrl, bootServer);
+  const bootLogin = await request(bootBaseUrl, "/api/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: "direccion@club.test", password: "kamikaze90", userId: "u-director" }),
+  });
+  if (!bootLogin.response.ok || !bootLogin.body.token) throw new Error(`Bundled state login failed on empty DATA_DIR: ${bootLogin.response.status}`);
+  const bootState = JSON.parse(await fs.readFile(path.join(bootDataDir, "state.json"), "utf8"));
+  if (!bootState.users?.some((user) => user.id === "u-director")) throw new Error("Empty DATA_DIR was not initialized from bundled state");
+} finally {
+  if (bootServer.exitCode === null) {
+    bootServer.kill();
+    await new Promise((resolve) => bootServer.once("exit", resolve));
+  }
+  await fs.rm(bootDataDir, { recursive: true, force: true });
+}
+
 const port = await freePort();
 const dataDir = await fs.mkdtemp(path.join(os.tmpdir(), "kamikapp-server-test-"));
 await fs.writeFile(path.join(dataDir, "state.json"), JSON.stringify(testState(), null, 2));

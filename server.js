@@ -9,9 +9,10 @@ const HOST = process.env.HOST || "0.0.0.0";
 const ROOT = __dirname;
 const DATA_DIR = process.env.DATA_DIR || (process.env.RENDER ? path.join("/var", "data", "kamikapp") : path.join(ROOT, "data"));
 const STATE_FILE = path.join(DATA_DIR, "state.json");
+const BUNDLED_STATE_FILE = path.join(ROOT, "data", "state.json");
 const BACKUP_DIR = path.join(DATA_DIR, "backups");
 const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
-const APP_VERSION = "v112";
+const APP_VERSION = "v113";
 const APP_MODE = String(process.env.APP_MODE || "presentation").toLowerCase();
 const APP_LABEL = process.env.APP_LABEL || (APP_MODE === "beta" ? "Beta privada" : "");
 const SHOW_LOGIN_PROFILES = process.env.SHOW_LOGIN_PROFILES === "1" || (APP_MODE !== "beta" && APP_MODE !== "production");
@@ -108,6 +109,24 @@ function readSavedState() {
   }
 }
 
+function readBundledState() {
+  if (!fs.existsSync(BUNDLED_STATE_FILE)) return null;
+  try {
+    return JSON.parse(fs.readFileSync(BUNDLED_STATE_FILE, "utf8"));
+  } catch {
+    return null;
+  }
+}
+
+function ensureSavedState() {
+  const saved = readSavedState();
+  if (saved) return saved;
+  const bundled = readBundledState();
+  if (!bundled) return null;
+  writeStateAtomically(JSON.stringify(bundled));
+  return readSavedState() || bundled;
+}
+
 function authToken(req) {
   const header = String(req.headers.authorization || "");
   const match = header.match(/^Bearer\s+(.+)$/i);
@@ -198,7 +217,7 @@ function requireOperation(req, res, operation, baseState = readSavedState()) {
 }
 
 function stateForLogin() {
-  return readSavedState();
+  return ensureSavedState();
 }
 
 function publicUser(user) {
@@ -946,7 +965,7 @@ async function handleApi(req, res, url) {
   }
 
   if (url.pathname === "/api/diagnostics" && req.method === "GET") {
-    const state = readSavedState();
+    const state = ensureSavedState();
     if (!requireOperation(req, res, "backupData", state)) return true;
     send(res, 200, JSON.stringify(diagnosticsPayload(req, state)), { "Content-Type": types[".json"] });
     return true;
@@ -1052,11 +1071,11 @@ async function handleApi(req, res, url) {
   }
 
   if (url.pathname === "/api/state" && req.method === "GET") {
-    if (!fs.existsSync(STATE_FILE)) {
+    const state = ensureSavedState();
+    if (!state) {
       send(res, 404, JSON.stringify({ error: "No saved state yet" }), { "Content-Type": types[".json"] });
       return true;
     }
-    const state = readSavedState();
     const actor = actorFromRequest(req, state);
     if (!actor.authenticated || !actor.user) {
       send(res, 401, JSON.stringify({ error: "Sesion caducada. Vuelve a entrar." }), { "Content-Type": types[".json"], "Cache-Control": "no-store" });
