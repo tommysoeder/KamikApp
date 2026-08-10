@@ -1125,6 +1125,24 @@ tr:last-child td {
   align-items: start;
 }
 
+.club-events-layout {
+  display: grid;
+  gap: 18px;
+}
+
+.club-events-layout .panel-header {
+  align-items: flex-start;
+}
+
+.club-events-layout .calendar-actions {
+  justify-content: flex-end;
+  max-width: 620px;
+}
+
+.club-events-layout .management-stats {
+  margin-top: 16px;
+}
+
 .month-title {
   text-transform: capitalize;
   font-weight: 750;

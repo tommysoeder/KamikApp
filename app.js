@@ -29,6 +29,7 @@ const API_RESTORE_SERVER_BACKUP_URL = "/api/backups/restore-server";
 const API_FETCH_STANDINGS_URL = "/api/standings/fetch";
 const API_FETCH_MATCH_REPORT_URL = "/api/match-report/fetch";
 const API_FETCH_COMPETITION_URL = "/api/competition/fetch";
+const API_EVENTS_PATCH_URL = "/api/events/patch";
 const APP_CONFIG = typeof window !== "undefined" ? window.__KAMIK_CONFIG || {} : {};
 const APP_MODE = String(APP_CONFIG.mode || "presentation").toLowerCase();
 const IS_PRESENTATION_DEMO = APP_CONFIG.presentationDemo !== false && APP_MODE !== "beta" && APP_MODE !== "production";
@@ -1352,6 +1353,29 @@ async function sendRemoteState(operation, body) {
     return true;
   } catch {
     showRemoteSaveError(`${operation}: sin conexion con el servidor`, { renderToast: false });
+    return false;
+  } finally {
+    remoteSaveInFlight = false;
+    lastRemoteSaveAt = Date.now();
+  }
+}
+
+async function saveEventsPatch(payload) {
+  saveLocalState();
+  if (remoteSavePaused || typeof fetch === "undefined" || location.protocol === "file:") return true;
+  remoteSaveInFlight = true;
+  lastRemoteSaveAt = Date.now();
+  try {
+    const { response, body } = await postJson(API_EVENTS_PATCH_URL, "manageEvents", payload);
+    if (!response.ok) {
+      const message = body?.error || "No se pudo guardar el evento";
+      showRemoteSaveError(`guardar evento: ${message}`, { renderToast: true });
+      return false;
+    }
+    lastRemoteSnapshot = "";
+    return true;
+  } catch (error) {
+    showRemoteSaveError(`guardar evento: ${error.message || "sin conexion con el servidor"}`, { renderToast: true });
     return false;
   } finally {
     remoteSaveInFlight = false;
@@ -4499,7 +4523,7 @@ function renderClubEvents() {
     byTeam.get(key).push(item);
   });
   return `
-    <div class="calendar-layout">
+    <div class="club-events-layout">
       <section class="panel">
         <div class="panel-header">
           <div><h2>Eventos del mes</h2><p>${escapeHtml(monthName)} · actividades que no son partidos ni entrenos.</p></div>
@@ -7521,7 +7545,7 @@ function deleteAnnouncement(announcementId) {
   render();
 }
 
-function createEvent(event) {
+async function createEvent(event) {
   event.preventDefault();
   if (!canCreateEvent()) return;
   const form = new FormData(event.currentTarget);
@@ -7536,10 +7560,13 @@ function createEvent(event) {
     render();
     return;
   }
+  let patchedEvents = [];
+  let patchedTrainings = [];
   if (type === "training") {
     const dates = recurrenceDates(date, Number(form.get("weeks") || 1), form.getAll("weekdays"));
     const trainings = dates.map((trainingDate) => trainingFromForm(form, teamId, playerIds, trainingDate));
     state.trainings.push(...trainings);
+    patchedTrainings = trainings;
     trainings.forEach((training) => notifyAffectedPlayers(playerIds, "Nuevo entreno convocado", `${training.date} ${training.time} · ${training.place}`, training.id));
     state.toast = trainings.length === 1 ? "Entreno guardado en el calendario" : `${trainings.length} entrenos guardados`;
     appendAudit("crear entreno", "training", `${trainings.length} · ${getTeam(teamId)?.name || t("allClub")}`);
@@ -7560,13 +7587,27 @@ function createEvent(event) {
     playerIds,
     };
     state.events.push(eventItem);
+    patchedEvents = [eventItem];
     if (playerIds.length) notifyAffectedPlayers(playerIds, "Nuevo evento en tu calendario", `${eventItem.title} · ${eventItem.date} ${eventItem.time}`, eventItem.id);
     state.toast = "Evento guardado en el calendario";
     appendAudit("crear evento", "event", eventItem.title);
   }
   if (date) state.calendarCursor = `${date.slice(0, 7)}-01`;
   goView(type === "event" ? "clubEvents" : "calendar");
-  saveAndClose("manageEvents");
+  const saved = await saveEventsPatch({
+    events: patchedEvents,
+    trainings: patchedTrainings,
+    notifications: state.notifications || [],
+    auditLog: state.auditLog || [],
+    calendarCursor: state.calendarCursor,
+    activeView: state.activeView,
+  });
+  if (!saved) {
+    render();
+    return;
+  }
+  closeModal();
+  render();
 }
 
 function trainingFromForm(form, teamId, playerIds, date) {

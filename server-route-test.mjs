@@ -150,7 +150,22 @@ try {
   const afterDirectorEvent = JSON.parse(await fs.readFile(path.join(dataDir, "state.json"), "utf8"));
   if (!afterDirectorEvent.events.some((event) => event.id === "ev-test")) throw new Error("Director event route did not persist the new event");
 
-  const readState = { ...afterDirectorEvent, readAnnouncementIds: ["ann-1", "ann-2"] };
+  const eventPatchRoute = await request(baseUrl, "/api/events/patch", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${login.body.token}`, "X-Kamik-Role": "director" },
+    body: JSON.stringify({
+      events: [{ id: "ev-patch", type: "event", title: "Patch", date: "2026-07-30", time: "12:00", teamId: "team-1", playerIds: [] }],
+      notifications: [],
+      auditLog: [{ id: "audit-patch", action: "crear evento", target: "event", label: "Patch", at: new Date().toISOString() }],
+      calendarCursor: "2026-07-01",
+      activeView: "clubEvents",
+    }),
+  });
+  if (!eventPatchRoute.response.ok) throw new Error(`Event patch rejected director write: ${eventPatchRoute.response.status} ${JSON.stringify(eventPatchRoute.body)}`);
+  const afterEventPatch = JSON.parse(await fs.readFile(path.join(dataDir, "state.json"), "utf8"));
+  if (!afterEventPatch.events.some((event) => event.id === "ev-patch")) throw new Error("Event patch route did not persist the new event");
+
+  const readState = { ...afterEventPatch, readAnnouncementIds: ["ann-1", "ann-2"] };
   const markReadRoute = await request(baseUrl, "/api/read-state", {
     method: "PUT",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${login.body.token}`, "X-Kamik-Role": "director" },

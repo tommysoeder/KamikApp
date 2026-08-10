@@ -12,7 +12,7 @@ const STATE_FILE = path.join(DATA_DIR, "state.json");
 const BUNDLED_STATE_FILE = path.join(ROOT, "data", "state.json");
 const BACKUP_DIR = path.join(DATA_DIR, "backups");
 const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
-const APP_VERSION = "v115";
+const APP_VERSION = "v116";
 const APP_MODE = String(process.env.APP_MODE || "presentation").toLowerCase();
 const APP_LABEL = process.env.APP_LABEL || (APP_MODE === "beta" ? "Beta privada" : "");
 const SHOW_LOGIN_PROFILES = process.env.SHOW_LOGIN_PROFILES === "1" || (APP_MODE !== "beta" && APP_MODE !== "production");
@@ -659,6 +659,60 @@ function mergeRoutedState(baseState, incomingState, operation, actor) {
   return merged;
 }
 
+function upsertById(items = [], incoming = []) {
+  const byId = new Map((items || []).map((item) => [item.id, item]));
+  (incoming || []).forEach((item) => {
+    if (item?.id) byId.set(item.id, item);
+  });
+  return [...byId.values()];
+}
+
+function stateNotificationKey(notice = {}) {
+  return [
+    notice.userId || "",
+    notice.playerId || "",
+    notice.eventId || "",
+    notice.documentId || "",
+    notice.announcementId || "",
+    notice.threadId || "",
+    notice.title || "",
+    notice.body || "",
+  ].join("|");
+}
+
+function dedupeStateNotifications(items = []) {
+  const byKey = new Map();
+  (items || []).forEach((notice) => {
+    const key = stateNotificationKey(notice);
+    const existing = byKey.get(key);
+    if (!existing || String(notice.createdAt || "") >= String(existing.createdAt || "")) {
+      byKey.set(key, notice);
+    }
+  });
+  return [...byKey.values()].sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+}
+
+async function handleEventsPatch(req, res) {
+  req.headers["x-kamik-operation"] = "manageEvents";
+  const baseState = ensureSavedState();
+  const body = JSON.parse((await readBody(req)) || "{}");
+  const nextState = JSON.parse(JSON.stringify(baseState || {}));
+  nextState.events = upsertById(nextState.events, body.events);
+  nextState.trainings = upsertById(nextState.trainings, body.trainings);
+  nextState.notifications = dedupeStateNotifications(upsertById(nextState.notifications, body.notifications));
+  nextState.auditLog = upsertById(body.auditLog || [], nextState.auditLog).slice(0, 120);
+  if (body.calendarCursor) nextState.calendarCursor = body.calendarCursor;
+  if (body.activeView) nextState.activeView = body.activeView;
+  const authorizationError = authorizeStateWrite(req, nextState);
+  if (authorizationError) {
+    send(res, 403, JSON.stringify({ error: authorizationError }), { "Content-Type": types[".json"] });
+    return true;
+  }
+  writeStateAtomically(JSON.stringify(nextState));
+  send(res, 200, JSON.stringify({ ok: true, events: nextState.events.length, trainings: nextState.trainings.length }), { "Content-Type": types[".json"] });
+  return true;
+}
+
 async function handleStateWrite(req, res, expectedOperation = "") {
   if (expectedOperation) req.headers["x-kamik-operation"] = expectedOperation;
   const requestedOperation = String(req.headers["x-kamik-operation"] || "general");
@@ -1087,6 +1141,10 @@ async function handleApi(req, res, url) {
 
   if (url.pathname === "/api/state" && req.method === "PUT") {
     return handleStateWrite(req, res);
+  }
+
+  if (url.pathname === "/api/events/patch" && req.method === "POST") {
+    return handleEventsPatch(req, res);
   }
 
   if (stateWriteRoutes[url.pathname] && req.method === "PUT") {
