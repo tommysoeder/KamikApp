@@ -5563,12 +5563,33 @@ function renderDiagnostics() {
   const diagnostics = state.diagnostics;
   const backups = diagnostics?.backups || [];
   const summary = diagnostics?.summary || backupSummary(state);
+  if (!diagnostics && typeof setTimeout === "function") setTimeout(() => loadDiagnostics(), 0);
   return `
     <div class="diagnostics-layout">
       <section class="panel">
         <div class="panel-header">
           <div><h2>${t("diagnostics")}</h2><p>Estado tecnico, sincronizacion, backups y herramientas de temporada.</p></div>
           <button class="btn primary" type="button" onclick="loadDiagnostics()">${diagnostics ? "Actualizar" : "Cargar"}</button>
+        </div>
+        <div class="list compact diagnostics-paths" style="margin-bottom:14px">
+          <article class="item">
+            <div class="item-row">
+              <div>
+                <strong>Carpeta persistente</strong>
+                <span class="meta">${diagnostics?.dataDir ? escapeHtml(diagnostics.dataDir) : "Pulsa Cargar para consultar el servidor"}</span>
+              </div>
+              <span class="pill ${diagnostics?.dataDir === "/var/data/kamikapp" ? "green" : diagnostics ? "red" : ""}">${diagnostics?.dataDir === "/var/data/kamikapp" ? "OK" : diagnostics ? "Revisar" : "Pendiente"}</span>
+            </div>
+          </article>
+          <article class="item">
+            <div class="item-row">
+              <div>
+                <strong>Modo servidor</strong>
+                <span class="meta">${escapeHtml(diagnostics?.mode || "Sin cargar")} · ${diagnostics?.stateFile?.exists ? "state.json existe" : "state.json no confirmado"}</span>
+              </div>
+              <span class="pill">${diagnostics?.stateFile?.size ? formatSize(diagnostics.stateFile.size) : "-"}</span>
+            </div>
+          </article>
         </div>
         <div class="grid three management-stats">
           <article class="card stat"><span>Servidor</span><strong>${diagnostics?.ok ? "OK" : "-"}</strong><span>${escapeHtml(diagnostics?.version || "Sin cargar")}</span></article>
