@@ -12,7 +12,7 @@ const STATE_FILE = path.join(DATA_DIR, "state.json");
 const BUNDLED_STATE_FILE = path.join(ROOT, "data", "state.json");
 const BACKUP_DIR = path.join(DATA_DIR, "backups");
 const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
-const APP_VERSION = "v116";
+const APP_VERSION = "v117";
 const APP_MODE = String(process.env.APP_MODE || "presentation").toLowerCase();
 const APP_LABEL = process.env.APP_LABEL || (APP_MODE === "beta" ? "Beta privada" : "");
 const SHOW_LOGIN_PROFILES = process.env.SHOW_LOGIN_PROFILES === "1" || (APP_MODE !== "beta" && APP_MODE !== "production");
@@ -21,6 +21,7 @@ const SESSION_TTL_MS = Number(process.env.SESSION_TTL_HOURS || 168) * 60 * 60 * 
 const sessions = new Map();
 const MAX_UPLOAD_BYTES = Number(process.env.MAX_UPLOAD_MB || 30) * 1024 * 1024;
 const ALLOWED_UPLOAD_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/gif", "application/pdf", "video/mp4", "video/quicktime", "video/webm"]);
+let lastEventPatch = null;
 
 const types = {
   ".html": "text/html; charset=utf-8",
@@ -696,6 +697,16 @@ async function handleEventsPatch(req, res) {
   req.headers["x-kamik-operation"] = "manageEvents";
   const baseState = ensureSavedState();
   const body = JSON.parse((await readBody(req)) || "{}");
+  const actor = actorFromRequest(req, baseState);
+  lastEventPatch = {
+    at: new Date().toISOString(),
+    userId: actor.userId || "",
+    role: actor.role || "",
+    authenticated: Boolean(actor.authenticated),
+    incomingEvents: body.events?.length || 0,
+    incomingTrainings: body.trainings?.length || 0,
+    status: "received",
+  };
   const nextState = JSON.parse(JSON.stringify(baseState || {}));
   nextState.events = upsertById(nextState.events, body.events);
   nextState.trainings = upsertById(nextState.trainings, body.trainings);
@@ -705,11 +716,13 @@ async function handleEventsPatch(req, res) {
   if (body.activeView) nextState.activeView = body.activeView;
   const authorizationError = authorizeStateWrite(req, nextState);
   if (authorizationError) {
+    lastEventPatch = { ...lastEventPatch, status: "rejected", error: authorizationError };
     send(res, 403, JSON.stringify({ error: authorizationError }), { "Content-Type": types[".json"] });
     return true;
   }
   writeStateAtomically(JSON.stringify(nextState));
-  send(res, 200, JSON.stringify({ ok: true, events: nextState.events.length, trainings: nextState.trainings.length }), { "Content-Type": types[".json"] });
+  lastEventPatch = { ...lastEventPatch, status: "saved", events: nextState.events.length, trainings: nextState.trainings.length, stateFileExists: fs.existsSync(STATE_FILE) };
+  send(res, 200, JSON.stringify({ ok: true, events: nextState.events.length, trainings: nextState.trainings.length, lastEventPatch }), { "Content-Type": types[".json"] });
   return true;
 }
 
@@ -796,6 +809,7 @@ function diagnosticsPayload(req, state) {
     activeSessions: sessions.size,
     sessionTtlHours: Math.round(SESSION_TTL_MS / 60 / 60 / 1000),
     stateFile: fs.existsSync(STATE_FILE) ? { exists: true, size: fs.statSync(STATE_FILE).size, updatedAt: fs.statSync(STATE_FILE).mtime.toISOString() } : { exists: false },
+    lastEventPatch,
     backups: backupFiles().slice(0, 12),
     summary: stateSummary(state),
     actor: actorFromRequest(req, state).userId || "",

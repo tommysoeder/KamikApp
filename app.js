@@ -1021,6 +1021,7 @@ function normalize(raw) {
   next.globalSearchOpen ??= false;
   next.globalSearchSource ||= "";
   next.lastUndo ||= null;
+  next.lastEventPatch ||= null;
   next.users = (next.users || seed.users).map((user) => ({
     ...user,
     roles: user.roles || [user.role || "parent"],
@@ -1372,7 +1373,13 @@ async function saveEventsPatch(payload) {
       showRemoteSaveError(`guardar evento: ${message}`, { renderToast: true });
       return false;
     }
+    if (body?.lastEventPatch) {
+      state.lastEventPatch = body.lastEventPatch;
+      state.toast = `Evento guardado en servidor (${body.lastEventPatch.events || 0} eventos)`;
+    }
     lastRemoteSnapshot = "";
+    lastRemoteSaveAt = 0;
+    await refreshRemoteState({ keepToast: true, force: true });
     return true;
   } catch (error) {
     showRemoteSaveError(`guardar evento: ${error.message || "sin conexion con el servidor"}`, { renderToast: true });
@@ -1409,13 +1416,13 @@ async function loadRemoteState() {
   await refreshRemoteState();
 }
 
-async function refreshRemoteState({ keepToast = false } = {}) {
+async function refreshRemoteState({ keepToast = false, force = false } = {}) {
   if (!state.session?.token) return;
   if (typeof fetch === "undefined" || location.protocol === "file:") return;
-  if (remoteSaveInFlight || Date.now() - lastRemoteSaveAt < 1200 || saveTimer) return;
+  if (!force && (remoteSaveInFlight || Date.now() - lastRemoteSaveAt < 1200 || saveTimer)) return;
   if (remoteRefreshInFlight) return;
   const nowMs = Date.now();
-  if (nowMs - lastRemoteRefreshAt < 2500) return;
+  if (!force && nowMs - lastRemoteRefreshAt < 2500) return;
   remoteRefreshInFlight = true;
   lastRemoteRefreshAt = nowMs;
   try {
@@ -1432,7 +1439,7 @@ async function refreshRemoteState({ keepToast = false } = {}) {
     if (!response.ok) return;
     const raw = await response.text();
     if (!raw || raw === lastRemoteSnapshot) return;
-    if (document.querySelector("#modal-root .modal") || document.activeElement?.closest?.("form")) {
+    if (!force && (document.querySelector("#modal-root .modal") || document.activeElement?.closest?.("form"))) {
       return;
     }
     const remote = normalize(JSON.parse(raw));
@@ -4516,6 +4523,7 @@ function renderClubEvents() {
   const items = monthlyClubEvents();
   const monthName = cursor.toLocaleDateString(state.lang === "es" ? "es-ES" : "en-US", { month: "long", year: "numeric" });
   const visibleTeams = visibleTeamIds().map(getTeam).filter(Boolean);
+  const eventPatch = state.lastEventPatch || state.diagnostics?.lastEventPatch || null;
   const byTeam = new Map();
   items.forEach((item) => {
     const key = item.teamId || "all";
@@ -4540,6 +4548,19 @@ function renderClubEvents() {
           <article class="card stat"><span>Equipos</span><strong>${new Set(items.map((item) => item.teamId || "all")).size || 0}</strong><span>${visibleTeams.length} visibles</span></article>
           <article class="card stat clickable-item" onclick="setView('calendar')"><span>${t("calendar")}</span><strong>${scheduleItems({ includeExpired: true }).filter((item) => item.date?.slice(0, 7) === state.calendarCursor.slice(0, 7)).length}</strong><span>Ver calendario completo</span></article>
         </div>
+        ${
+          isExecutive(currentUser()) && eventPatch
+            ? `<div class="list compact" style="margin-top:14px">
+                <article class="item">
+                  <div class="item-row">
+                    <div><strong>Último guardado de evento</strong><span class="meta">${escapeHtml(eventPatch.at || "")} · ${escapeHtml(eventPatch.status || "sin estado")} · rol ${escapeHtml(eventPatch.role || "-")}</span></div>
+                    <span class="pill ${eventPatch.status === "saved" ? "green" : "red"}">${eventPatch.status === "saved" ? "OK" : "Revisar"}</span>
+                  </div>
+                  <p class="meta">${eventPatch.error ? escapeHtml(eventPatch.error) : `${eventPatch.incomingEvents || 0} eventos enviados · ${eventPatch.events || 0} eventos en servidor`}</p>
+                </article>
+              </div>`
+            : ""
+        }
       </section>
       <section class="panel">
         <div class="panel-header"><div><h2>Listado</h2><p>Pulsa cualquier evento para abrir detalle, editar o borrar.</p></div></div>
