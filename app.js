@@ -1126,7 +1126,6 @@ function save(operation = "general") {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   persistSession();
   if (API_OPERATION_ENDPOINTS[operation]) saveRemoteNow(operation);
-  else queueRemoteSave(operation);
 }
 
 function persistSession() {
