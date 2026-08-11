@@ -12,7 +12,7 @@ const STATE_FILE = path.join(DATA_DIR, "state.json");
 const BUNDLED_STATE_FILE = path.join(ROOT, "data", "state.json");
 const BACKUP_DIR = path.join(DATA_DIR, "backups");
 const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
-const APP_VERSION = "v125";
+const APP_VERSION = "v126";
 const APP_MODE = String(process.env.APP_MODE || "presentation").toLowerCase();
 const APP_LABEL = process.env.APP_LABEL || (APP_MODE === "beta" ? "Beta privada" : "");
 const SHOW_LOGIN_PROFILES = process.env.SHOW_LOGIN_PROFILES === "1" || (APP_MODE !== "beta" && APP_MODE !== "production");
@@ -879,6 +879,59 @@ function stateSummary(state) {
   };
 }
 
+function dataQualityReport(state) {
+  const issues = [];
+  const users = state?.users || [];
+  const players = state?.players || [];
+  const teams = state?.teams || [];
+  const documents = state?.documents || [];
+  const teamIds = new Set(teams.map((team) => team.id));
+  const playerIds = new Set(players.map((player) => player.id));
+  const userIds = new Set(users.map((user) => user.id));
+  const emailCounts = new Map();
+  users.forEach((user) => {
+    const email = String(user.email || "").trim().toLowerCase();
+    if (!email) return;
+    emailCounts.set(email, (emailCounts.get(email) || 0) + 1);
+  });
+  emailCounts.forEach((count, email) => {
+    if (count > 1) issues.push({ level: "error", area: "Usuarios", title: "Email duplicado", detail: `${email} aparece ${count} veces` });
+  });
+  users.forEach((user) => {
+    if ((user.roles || []).includes("player") && user.playerId && !playerIds.has(user.playerId)) {
+      issues.push({ level: "error", area: "Usuarios", title: "Jugador vinculado inexistente", detail: `${user.name || user.email} apunta a ${user.playerId}` });
+    }
+    (user.children || []).forEach((playerId) => {
+      if (!playerIds.has(playerId)) issues.push({ level: "error", area: "Familias", title: "Familiar vinculado a jugador inexistente", detail: `${user.name || user.email} apunta a ${playerId}` });
+    });
+  });
+  players.forEach((player) => {
+    const assignedTeams = player.teams || [];
+    if (!assignedTeams.length) issues.push({ level: "warning", area: "Jugadores", title: "Jugador sin equipo", detail: player.name || player.id });
+    assignedTeams.forEach((teamId) => {
+      if (!teamIds.has(teamId)) issues.push({ level: "error", area: "Jugadores", title: "Equipo inexistente en ficha", detail: `${player.name || player.id} apunta a ${teamId}` });
+    });
+  });
+  teams.forEach((team) => {
+    if (team.coachId && !userIds.has(team.coachId)) issues.push({ level: "error", area: "Equipos", title: "Entrenador inexistente", detail: `${team.name} apunta a ${team.coachId}` });
+    if (team.delegateId && !userIds.has(team.delegateId)) issues.push({ level: "error", area: "Equipos", title: "Delegado inexistente", detail: `${team.name} apunta a ${team.delegateId}` });
+    if (!team.coachId) issues.push({ level: "warning", area: "Equipos", title: "Equipo sin entrenador", detail: team.name || team.id });
+    if (!team.delegateId) issues.push({ level: "info", area: "Equipos", title: "Equipo sin delegado", detail: team.name || team.id });
+  });
+  documents.forEach((doc) => {
+    if (doc.teamId && !teamIds.has(doc.teamId)) issues.push({ level: "error", area: "Archivos", title: "Archivo en equipo inexistente", detail: doc.name || doc.id });
+    if (!doc.url) issues.push({ level: "warning", area: "Archivos", title: "Archivo sin URL", detail: doc.name || doc.id });
+  });
+  const counts = issues.reduce(
+    (acc, issue) => {
+      acc[issue.level] = (acc[issue.level] || 0) + 1;
+      return acc;
+    },
+    { error: 0, warning: 0, info: 0 }
+  );
+  return { ok: counts.error === 0, counts, issues: issues.slice(0, 80) };
+}
+
 function diagnosticsPayload(req, state) {
   const writeProbe = (() => {
     try {
@@ -909,6 +962,7 @@ function diagnosticsPayload(req, state) {
     lastEventPatch,
     backups: backupFiles().slice(0, 12),
     summary: stateSummary(state),
+    quality: dataQualityReport(state),
     actor: actorFromRequest(req, state).userId || "",
   };
 }

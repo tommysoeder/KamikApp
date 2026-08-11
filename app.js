@@ -5839,6 +5839,7 @@ function renderDiagnostics() {
   const diagnostics = state.diagnostics;
   const backups = diagnostics?.backups || [];
   const summary = diagnostics?.summary || backupSummary(state);
+  const quality = diagnostics?.quality || dataQualityReport(state);
   if (!diagnostics && typeof setTimeout === "function") setTimeout(() => loadDiagnostics(), 0);
   return `
     <div class="diagnostics-layout">
@@ -5886,6 +5887,18 @@ function renderDiagnostics() {
           <article class="card stat"><span>${t("calendar")}</span><strong>${summary.events}</strong><span>${summary.results} resultados</span></article>
           <article class="card stat"><span>${t("documents")}</span><strong>${summary.documents}</strong><span>${summary.audit || 0} registros</span></article>
         </div>
+      </section>
+      <section class="panel">
+        <div class="panel-header">
+          <div><h2>Calidad de datos</h2><p>Revisa inconsistencias antes de invitar a familias y jugadores.</p></div>
+          <span class="pill ${quality.ok ? "green" : "red"}">${quality.ok ? "OK" : "Revisar"}</span>
+        </div>
+        <div class="grid three management-stats">
+          <article class="card stat"><span>Criticos</span><strong>${quality.counts?.error || 0}</strong><span>bloquean lanzamiento</span></article>
+          <article class="card stat"><span>Avisos</span><strong>${quality.counts?.warning || 0}</strong><span>conviene revisar</span></article>
+          <article class="card stat"><span>Info</span><strong>${quality.counts?.info || 0}</strong><span>no bloqueante</span></article>
+        </div>
+        <div class="quality-list">${(quality.issues || []).map(renderQualityIssue).join("") || `<div class="empty">No se han detectado inconsistencias importantes.</div>`}</div>
       </section>
       <section class="panel">
         <div class="panel-header">
@@ -7041,6 +7054,69 @@ function backupSummary(backupState) {
     results: backupState.results?.length || 0,
     audit: backupState.auditLog?.length || 0,
   };
+}
+
+function dataQualityReport(qualityState = state) {
+  const issues = [];
+  const users = qualityState.users || [];
+  const players = qualityState.players || [];
+  const teams = qualityState.teams || [];
+  const documents = qualityState.documents || [];
+  const teamIds = new Set(teams.map((team) => team.id));
+  const playerIds = new Set(players.map((player) => player.id));
+  const userIds = new Set(users.map((user) => user.id));
+  const emailCounts = new Map();
+  users.forEach((user) => {
+    const email = String(user.email || "").trim().toLowerCase();
+    if (!email) return;
+    emailCounts.set(email, (emailCounts.get(email) || 0) + 1);
+  });
+  emailCounts.forEach((count, email) => {
+    if (count > 1) issues.push({ level: "error", area: "Usuarios", title: "Email duplicado", detail: `${email} aparece ${count} veces`, action: "setView('users')" });
+  });
+  users.forEach((user) => {
+    if ((user.roles || []).includes("player") && user.playerId && !playerIds.has(user.playerId)) {
+      issues.push({ level: "error", area: "Usuarios", title: "Jugador vinculado inexistente", detail: `${user.name || user.email} apunta a ${user.playerId}`, action: "setView('users')" });
+    }
+    (user.children || []).forEach((playerId) => {
+      if (!playerIds.has(playerId)) issues.push({ level: "error", area: "Familias", title: "Familiar vinculado a jugador inexistente", detail: `${user.name || user.email} apunta a ${playerId}`, action: "setView('users')" });
+    });
+  });
+  players.forEach((player) => {
+    const assignedTeams = player.teams || [];
+    if (!assignedTeams.length) issues.push({ level: "warning", area: "Jugadores", title: "Jugador sin equipo", detail: player.name || player.id, action: "setView('profiles')" });
+    assignedTeams.forEach((teamId) => {
+      if (!teamIds.has(teamId)) issues.push({ level: "error", area: "Jugadores", title: "Equipo inexistente en ficha", detail: `${player.name || player.id} apunta a ${teamId}`, action: "setView('profiles')" });
+    });
+  });
+  teams.forEach((team) => {
+    if (team.coachId && !userIds.has(team.coachId)) issues.push({ level: "error", area: "Equipos", title: "Entrenador inexistente", detail: `${team.name} apunta a ${team.coachId}`, action: "setView('teams')" });
+    if (team.delegateId && !userIds.has(team.delegateId)) issues.push({ level: "error", area: "Equipos", title: "Delegado inexistente", detail: `${team.name} apunta a ${team.delegateId}`, action: "setView('teams')" });
+    if (!team.coachId) issues.push({ level: "warning", area: "Equipos", title: "Equipo sin entrenador", detail: team.name || team.id, action: "setView('teams')" });
+    if (!team.delegateId) issues.push({ level: "info", area: "Equipos", title: "Equipo sin delegado", detail: team.name || team.id, action: "setView('teams')" });
+  });
+  documents.forEach((doc) => {
+    if (doc.teamId && !teamIds.has(doc.teamId)) issues.push({ level: "error", area: "Archivos", title: "Archivo en equipo inexistente", detail: doc.name || doc.id, action: "setView('documents')" });
+    if (!doc.url) issues.push({ level: "warning", area: "Archivos", title: "Archivo sin URL", detail: doc.name || doc.id, action: "setView('documents')" });
+  });
+  const counts = issues.reduce(
+    (acc, issue) => {
+      acc[issue.level] = (acc[issue.level] || 0) + 1;
+      return acc;
+    },
+    { error: 0, warning: 0, info: 0 }
+  );
+  return { ok: counts.error === 0, counts, issues: issues.slice(0, 80) };
+}
+
+function renderQualityIssue(issue) {
+  return `
+    <button class="quality-issue ${escapeHtml(issue.level || "info")}" type="button" onclick="${issue.action || ""}">
+      <span class="quality-level">${issue.level === "error" ? "Critico" : issue.level === "warning" ? "Aviso" : "Info"}</span>
+      <strong>${escapeHtml(issue.title)}</strong>
+      <em>${escapeHtml(issue.area || "")} - ${escapeHtml(issue.detail || "")}</em>
+    </button>
+  `;
 }
 
 async function loadDiagnostics() {
