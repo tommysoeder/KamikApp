@@ -12,7 +12,7 @@ const STATE_FILE = path.join(DATA_DIR, "state.json");
 const BUNDLED_STATE_FILE = path.join(ROOT, "data", "state.json");
 const BACKUP_DIR = path.join(DATA_DIR, "backups");
 const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
-const APP_VERSION = "v124";
+const APP_VERSION = "v125";
 const APP_MODE = String(process.env.APP_MODE || "presentation").toLowerCase();
 const APP_LABEL = process.env.APP_LABEL || (APP_MODE === "beta" ? "Beta privada" : "");
 const SHOW_LOGIN_PROFILES = process.env.SHOW_LOGIN_PROFILES === "1" || (APP_MODE !== "beta" && APP_MODE !== "production");
@@ -20,6 +20,7 @@ const PRESENTATION_DEMO = process.env.PRESENTATION_DEMO !== "0" && APP_MODE !== 
 const SESSION_TTL_MS = Number(process.env.SESSION_TTL_HOURS || 168) * 60 * 60 * 1000;
 const sessions = new Map();
 const MAX_UPLOAD_BYTES = Number(process.env.MAX_UPLOAD_MB || 30) * 1024 * 1024;
+const BACKUP_KEEP = Number(process.env.BACKUP_KEEP || 120);
 const ALLOWED_UPLOAD_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/gif", "application/pdf", "video/mp4", "video/quicktime", "video/webm"]);
 let lastEventPatch = null;
 
@@ -92,9 +93,7 @@ function writeStateAtomically(body) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
   fs.mkdirSync(BACKUP_DIR, { recursive: true });
   if (fs.existsSync(STATE_FILE)) {
-    const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-    fs.copyFileSync(STATE_FILE, path.join(BACKUP_DIR, `state-${stamp}.json`));
-    pruneBackups();
+    createServerBackup("auto");
   }
   const tmpFile = `${STATE_FILE}.tmp`;
   fs.writeFileSync(tmpFile, body);
@@ -822,7 +821,30 @@ async function handleStateWrite(req, res, expectedOperation = "") {
   return true;
 }
 
-function pruneBackups(keep = 12) {
+function backupStamp() {
+  return new Date().toISOString().replace(/[:.]/g, "-");
+}
+
+function safeBackupLabel(label) {
+  return String(label || "manual")
+    .toLowerCase()
+    .replace(/[^a-z0-9-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 32) || "manual";
+}
+
+function createServerBackup(label = "manual") {
+  fs.mkdirSync(BACKUP_DIR, { recursive: true });
+  if (!fs.existsSync(STATE_FILE)) return null;
+  const name = `state-${backupStamp()}-${safeBackupLabel(label)}.json`;
+  const full = path.join(BACKUP_DIR, name);
+  fs.copyFileSync(STATE_FILE, full);
+  pruneBackups();
+  const stats = fs.statSync(full);
+  return { id: name, name, size: stats.size, createdAt: stats.mtime.toISOString(), label: safeBackupLabel(label) };
+}
+
+function pruneBackups(keep = BACKUP_KEEP) {
   if (!fs.existsSync(BACKUP_DIR)) return;
   const files = fs
     .readdirSync(BACKUP_DIR)
@@ -882,6 +904,7 @@ function diagnosticsPayload(req, state) {
     uploadLimitMb: Math.round(MAX_UPLOAD_BYTES / 1024 / 1024),
     activeSessions: sessions.size,
     sessionTtlHours: Math.round(SESSION_TTL_MS / 60 / 60 / 1000),
+    backupKeep: BACKUP_KEEP,
     stateFile: fs.existsSync(STATE_FILE) ? { exists: true, size: fs.statSync(STATE_FILE).size, updatedAt: fs.statSync(STATE_FILE).mtime.toISOString() } : { exists: false },
     lastEventPatch,
     backups: backupFiles().slice(0, 12),
@@ -1117,6 +1140,35 @@ async function handleApi(req, res, url) {
     const state = readSavedState();
     if (!requireOperation(req, res, "backupData", state)) return true;
     send(res, 200, JSON.stringify({ backups: backupFiles() }), { "Content-Type": types[".json"] });
+    return true;
+  }
+
+  if (url.pathname === "/api/backups/create" && req.method === "POST") {
+    const state = readSavedState();
+    if (!requireOperation(req, res, "backupData", state)) return true;
+    const body = JSON.parse((await readBody(req)) || "{}");
+    const backup = createServerBackup(body.label || "manual");
+    if (!backup) {
+      send(res, 404, JSON.stringify({ error: "No hay estado guardado para copiar" }), { "Content-Type": types[".json"] });
+      return true;
+    }
+    send(res, 200, JSON.stringify({ ok: true, backup, backups: backupFiles() }), { "Content-Type": types[".json"] });
+    return true;
+  }
+
+  if (url.pathname === "/api/backups/download" && req.method === "GET") {
+    const state = readSavedState();
+    if (!requireOperation(req, res, "backupData", state)) return true;
+    const backup = readBackup(url.searchParams.get("id"));
+    if (!backup) {
+      send(res, 404, JSON.stringify({ error: "Backup no encontrado" }), { "Content-Type": types[".json"] });
+      return true;
+    }
+    send(res, 200, backup.body, {
+      "Content-Type": "application/json; charset=utf-8",
+      "Content-Disposition": `attachment; filename="${backup.id}"`,
+      "Cache-Control": "no-store",
+    });
     return true;
   }
 

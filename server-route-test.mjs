@@ -209,6 +209,18 @@ try {
   });
   if (!backups.response.ok || !Array.isArray(backups.body.backups)) throw new Error("Backups endpoint failed");
 
+  const manualBackup = await request(baseUrl, "/api/backups/create", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${login.body.token}`, "X-Kamik-Role": "director" },
+    body: JSON.stringify({ label: "server-route-test" }),
+  });
+  if (!manualBackup.response.ok || !manualBackup.body.backup?.id) throw new Error(`Manual backup endpoint failed: ${manualBackup.response.status}`);
+
+  const downloadedBackup = await request(baseUrl, `/api/backups/download?id=${encodeURIComponent(manualBackup.body.backup.id)}`, {
+    headers: { Authorization: `Bearer ${login.body.token}`, "X-Kamik-Role": "director" },
+  });
+  if (!downloadedBackup.response.ok || !downloadedBackup.body.users?.some((user) => user.id === "u-director")) throw new Error("Backup download endpoint failed");
+
   const coachLogin = await request(baseUrl, "/api/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

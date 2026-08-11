@@ -25,6 +25,8 @@ const API_LOGIN_URL = "/api/login";
 const API_LOGOUT_URL = "/api/logout";
 const API_DIAGNOSTICS_URL = "/api/diagnostics";
 const API_BACKUPS_URL = "/api/backups";
+const API_CREATE_SERVER_BACKUP_URL = "/api/backups/create";
+const API_DOWNLOAD_SERVER_BACKUP_URL = "/api/backups/download";
 const API_RESTORE_SERVER_BACKUP_URL = "/api/backups/restore-server";
 const API_FETCH_STANDINGS_URL = "/api/standings/fetch";
 const API_FETCH_MATCH_REPORT_URL = "/api/match-report/fetch";
@@ -5888,7 +5890,14 @@ function renderDiagnostics() {
       <section class="panel">
         <div class="panel-header">
           <div><h2>${t("serverBackups")}</h2><p>Copias automaticas guardadas por el servidor antes de cada escritura.</p></div>
-          ${canBackupData() ? `<button class="btn" type="button" onclick="loadDiagnostics()">${t("serverBackups")}</button>` : ""}
+          ${
+            canBackupData()
+              ? `<div class="actions inline-actions">
+                  <button class="btn" type="button" onclick="createServerBackup()">Crear copia</button>
+                  <button class="btn" type="button" onclick="loadDiagnostics()">${t("serverBackups")}</button>
+                </div>`
+              : ""
+          }
         </div>
         <div class="list">${backups.map(renderServerBackupItem).join("") || `<div class="empty">Pulsa Cargar para ver backups del servidor.</div>`}</div>
       </section>
@@ -5917,7 +5926,10 @@ function renderServerBackupItem(backup) {
     <article class="item">
       <div class="item-row">
         <div><strong>${escapeHtml(backup.name)}</strong><span class="meta">${formatActivityDate(backup.createdAt)} · ${formatSize(backup.size)}</span></div>
-        ${canRestoreData() ? `<button class="btn danger" type="button" onclick="restoreServerBackup('${escapeHtml(backup.id)}')">${t("restoreServerBackup")}</button>` : ""}
+        <div class="actions inline-actions">
+          ${canBackupData() ? `<button class="btn" type="button" onclick="downloadServerBackup('${escapeHtml(backup.id)}')">${t("download")}</button>` : ""}
+          ${canRestoreData() ? `<button class="btn danger" type="button" onclick="restoreServerBackup('${escapeHtml(backup.id)}')">${t("restoreServerBackup")}</button>` : ""}
+        </div>
       </div>
     </article>
   `;
@@ -7057,6 +7069,61 @@ async function loadDiagnostics() {
     render();
   } catch (error) {
     state.toast = error.message || "No se pudo cargar diagnostico";
+    save();
+    render();
+  }
+}
+
+async function createServerBackup() {
+  if (!canBackupData()) return;
+  if (typeof fetch === "undefined" || location.protocol === "file:") {
+    downloadFullBackup();
+    return;
+  }
+  try {
+    const response = await fetch(API_CREATE_SERVER_BACKUP_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...requestHeaders("backupData") },
+      body: JSON.stringify({ label: "manual" }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(payload.error || "No se pudo crear la copia");
+    state.diagnostics = { ...(state.diagnostics || {}), backups: payload.backups || state.diagnostics?.backups || [] };
+    state.toast = "Copia del servidor creada";
+    save();
+    render();
+  } catch (error) {
+    state.toast = error.message || "No se pudo crear la copia";
+    save();
+    render();
+  }
+}
+
+async function downloadServerBackup(backupId) {
+  if (!canBackupData()) return;
+  if (typeof fetch === "undefined" || location.protocol === "file:") {
+    downloadFullBackup();
+    return;
+  }
+  try {
+    const url = `${API_DOWNLOAD_SERVER_BACKUP_URL}?id=${encodeURIComponent(backupId)}`;
+    const response = await fetch(url, { cache: "no-store", headers: requestHeaders("backupData") });
+    if (!response.ok) {
+      const payload = await response.json().catch(() => ({}));
+      throw new Error(payload.error || "No se pudo descargar la copia");
+    }
+    const blob = await response.blob();
+    const objectUrl = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = objectUrl;
+    link.download = backupId || `backup-kamikapp-${toLocalDateKey(new Date())}.json`;
+    link.click();
+    URL.revokeObjectURL(objectUrl);
+    state.toast = "Copia descargada";
+    save();
+    render();
+  } catch (error) {
+    state.toast = error.message || "No se pudo descargar la copia";
     save();
     render();
   }
