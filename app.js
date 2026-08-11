@@ -1436,6 +1436,69 @@ async function saveCreatedEvent(payload) {
   }
 }
 
+async function testEventCreate() {
+  if (!canCreateEvent()) return;
+  const now = new Date();
+  const date = toLocalDateKey(now);
+  const time = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+  const teamId = editableEventTeamIds()[0] || "";
+  const team = getTeam(teamId);
+  const eventItem = {
+    id: uid("evtest"),
+    type: "event",
+    title: `Prueba guardado ${time}`,
+    teamId,
+    seasonId: seasonIdForDate(date),
+    competitionId: "",
+    date,
+    time,
+    place: "Prueba tecnica",
+    notes: "Evento de prueba creado desde la pagina de eventos.",
+    playerIds: teamId ? state.players.filter((player) => (player.teams || []).includes(teamId)).map((player) => player.id) : [],
+  };
+  const previousView = state.activeView;
+  state.toast = "Probando guardado de evento...";
+  state.lastEventPatch = {
+    at: new Date().toISOString(),
+    userId: currentUser()?.id || "",
+    role: currentUser()?.roles?.join(", ") || "",
+    authenticated: Boolean(state.session?.token),
+    incomingEvents: 1,
+    incomingTrainings: 0,
+    status: "sending",
+  };
+  render();
+  const saved = await saveCreatedEvent({
+    event: eventItem,
+    training: null,
+    trainings: [],
+    notifications: [],
+    auditLog: [
+      {
+        id: uid("audit"),
+        at: new Date().toISOString(),
+        userId: currentUser()?.id || "",
+        action: "probar evento",
+        entity: "event",
+        detail: eventItem.title,
+      },
+    ],
+    calendarCursor: `${date.slice(0, 7)}-01`,
+    activeView: previousView || "clubEvents",
+  });
+  if (!saved) {
+    render();
+    return;
+  }
+  state.events = upsertLocalItems(state.events || [], [eventItem]);
+  state.lastCreatedEventIds = [eventItem.id, ...(state.lastCreatedEventIds || []).filter((id) => id !== eventItem.id)].slice(0, 5);
+  state.calendarCursor = `${date.slice(0, 7)}-01`;
+  state.activeView = "clubEvents";
+  state.toast = `${eventItem.title} guardado`;
+  saveLocalState();
+  render();
+}
+
 function showRemoteSaveError(message, options = {}) {
   if (options.silent) return;
   state.toast = message;
@@ -4596,6 +4659,7 @@ function renderClubEvents() {
             <input class="month-input" type="month" value="${state.calendarCursor.slice(0, 7)}" onchange="setCalendarMonth(this.value)" />
             <button class="btn icon-only calendar-arrow" type="button" onclick="moveMonth(1)" aria-label="Mes siguiente">&gt;</button>
             ${canCreateEvent() ? `<button class="btn primary" type="button" onclick="openEventModal('event')">${t("newEvent")}</button>` : ""}
+            ${isExecutive(currentUser()) ? `<button class="btn ghost" type="button" onclick="testEventCreate()">Probar guardado</button>` : ""}
           </div>
         </div>
         <div class="grid three management-stats">
