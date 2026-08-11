@@ -650,7 +650,7 @@ const seed = {
   diagnosticAuditQuery: "",
   diagnosticAuditAction: "",
   diagnosticAuditTeamId: "",
-  betaFeedbackStatusFilter: "open",
+  betaFeedbackStatusFilter: "active",
   betaFeedbackSeverityFilter: "all",
   permissions: {
     coachCanAttendance: true,
@@ -1030,7 +1030,7 @@ function normalize(raw) {
   next.diagnosticAuditQuery ||= "";
   next.diagnosticAuditAction ||= "";
   next.diagnosticAuditTeamId ||= "";
-  next.betaFeedbackStatusFilter ||= "open";
+  next.betaFeedbackStatusFilter ||= "active";
   next.betaFeedbackSeverityFilter ||= "all";
   next.betaTestChecks ||= {};
   next.globalSearchQuery ||= "";
@@ -3396,12 +3396,16 @@ function renderManagement() {
               <div class="feedback-triage">
                 <article><span>Bloquean</span><strong>${betaFeedbackCounts.blocker}</strong></article>
                 <article><span>Altos</span><strong>${betaFeedbackCounts.high}</strong></article>
-                <article><span>Abiertos</span><strong>${betaFeedbackCounts.open}</strong></article>
+                <article><span>En revisión</span><strong>${betaFeedbackCounts.review}</strong></article>
+                <article><span>Aplazados</span><strong>${betaFeedbackCounts.deferred}</strong></article>
                 <article><span>Resueltos</span><strong>${betaFeedbackCounts.closed}</strong></article>
               </div>
               <div class="feedback-filters">
                 <select onchange="setBetaFeedbackFilter('betaFeedbackStatusFilter', this.value)">
+                  <option value="active" ${state.betaFeedbackStatusFilter === "active" ? "selected" : ""}>Activos</option>
                   <option value="open" ${state.betaFeedbackStatusFilter === "open" ? "selected" : ""}>Pendientes</option>
+                  <option value="review" ${state.betaFeedbackStatusFilter === "review" ? "selected" : ""}>En revisión</option>
+                  <option value="deferred" ${state.betaFeedbackStatusFilter === "deferred" ? "selected" : ""}>Aplazados</option>
                   <option value="all" ${state.betaFeedbackStatusFilter === "all" ? "selected" : ""}>Todos</option>
                   <option value="closed" ${state.betaFeedbackStatusFilter === "closed" ? "selected" : ""}>Resueltos</option>
                 </select>
@@ -3451,10 +3455,11 @@ function renderAuditItem(item) {
 
 function betaFeedbackThreads() {
   const severityOrder = { blocker: 0, high: 1, normal: 2, low: 3 };
+  const statusOrder = { open: 0, review: 1, deferred: 2, closed: 3 };
   return (state.threads || [])
     .filter((thread) => thread.betaFeedback)
     .sort((a, b) => {
-      const statusDiff = Number(a.feedbackStatus === "closed") - Number(b.feedbackStatus === "closed");
+      const statusDiff = (statusOrder[a.feedbackStatus] ?? 0) - (statusOrder[b.feedbackStatus] ?? 0);
       if (statusDiff) return statusDiff;
       const severityDiff = (severityOrder[a.feedbackSeverity] ?? 2) - (severityOrder[b.feedbackSeverity] ?? 2);
       if (severityDiff) return severityDiff;
@@ -3470,16 +3475,22 @@ function feedbackSeverityLabel(severity) {
   return { blocker: "Bloquea", high: "Alta", normal: "Media", low: "Baja" }[severity] || "Media";
 }
 
+function feedbackStatusLabel(status) {
+  return { open: "Pendiente", review: "En revisión", deferred: "Aplazado", closed: "Resuelto" }[status] || "Pendiente";
+}
+
 function betaFeedbackSummary(threads = betaFeedbackThreads()) {
   return threads.reduce(
     (acc, thread) => {
       const severity = thread.feedbackSeverity || "normal";
       acc[severity] = (acc[severity] || 0) + 1;
-      if (thread.feedbackStatus === "closed") acc.closed += 1;
-      else acc.open += 1;
+      const status = thread.feedbackStatus || "open";
+      acc[status] = (acc[status] || 0) + 1;
+      if (status === "closed") acc.closed += 1;
+      else acc.active += 1;
       return acc;
     },
-    { blocker: 0, high: 0, normal: 0, low: 0, open: 0, closed: 0 }
+    { blocker: 0, high: 0, normal: 0, low: 0, open: 0, review: 0, deferred: 0, active: 0, closed: 0 }
   );
 }
 
@@ -3487,8 +3498,9 @@ function filteredBetaFeedbackThreads(threads = betaFeedbackThreads()) {
   const status = state.betaFeedbackStatusFilter || "open";
   const severity = state.betaFeedbackSeverityFilter || "all";
   return threads.filter((thread) => {
-    if (status === "open" && thread.feedbackStatus === "closed") return false;
-    if (status === "closed" && thread.feedbackStatus !== "closed") return false;
+    const threadStatus = thread.feedbackStatus || "open";
+    if (status === "active" && threadStatus === "closed") return false;
+    if (["open", "review", "deferred", "closed"].includes(status) && threadStatus !== status) return false;
     if (severity !== "all" && (thread.feedbackSeverity || "normal") !== severity) return false;
     return true;
   });
@@ -3503,31 +3515,52 @@ function setBetaFeedbackFilter(key, value) {
 
 function renderBetaFeedbackItem(thread) {
   const last = thread.messages?.[thread.messages.length - 1];
-  const closed = thread.feedbackStatus === "closed";
+  const status = thread.feedbackStatus || "open";
+  const closed = status === "closed";
   const severity = thread.feedbackSeverity || "normal";
   return `
     <article class="item">
       <div class="item-row">
         <div><strong>${escapeHtml(thread.subject)}</strong><span class="meta">${feedbackTypeLabel(thread.feedbackType)} - ${feedbackSeverityLabel(severity)} - ${escapeHtml(last?.at || "")}</span></div>
-        <span class="pill ${closed ? "green" : severity === "blocker" || severity === "high" ? "red" : "gold"}">${closed ? "Resuelto" : feedbackSeverityLabel(severity)}</span>
+        <span class="pill ${feedbackStatusPillClass(status, severity)}">${feedbackStatusLabel(status)}</span>
       </div>
       <p class="clamped-text">${escapeHtml(last?.text || "")}</p>
       <div class="actions inline-actions">
         <button class="btn" type="button" onclick="openThreadFromManagement('${thread.id}')">Abrir</button>
-        <button class="btn" type="button" onclick="toggleFeedbackStatus('${thread.id}')">${closed ? "Reabrir" : "Marcar resuelto"}</button>
+        ${feedbackStatusButtons(thread)}
       </div>
     </article>
   `;
 }
 
-function toggleFeedbackStatus(threadId) {
+function feedbackStatusPillClass(status, severity) {
+  if (status === "closed") return "green";
+  if (status === "review") return "blue";
+  if (status === "deferred") return "gold";
+  return severity === "blocker" || severity === "high" ? "red" : "gold";
+}
+
+function feedbackStatusButtons(thread) {
+  const status = thread.feedbackStatus || "open";
+  const buttons = [
+    status !== "open" ? ["open", "Pendiente"] : null,
+    status !== "review" ? ["review", "En revisión"] : null,
+    status !== "deferred" ? ["deferred", "Aplazar"] : null,
+    status !== "closed" ? ["closed", "Resolver"] : null,
+  ].filter(Boolean);
+  return buttons.map(([nextStatus, label]) => `<button class="btn" type="button" onclick="setFeedbackStatus('${thread.id}','${nextStatus}')">${label}</button>`).join("");
+}
+
+function setFeedbackStatus(threadId, status) {
   if (!isExecutive(currentUser())) return;
   const thread = state.threads.find((item) => item.id === threadId);
   if (!thread?.betaFeedback) return;
-  thread.feedbackStatus = thread.feedbackStatus === "closed" ? "open" : "closed";
-  thread.feedbackClosedAt = thread.feedbackStatus === "closed" ? new Date().toISOString() : "";
-  state.toast = thread.feedbackStatus === "closed" ? "Feedback marcado como resuelto" : "Feedback reabierto";
-  appendAudit(thread.feedbackStatus === "closed" ? "cerrar feedback beta" : "reabrir feedback beta", "thread", thread.subject);
+  if (!["open", "review", "deferred", "closed"].includes(status)) return;
+  thread.feedbackStatus = status;
+  thread.feedbackClosedAt = status === "closed" ? new Date().toISOString() : "";
+  thread.feedbackStatusUpdatedAt = new Date().toISOString();
+  state.toast = `Feedback: ${feedbackStatusLabel(status)}`;
+  appendAudit("cambiar estado feedback beta", "thread", `${thread.subject} -> ${feedbackStatusLabel(status)}`);
   save("messageClub");
   render();
 }
@@ -7650,7 +7683,7 @@ function exportBetaFeedbackCsv() {
       const last = thread.messages?.[thread.messages.length - 1] || {};
       const participants = (thread.participantUserIds || []).map((id) => state.users.find((user) => user.id === id)?.name || id).join("|");
       return [
-        thread.feedbackStatus === "closed" ? "resuelto" : "pendiente",
+        feedbackStatusLabel(thread.feedbackStatus),
         feedbackSeverityLabel(thread.feedbackSeverity),
         feedbackTypeLabel(thread.feedbackType),
         thread.subject || "",
@@ -7708,7 +7741,7 @@ function exportBetaReport() {
     ...(quality.issues || []).slice(0, 30).map((issue) => `- ${String(issue.level || "").toUpperCase()} | ${issue.area || ""} | ${issue.title || ""} | ${issue.detail || ""}`),
     "",
     "Feedback beta",
-    ...feedback.slice(0, 30).map((thread) => `- ${thread.feedbackStatus === "closed" ? "RESUELTO" : "PENDIENTE"} | ${feedbackSeverityLabel(thread.feedbackSeverity)} | ${feedbackTypeLabel(thread.feedbackType)} | ${thread.subject}`),
+    ...feedback.slice(0, 30).map((thread) => `- ${feedbackStatusLabel(thread.feedbackStatus).toUpperCase()} | ${feedbackSeverityLabel(thread.feedbackSeverity)} | ${feedbackTypeLabel(thread.feedbackType)} | ${thread.subject}`),
     "",
     "Accesos beta",
     ...accessRows.map((row) => `- ${row.ready === "si" ? "LISTO" : "REVISAR"} | ${row.name} | ${row.email} | invitado:${row.invited} | accesos:${row.loginCount} | aviso:${row.acceptedBetaAt ? "si" : "no"} | ${row.notes}`),
