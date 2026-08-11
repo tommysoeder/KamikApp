@@ -997,6 +997,8 @@ function normalize(raw) {
   if (/operacion no permitida|no se pudo conectar|sin conexion|servidor local/i.test(next.toast)) next.toast = "";
   const versionChanged = next.appVersion && next.appVersion !== APP_VERSION;
   next.appVersion = APP_VERSION;
+  next.serverVersion ||= APP_VERSION;
+  next.updateAvailable = Boolean(next.serverVersion && next.serverVersion !== APP_VERSION);
   next.calendarCursor ||= new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
   if (versionChanged || next.calendarCursor < monthKey(now)) next.calendarCursor = monthKey(now);
   next.resultsCursor ||= mondayOf(now).toISOString().slice(0, 10);
@@ -1583,11 +1585,17 @@ function startRemoteSync() {
   window.__kamikRemoteSync = window.setInterval(() => {
     if (state.session?.token) refreshRemoteState();
   }, 4000);
+  window.clearInterval(window.__kamikVersionSync);
+  window.__kamikVersionSync = window.setInterval(() => {
+    checkAppVersion();
+  }, 60000);
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden && state.session?.token) refreshRemoteState();
+    if (!document.hidden) checkAppVersion();
   });
   window.addEventListener("focus", () => {
     if (state.session?.token) refreshRemoteState();
+    checkAppVersion();
   });
 }
 
@@ -2350,6 +2358,7 @@ function render() {
       ${renderSidebar(user)}
       <main class="main">
         ${renderBetaBanner()}
+        ${renderUpdateNotice()}
         <header class="mobile-header">
           <button class="mobile-menu-button" type="button" onclick="toggleMobileMenu()" aria-label="Abrir menu"><span></span><span></span><span></span>${mobileMenuBadge()}</button>
           <button class="mobile-logo-button" type="button" onclick="setView('dashboard')" aria-label="${t("dashboard")}">
@@ -2670,6 +2679,58 @@ function renderBetaBanner(context = "") {
   const label = APP_CONFIG.label || "Beta privada";
   const text = APP_MODE === "production" ? label : `${label} · datos de prueba controlados`;
   return `<div class="beta-banner ${context === "login" ? "login-beta" : ""}">${escapeHtml(text)}</div>`;
+}
+
+function renderUpdateNotice() {
+  if (!state.updateAvailable) return "";
+  return `
+    <div class="update-notice">
+      <div>
+        <strong>Nueva versión disponible</strong>
+        <span>Servidor ${escapeHtml(state.serverVersion || "")} · app ${escapeHtml(APP_VERSION)}</span>
+      </div>
+      <button class="btn primary" type="button" onclick="forceAppRefresh()">Actualizar app</button>
+    </div>
+  `;
+}
+
+async function checkAppVersion({ silent = true } = {}) {
+  if (typeof fetch === "undefined" || location.protocol === "file:") return;
+  try {
+    const response = await fetch("/api/health", { cache: "no-store" });
+    if (!response.ok) return;
+    const payload = await response.json();
+    const serverVersion = payload?.version || "";
+    if (!serverVersion) return;
+    const wasAvailable = state.updateAvailable;
+    state.serverVersion = serverVersion;
+    state.updateAvailable = serverVersion !== APP_VERSION;
+    if (state.updateAvailable && !wasAvailable && !silent) state.toast = "Hay una version nueva de KamikApp";
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    if (state.updateAvailable !== wasAvailable) render();
+  } catch {
+    // If health cannot be reached, normal remote sync will surface server issues.
+  }
+}
+
+async function forceAppRefresh() {
+  state.toast = "Actualizando app...";
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  if (typeof caches !== "undefined") {
+    try {
+      const keys = await caches.keys();
+      await Promise.all(keys.filter((key) => key.startsWith("kamikapp-")).map((key) => caches.delete(key)));
+    } catch {}
+  }
+  if (navigator.serviceWorker?.getRegistrations) {
+    try {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map((registration) => registration.update?.()));
+    } catch {}
+  }
+  const url = new URL(window.location.href);
+  url.searchParams.set("v", Date.now().toString());
+  window.location.replace(url.toString());
 }
 
 function syncLoginEmail(userId) {
@@ -9363,3 +9424,4 @@ if (typeof window !== "undefined") {
 
 render();
 loadRemoteState();
+checkAppVersion();

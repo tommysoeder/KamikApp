@@ -169,6 +169,23 @@ if (betaNoticeSmoke !== "false|true") {
   throw new Error(`Beta notice smoke failed: ${betaNoticeSmoke}`);
 }
 
+const updateNoticeSmoke = vm.runInContext(
+  `(() => {
+    state.serverVersion = "v999";
+    state.updateAvailable = true;
+    const html = renderUpdateNotice();
+    state.serverVersion = APP_VERSION;
+    state.updateAvailable = false;
+    return [html.includes("Nueva versión disponible"), html.includes("Actualizar app"), renderUpdateNotice() === ""].join("|");
+  })()`,
+  context,
+  { filename: "smoke-update-notice.js" }
+);
+
+if (updateNoticeSmoke !== "true|true|true") {
+  throw new Error(`Update notice smoke failed: ${updateNoticeSmoke}`);
+}
+
 const userSupportSmoke = vm.runInContext(
   `(() => {
     const user = state.users.find((item) => item.email);

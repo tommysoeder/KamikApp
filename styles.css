@@ -64,6 +64,45 @@ button {
   text-align: center;
 }
 
+.update-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border: 1px solid rgba(47, 116, 114, 0.22);
+  border-radius: 8px;
+  background: #eef8f4;
+  color: #173d40;
+}
+
+.update-notice strong,
+.update-notice span {
+  display: block;
+}
+
+.update-notice strong {
+  font-size: 0.9rem;
+}
+
+.update-notice span {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+@media (max-width: 720px) {
+  .update-notice {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .update-notice .btn {
+    width: 100%;
+  }
+}
+
 .sidebar {
   background: #153b3d;
   color: var(--white);
