@@ -3100,6 +3100,7 @@ function renderView() {
 }
 
 function renderDashboard() {
+  const user = currentUser();
   const visible = visiblePlayerIds();
   const announcements = visibleAnnouncements().slice(0, 3);
   const callups = visibleCallups().slice(0, 3);
@@ -3125,6 +3126,16 @@ function renderDashboard() {
     <div class="grid ${statCards.length >= 3 ? "three" : "two"}">
       ${statCards.join("")}
     </div>
+    ${
+      user && !user.acceptedBetaAt
+        ? `<section class="panel dashboard-beta-consent">
+            <div class="panel-header">
+              <div><h2>Aviso beta</h2><p>Estas usando una version de prueba. Usa feedback beta para avisar de errores y no compartas datos de acceso.</p></div>
+              <button class="btn primary" type="button" onclick="acceptBetaNotice()">Aceptar</button>
+            </div>
+          </section>`
+        : ""
+    }
     <section class="panel dashboard-feedback-compact">
       <div class="panel-header">
         <div><h2>Feedback beta</h2><p>Envia problemas, dudas o ideas directamente a direccion.</p></div>
@@ -3167,6 +3178,16 @@ function renderDashboardAnnouncement(announcement) {
       ${!read ? `<i>Nuevo</i>` : ""}
     </button>
   `;
+}
+
+function acceptBetaNotice() {
+  const user = currentUser();
+  if (!user) return;
+  user.acceptedBetaAt = new Date().toISOString();
+  state.toast = "Aviso beta aceptado";
+  appendAudit("aceptar aviso beta", "user", user.name);
+  save("updateSelf");
+  render();
 }
 
 function renderManagement() {
@@ -5883,6 +5904,7 @@ function renderUserCard(user) {
   const children = (user.children || []).map((id) => getPlayer(id)?.name).filter(Boolean);
   const invited = Boolean(user.betaInvitedAt);
   const entered = Boolean(user.lastLoginAt);
+  const accepted = Boolean(user.acceptedBetaAt);
   return `
     <article class="item user-card ${user.disabled ? "disabled" : ""}">
       <div class="item-row">
@@ -5892,6 +5914,7 @@ function renderUserCard(user) {
       <div class="meta">${escapeHtml(user.email)}</div>
       ${invited ? `<div class="meta"><strong>Beta:</strong> invitado ${formatActivityDate(user.betaInvitedAt)}</div>` : ""}
       ${entered ? `<div class="meta"><strong>Acceso:</strong> ${formatActivityDate(user.lastLoginAt)} - ${Number(user.loginCount || 1)} entrada${Number(user.loginCount || 1) === 1 ? "" : "s"}</div>` : ""}
+      ${accepted ? `<div class="meta"><strong>Aviso beta:</strong> aceptado ${formatActivityDate(user.acceptedBetaAt)}</div>` : ""}
       <div class="pill-line">${user.roles.map((role) => `<span class="pill">${roleLabel(role)}</span>`).join("")}</div>
       ${linkedPlayer ? `<div class="meta"><strong>${t("linkedPlayer")}:</strong> ${escapeHtml(linkedPlayer)}</div>` : ""}
       ${children.length ? `<div class="meta"><strong>${t("familyPlayers")}:</strong> ${children.map(escapeHtml).join(", ")}</div>` : ""}
@@ -7186,6 +7209,7 @@ function betaAccessRows() {
       invitedAt: user.betaInvitedAt || "",
       lastLoginAt: user.lastLoginAt || "",
       loginCount: Number(user.loginCount || 0),
+      acceptedBetaAt: user.acceptedBetaAt || "",
       notes: !hasEmail ? "Falta email" : !hasScope ? "Sin jugador/equipo/rol vinculado" : user.disabled ? "Usuario inactivo" : "",
     };
   });
@@ -7195,8 +7219,8 @@ function exportBetaAccessCsv() {
   if (!canExportData()) return;
   const rows = betaAccessRows();
   const lines = [
-    ["nombre", "email", "roles", "jugador_vinculado", "jugadores_familia", "equipos", "estado", "listo_para_invitar", "invitado", "fecha_invitacion", "ultimo_acceso", "numero_accesos", "observaciones"],
-    ...rows.map((row) => [row.name, row.email, row.roles, row.linkedPlayer, row.familyPlayers, row.teams, row.status, row.ready, row.invited, row.invitedAt, row.lastLoginAt, row.loginCount, row.notes]),
+    ["nombre", "email", "roles", "jugador_vinculado", "jugadores_familia", "equipos", "estado", "listo_para_invitar", "invitado", "fecha_invitacion", "ultimo_acceso", "numero_accesos", "aviso_beta_aceptado", "observaciones"],
+    ...rows.map((row) => [row.name, row.email, row.roles, row.linkedPlayer, row.familyPlayers, row.teams, row.status, row.ready, row.invited, row.invitedAt, row.lastLoginAt, row.loginCount, row.acceptedBetaAt, row.notes]),
   ];
   downloadCsv(`accesos-beta-kamikapp-${toLocalDateKey(new Date())}.csv`, lines);
 }
@@ -7345,6 +7369,7 @@ function launchReadinessReport(readinessState = state, diagnostics = {}) {
   const readyAccounts = readinessState === state ? betaAccessRows().filter((row) => row.ready === "si").length : linkedPlayers;
   const invitedAccounts = readinessState === state ? betaAccessRows().filter((row) => row.invited === "si").length : users.filter((user) => user.betaInvitedAt).length;
   const testedAccounts = readinessState === state ? betaAccessRows().filter((row) => row.lastLoginAt).length : users.filter((user) => user.lastLoginAt).length;
+  const acceptedAccounts = readinessState === state ? betaAccessRows().filter((row) => row.acceptedBetaAt).length : users.filter((user) => user.acceptedBetaAt).length;
   const hasFamilies = users.some((user) => (user.roles || []).includes("parent") && (user.children || []).length);
   const staffRoles = new Set(users.flatMap((user) => user.roles || []).filter((role) => ["director", "president", "coach", "delegate", "fees"].includes(role)));
   const hasServerState = diagnostics.stateFile?.exists !== false;
@@ -7376,7 +7401,7 @@ function launchReadinessReport(readinessState = state, diagnostics = {}) {
     {
       status: readyAccounts >= Math.max(1, Math.ceil(players.length * 0.25)) ? "ok" : "warning",
       title: "Cuentas de jugadores",
-      detail: `${readyAccounts} accesos listos, ${invitedAccounts} invitados, ${testedAccounts} entraron, ${linkedPlayers}/${players.length} jugadores vinculados.`,
+      detail: `${readyAccounts} accesos listos, ${invitedAccounts} invitados, ${testedAccounts} entraron, ${acceptedAccounts} aceptaron aviso.`,
       action: "setView('users')",
     },
     {

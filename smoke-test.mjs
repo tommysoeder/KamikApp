@@ -128,13 +128,13 @@ const exportSmoke = vm.runInContext(
     exportUsersCsv();
     exportBetaAccessCsv();
     downloadFullBackup();
-    return [playerImportHeader().join(","), betaAccessRows().length > 0, Object.hasOwn(betaAccessRows()[0], "lastLoginAt")].join("|");
+    return [playerImportHeader().join(","), betaAccessRows().length > 0, Object.hasOwn(betaAccessRows()[0], "lastLoginAt"), Object.hasOwn(betaAccessRows()[0], "acceptedBetaAt")].join("|");
   })()`,
   context,
   { filename: "smoke-export-csv.js" }
 );
 
-if (!exportSmoke.includes("jugador,edad,equipos") || !exportSmoke.endsWith("|true|true")) {
+if (!exportSmoke.includes("jugador,edad,equipos") || !exportSmoke.endsWith("|true|true|true")) {
   throw new Error("CSV export helpers did not run");
 }
 
@@ -152,6 +152,21 @@ const inviteSmoke = vm.runInContext(
 
 if (inviteSmoke !== "true|true|true|si") {
   throw new Error(`Invite text smoke failed: ${inviteSmoke}`);
+}
+
+const betaNoticeSmoke = vm.runInContext(
+  `(() => {
+    state.session = { userId: "u-director", email: "direccion@club.test", activeRole: "director" };
+    const before = Boolean(currentUser().acceptedBetaAt);
+    acceptBetaNotice();
+    return [before, Boolean(currentUser().acceptedBetaAt)].join("|");
+  })()`,
+  context,
+  { filename: "smoke-beta-notice.js" }
+);
+
+if (betaNoticeSmoke !== "false|true") {
+  throw new Error(`Beta notice smoke failed: ${betaNoticeSmoke}`);
 }
 
 const feedbackSmoke = vm.runInContext(

@@ -4204,6 +4204,18 @@ body::-webkit-scrollbar-thumb,
   padding: 12px 14px;
 }
 
+.dashboard-beta-consent {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-color: rgba(200, 148, 58, 0.28);
+  background: #fffdf8;
+}
+
+.dashboard-beta-consent .panel-header {
+  align-items: center;
+  margin-bottom: 0;
+}
+
 .dashboard-feedback-compact .panel-header {
   align-items: center;
   margin-bottom: 0;
