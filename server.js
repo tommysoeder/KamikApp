@@ -12,7 +12,7 @@ const STATE_FILE = path.join(DATA_DIR, "state.json");
 const BUNDLED_STATE_FILE = path.join(ROOT, "data", "state.json");
 const BACKUP_DIR = path.join(DATA_DIR, "backups");
 const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
-const APP_VERSION = "v119";
+const APP_VERSION = "v120";
 const APP_MODE = String(process.env.APP_MODE || "presentation").toLowerCase();
 const APP_LABEL = process.env.APP_LABEL || (APP_MODE === "beta" ? "Beta privada" : "");
 const SHOW_LOGIN_PROFILES = process.env.SHOW_LOGIN_PROFILES === "1" || (APP_MODE !== "beta" && APP_MODE !== "production");
@@ -277,9 +277,21 @@ function canReadAnnouncement(announcement, user, visibleTeamIds) {
   return true;
 }
 
+function serverMonthKey(date = new Date()) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-01`;
+}
+
+function normalizeServerCalendarCursor(state) {
+  if (!state) return state;
+  const currentMonth = serverMonthKey();
+  if (!state.calendarCursor || state.calendarCursor < currentMonth) state.calendarCursor = currentMonth;
+  return state;
+}
+
 function sanitizeStateForRead(state, actor) {
   if (!state) return state;
   const copy = JSON.parse(JSON.stringify(state));
+  normalizeServerCalendarCursor(copy);
   copy.users = (copy.users || []).map(publicUser);
   if (!actor?.authenticated || !actor.user) {
     copy.users = [];

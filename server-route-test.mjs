@@ -165,6 +165,15 @@ try {
   const afterEventPatch = JSON.parse(await fs.readFile(path.join(dataDir, "state.json"), "utf8"));
   if (!afterEventPatch.events.some((event) => event.id === "ev-patch")) throw new Error("Event patch route did not persist the new event");
 
+  await fs.writeFile(path.join(dataDir, "state.json"), JSON.stringify({ ...afterEventPatch, activeView: "results", calendarCursor: "2026-07-01" }, null, 2));
+  const cursorState = await request(baseUrl, "/api/state", {
+    headers: { Authorization: `Bearer ${login.body.token}`, "X-Kamik-Role": "director" },
+  });
+  const expectedMonth = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}-01`;
+  if (!cursorState.response.ok || cursorState.body.calendarCursor !== expectedMonth) {
+    throw new Error(`Server did not normalize stale calendar cursor: ${cursorState.body.calendarCursor}`);
+  }
+
   const readState = { ...afterEventPatch, readAnnouncementIds: ["ann-1", "ann-2"] };
   const markReadRoute = await request(baseUrl, "/api/read-state", {
     method: "PUT",

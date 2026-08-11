@@ -31,6 +31,7 @@ const API_FETCH_MATCH_REPORT_URL = "/api/match-report/fetch";
 const API_FETCH_COMPETITION_URL = "/api/competition/fetch";
 const API_EVENTS_PATCH_URL = "/api/events/patch";
 const APP_CONFIG = typeof window !== "undefined" ? window.__KAMIK_CONFIG || {} : {};
+const APP_VERSION = APP_CONFIG.version || "local";
 const APP_MODE = String(APP_CONFIG.mode || "presentation").toLowerCase();
 const IS_PRESENTATION_DEMO = APP_CONFIG.presentationDemo !== false && APP_MODE !== "beta" && APP_MODE !== "production";
 const SHOW_LOGIN_PROFILES = APP_CONFIG.showLoginProfiles !== false;
@@ -991,8 +992,10 @@ function normalize(raw) {
   next.mobileMenuOpen ??= false;
   next.toast ||= "";
   if (/operacion no permitida|no se pudo conectar|sin conexion|servidor local/i.test(next.toast)) next.toast = "";
+  const versionChanged = next.appVersion && next.appVersion !== APP_VERSION;
+  next.appVersion = APP_VERSION;
   next.calendarCursor ||= new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
-  if (next.calendarCursor < monthKey(now) && !["history", "results"].includes(next.activeView)) next.calendarCursor = monthKey(now);
+  if (versionChanged || next.calendarCursor < monthKey(now)) next.calendarCursor = monthKey(now);
   next.resultsCursor ||= mondayOf(now).toISOString().slice(0, 10);
   next.seasons ||= seed.seasons;
   next.competitions ||= seed.competitions;
@@ -1269,6 +1272,7 @@ function persistentState() {
   delete snapshot.diagnosticAuditQuery;
   delete snapshot.diagnosticAuditAction;
   delete snapshot.diagnosticAuditTeamId;
+  delete snapshot.appVersion;
   snapshot.mobileMenuOpen = false;
   return snapshot;
 }
@@ -2201,7 +2205,6 @@ function goView(view, options = {}) {
 }
 
 function normalizeCalendarCursorForActiveView(targetState = state) {
-  if (!["calendar", "clubEvents"].includes(targetState.activeView)) return;
   const currentMonth = monthKey(new Date());
   if (!targetState.calendarCursor || targetState.calendarCursor < currentMonth) targetState.calendarCursor = currentMonth;
 }
@@ -8342,7 +8345,15 @@ function escapeHtml(value) {
 }
 
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("./sw.js").catch(() => {});
+  navigator.serviceWorker
+    .register(`./sw.js?v=${encodeURIComponent(APP_VERSION)}`)
+    .then((registration) => registration.update?.())
+    .catch(() => {});
+  navigator.serviceWorker.addEventListener?.("controllerchange", () => {
+    if (window.__kamikControllerReloaded) return;
+    window.__kamikControllerReloaded = true;
+    window.location.reload();
+  });
 }
 
 if (typeof window !== "undefined") {

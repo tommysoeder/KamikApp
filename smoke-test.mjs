@@ -170,6 +170,30 @@ if (delegatedPermissionSmoke !== "true|true|true") {
 
 vm.runInContext("state.session = { userId: 'u-director', email: 'direccion@club.test', activeRole: 'director' }; render();", context, { filename: "smoke-reset-director.js" });
 
+const calendarCursorSmoke = vm.runInContext(
+  `(() => {
+    state.activeView = "clubEvents";
+    state.calendarCursor = "2026-07-01";
+    normalizeCalendarCursorForActiveView(state);
+    const expected = monthKey(new Date());
+    setView("calendar");
+    const afterSetView = state.calendarCursor;
+    state.calendarCursor = "2026-07-01";
+    state.activeView = "results";
+    normalizeCalendarCursorForActiveView(state);
+    const afterResults = state.calendarCursor;
+    state.calendarCursor = "2026-07-01";
+    goView("clubEvents");
+    return [state.calendarCursor === expected, afterSetView === expected, afterResults === expected].join("|");
+  })()`,
+  context,
+  { filename: "smoke-calendar-cursor.js" }
+);
+
+if (calendarCursorSmoke !== "true|true|true") {
+  throw new Error(`Calendar cursor normalization failed: ${calendarCursorSmoke}`);
+}
+
 const announcementNoticeSmoke = vm.runInContext(
   `(() => {
     const before = state.notifications.length;
