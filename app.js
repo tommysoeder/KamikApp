@@ -5776,6 +5776,9 @@ function renderTeamItem(team) {
 function renderUsers() {
   const activeUsers = state.users.filter((user) => !user.disabled).length;
   const linkedPlayers = state.users.filter((user) => user.roles.includes("player") && user.playerId).length;
+  const accessRows = betaAccessRows();
+  const inviteReady = accessRows.filter((row) => row.ready === "si").length;
+  const invitePending = accessRows.length - inviteReady;
   return `
     <section class="panel users-admin">
       <div class="panel-header">
@@ -5789,6 +5792,7 @@ function renderUsers() {
                 ${canExportData() ? `<button class="btn" type="button" onclick="exportMembersCsv()">${t("exportMembers")}</button>` : ""}
                 ${canExportData() ? `<button class="btn" type="button" onclick="exportTeamsCsv()">${t("exportTeams")}</button>` : ""}
                 ${canExportData() ? `<button class="btn" type="button" onclick="exportUsersCsv()">${t("exportUsers")}</button>` : ""}
+                ${canExportData() ? `<button class="btn primary" type="button" onclick="exportBetaAccessCsv()">Exportar accesos beta</button>` : ""}
                 ${canBackupData() ? `<button class="btn" type="button" onclick="downloadFullBackup()">${t("backupData")}</button>` : ""}
                 ${canRestoreData() ? `<button class="btn" type="button" onclick="openRestoreBackupModal()">${t("restoreData")}</button>` : ""}
                 ${state.lastUndo && canUndoBulkOperation() ? `<button class="btn danger" type="button" onclick="undoLastBulkOperation()">${t("undoLastOperation")}</button>` : ""}
@@ -5801,7 +5805,7 @@ function renderUsers() {
       <div class="grid three management-stats">
         <article class="card stat"><span>${t("active")}</span><strong>${activeUsers}</strong><span>${state.users.length} usuarios totales</span></article>
         <article class="card stat"><span>${t("linkedPlayer")}</span><strong>${linkedPlayers}</strong><span>jugadores con acceso propio</span></article>
-        <article class="card stat"><span>${t("familyPlayers")}</span><strong>${state.players.filter((player) => (player.guardians || []).length).length}</strong><span>jugadores con familiar vinculado</span></article>
+        <article class="card stat"><span>Beta</span><strong>${inviteReady}</strong><span>${invitePending} accesos pendientes</span></article>
       </div>
       <div class="user-grid">
         ${state.users.map(renderUserCard).join("")}
@@ -6997,6 +7001,42 @@ function exportUsersCsv() {
   downloadCsv("usuarios-kamikapp.csv", lines);
 }
 
+function betaAccessRows() {
+  return state.users.map((user) => {
+    const linkedPlayer = user.playerId ? getPlayer(user.playerId) : null;
+    const familyPlayers = (user.children || []).map(getPlayer).filter(Boolean);
+    const linkedTeams = [
+      ...(linkedPlayer?.teams || []),
+      ...familyPlayers.flatMap((player) => player.teams || []),
+    ];
+    const teamNames = [...new Set(linkedTeams)].map((id) => getTeam(id)?.name).filter(Boolean);
+    const roles = (user.roles || []).map(roleLabel).join(" + ");
+    const hasEmail = Boolean(String(user.email || "").trim());
+    const hasScope = Boolean(linkedPlayer || familyPlayers.length || (user.roles || []).some((role) => ["director", "president", "coach", "delegate", "fees"].includes(role)));
+    return {
+      name: user.name || "",
+      email: user.email || "",
+      roles,
+      linkedPlayer: linkedPlayer?.name || "",
+      familyPlayers: familyPlayers.map((player) => player.name).join("|"),
+      teams: teamNames.join("|"),
+      status: user.disabled ? "inactivo" : "activo",
+      ready: !user.disabled && hasEmail && hasScope ? "si" : "no",
+      notes: !hasEmail ? "Falta email" : !hasScope ? "Sin jugador/equipo/rol vinculado" : user.disabled ? "Usuario inactivo" : "",
+    };
+  });
+}
+
+function exportBetaAccessCsv() {
+  if (!canExportData()) return;
+  const rows = betaAccessRows();
+  const lines = [
+    ["nombre", "email", "roles", "jugador_vinculado", "jugadores_familia", "equipos", "estado", "listo_para_invitar", "observaciones"],
+    ...rows.map((row) => [row.name, row.email, row.roles, row.linkedPlayer, row.familyPlayers, row.teams, row.status, row.ready, row.notes]),
+  ];
+  downloadCsv(`accesos-beta-kamikapp-${toLocalDateKey(new Date())}.csv`, lines);
+}
+
 function downloadFullBackup() {
   if (!canBackupData()) return;
   const payload = {
@@ -7138,6 +7178,7 @@ function launchReadinessReport(readinessState = state, diagnostics = {}) {
   const players = readinessState.players || [];
   const teams = readinessState.teams || [];
   const linkedPlayers = users.filter((user) => (user.roles || []).includes("player") && user.playerId).length;
+  const readyAccounts = readinessState === state ? betaAccessRows().filter((row) => row.ready === "si").length : linkedPlayers;
   const hasFamilies = users.some((user) => (user.roles || []).includes("parent") && (user.children || []).length);
   const staffRoles = new Set(users.flatMap((user) => user.roles || []).filter((role) => ["director", "president", "coach", "delegate", "fees"].includes(role)));
   const hasServerState = diagnostics.stateFile?.exists !== false;
@@ -7167,9 +7208,9 @@ function launchReadinessReport(readinessState = state, diagnostics = {}) {
       action: "setView('teams')",
     },
     {
-      status: linkedPlayers >= Math.max(1, Math.ceil(players.length * 0.25)) ? "ok" : "warning",
+      status: readyAccounts >= Math.max(1, Math.ceil(players.length * 0.25)) ? "ok" : "warning",
       title: "Cuentas de jugadores",
-      detail: `${linkedPlayers}/${players.length} jugadores con cuenta vinculada.`,
+      detail: `${readyAccounts} accesos listos, ${linkedPlayers}/${players.length} jugadores con cuenta vinculada.`,
       action: "setView('users')",
     },
     {
