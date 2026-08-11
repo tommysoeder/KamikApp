@@ -12,7 +12,7 @@ const STATE_FILE = path.join(DATA_DIR, "state.json");
 const BUNDLED_STATE_FILE = path.join(ROOT, "data", "state.json");
 const BACKUP_DIR = path.join(DATA_DIR, "backups");
 const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
-const APP_VERSION = "v117";
+const APP_VERSION = "v118";
 const APP_MODE = String(process.env.APP_MODE || "presentation").toLowerCase();
 const APP_LABEL = process.env.APP_LABEL || (APP_MODE === "beta" ? "Beta privada" : "");
 const SHOW_LOGIN_PROFILES = process.env.SHOW_LOGIN_PROFILES === "1" || (APP_MODE !== "beta" && APP_MODE !== "production");
@@ -722,7 +722,19 @@ async function handleEventsPatch(req, res) {
   }
   writeStateAtomically(JSON.stringify(nextState));
   lastEventPatch = { ...lastEventPatch, status: "saved", events: nextState.events.length, trainings: nextState.trainings.length, stateFileExists: fs.existsSync(STATE_FILE) };
-  send(res, 200, JSON.stringify({ ok: true, events: nextState.events.length, trainings: nextState.trainings.length, lastEventPatch }), { "Content-Type": types[".json"] });
+  send(
+    res,
+    200,
+    JSON.stringify({
+      ok: true,
+      events: nextState.events.length,
+      trainings: nextState.trainings.length,
+      savedEvents: body.events || [],
+      savedTrainings: body.trainings || [],
+      lastEventPatch,
+    }),
+    { "Content-Type": types[".json"] }
+  );
   return true;
 }
 

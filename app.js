@@ -992,6 +992,7 @@ function normalize(raw) {
   next.toast ||= "";
   if (/operacion no permitida|no se pudo conectar|sin conexion|servidor local/i.test(next.toast)) next.toast = "";
   next.calendarCursor ||= new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+  if (next.calendarCursor < monthKey(now) && !["history", "results"].includes(next.activeView)) next.calendarCursor = monthKey(now);
   next.resultsCursor ||= mondayOf(now).toISOString().slice(0, 10);
   next.seasons ||= seed.seasons;
   next.competitions ||= seed.competitions;
@@ -1235,6 +1236,14 @@ function saveLocalState() {
   persistSession();
 }
 
+function upsertLocalItems(items = [], incoming = []) {
+  const byId = new Map((items || []).map((item) => [item.id, item]));
+  (incoming || []).forEach((item) => {
+    if (item?.id) byId.set(item.id, item);
+  });
+  return [...byId.values()];
+}
+
 function persistSession() {
   if (!state.session?.token) {
     localStorage.removeItem?.(AUTH_KEY);
@@ -1380,6 +1389,8 @@ async function saveEventsPatch(payload) {
     lastRemoteSnapshot = "";
     lastRemoteSaveAt = 0;
     await refreshRemoteState({ keepToast: true, force: true });
+    if (body?.savedEvents?.length) state.events = upsertLocalItems(state.events || [], body.savedEvents);
+    if (body?.savedTrainings?.length) state.trainings = upsertLocalItems(state.trainings || [], body.savedTrainings);
     return true;
   } catch (error) {
     showRemoteSaveError(`guardar evento: ${error.message || "sin conexion con el servidor"}`, { renderToast: true });
@@ -2165,6 +2176,7 @@ function setView(view) {
   state.activeView = view;
   state.mobileMenuOpen = false;
   state.globalSearchOpen = false;
+  if (view === "calendar" || view === "clubEvents") state.calendarCursor = monthKey(new Date());
   const clearsReadState = ["messages", "calendar", "callups", "documents"].includes(view);
   if (view === "messages") markVisibleThreadsSeen(false);
   if (view === "calendar") markNotificationsSeen((notice) => Boolean(notice.eventId), false);
