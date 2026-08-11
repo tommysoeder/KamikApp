@@ -28,6 +28,7 @@ const context = {
     },
   },
   navigator: {},
+  location: { protocol: "file:", origin: "file://" },
   document: {
     querySelector(selector) {
       if (selector === "#app") return appElement;
@@ -114,12 +115,9 @@ context.Blob = class FakeBlob {
     this.parts = parts;
   }
 };
-context.URL = {
-  createObjectURL() {
-    return "blob:test";
-  },
-  revokeObjectURL() {},
-};
+context.URL = URL;
+context.URL.createObjectURL = () => "blob:test";
+context.URL.revokeObjectURL = () => {};
 context.document.createElement = () => ({ click() {}, href: "", download: "" });
 
 const exportSmoke = vm.runInContext(
@@ -273,6 +271,63 @@ const createdEventVisible = vm.runInContext(
 if (!createdEventVisible) {
   throw new Error("Created event did not appear in calendar schedule items");
 }
+
+vm.runInContext(
+  `location = { protocol: "http:", origin: "http://127.0.0.1:4173" };
+   fetch = async (path, options = {}) => {
+     if (String(path).includes("/api/events/create")) {
+       const payload = JSON.parse(options.body || "{}");
+       return {
+         ok: true,
+         status: 200,
+         text: async () => JSON.stringify({
+           ok: true,
+           event: payload.event,
+           trainings: payload.trainings || [],
+           lastEventPatch: { status: "saved", events: 1, trainings: 0 }
+         })
+       };
+     }
+     return { ok: false, status: 404, text: async () => JSON.stringify({ error: "unexpected fetch" }) };
+   };`,
+  context,
+  { filename: "smoke-install-fetch.js" }
+);
+
+const asyncCreatedEventVisible = await vm.runInContext(
+  `(async () => {
+    state.session = { userId: 'u-director', email: 'direccion@club.test', activeRole: 'director', token: 'smoke-token' };
+    await createEvent({
+      preventDefault() {},
+      currentTarget: {
+        values: {
+          title: "Evento async smoke",
+          type: "event",
+          teamId: "team-1",
+          place: "Pista async",
+          date: toLocalDateKey(new Date(Date.now() + 86400000)),
+          time: "11:30",
+          notes: "Creado desde smoke async",
+          playerIds: ["p-1"]
+        }
+      }
+    });
+    return [
+      state.events.some((item) => item.title === "Evento async smoke"),
+      state.toast.includes("servidor"),
+      state.activeView === "clubEvents",
+      typeof fetch,
+      location.protocol
+    ].join("|");
+  })()`,
+  context,
+  { filename: "smoke-create-event-async.js" }
+);
+
+if (asyncCreatedEventVisible !== "true|true|true|function|http:") {
+  throw new Error(`Async event creation failed: ${asyncCreatedEventVisible}`);
+}
+vm.runInContext(`location = { protocol: "file:", origin: "file://" }; fetch = undefined;`, context, { filename: "smoke-remove-fetch.js" });
 
 const expiredCalendarSmoke = vm.runInContext(
   `(() => {

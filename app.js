@@ -30,6 +30,7 @@ const API_FETCH_STANDINGS_URL = "/api/standings/fetch";
 const API_FETCH_MATCH_REPORT_URL = "/api/match-report/fetch";
 const API_FETCH_COMPETITION_URL = "/api/competition/fetch";
 const API_EVENTS_PATCH_URL = "/api/events/patch";
+const API_EVENTS_CREATE_URL = "/api/events/create";
 const APP_CONFIG = typeof window !== "undefined" ? window.__KAMIK_CONFIG || {} : {};
 const APP_VERSION = APP_CONFIG.version || "local";
 const APP_MODE = String(APP_CONFIG.mode || "presentation").toLowerCase();
@@ -1399,6 +1400,32 @@ async function saveEventsPatch(payload) {
       state.lastCreatedEventIds = [...body.savedEvents.map((item) => item.id), ...(state.lastCreatedEventIds || [])].filter(Boolean).slice(0, 5);
     }
     if (body?.savedTrainings?.length) state.trainings = upsertLocalItems(state.trainings || [], body.savedTrainings);
+    return true;
+  } catch (error) {
+    showRemoteSaveError(`guardar evento: ${error.message || "sin conexion con el servidor"}`, { renderToast: true });
+    return false;
+  } finally {
+    remoteSaveInFlight = false;
+    lastRemoteSaveAt = Date.now();
+  }
+}
+
+async function saveCreatedEvent(payload) {
+  saveLocalState();
+  if (remoteSavePaused || typeof fetch === "undefined" || location.protocol === "file:") return true;
+  remoteSaveInFlight = true;
+  lastRemoteSaveAt = Date.now();
+  try {
+    const { response, body } = await postJson(API_EVENTS_CREATE_URL, "manageEvents", payload);
+    if (!response.ok) {
+      showRemoteSaveError(`guardar evento: ${body?.error || "No se pudo guardar el evento"}`, { renderToast: true });
+      return false;
+    }
+    if (body?.event) state.events = upsertLocalItems(state.events || [], [body.event]);
+    if (body?.training) state.trainings = upsertLocalItems(state.trainings || [], [body.training]);
+    if (body?.lastEventPatch) state.lastEventPatch = body.lastEventPatch;
+    state.toast = "Evento guardado en servidor";
+    lastRemoteSnapshot = "";
     return true;
   } catch (error) {
     showRemoteSaveError(`guardar evento: ${error.message || "sin conexion con el servidor"}`, { renderToast: true });
@@ -7652,11 +7679,15 @@ async function createEvent(event) {
   }
   if (date) state.calendarCursor = `${date.slice(0, 7)}-01`;
   goView(type === "event" ? "clubEvents" : "calendar");
-  const saved = await saveEventsPatch({
-    events: patchedEvents,
+  const saved = await saveCreatedEvent({
+    event: patchedEvents[0] || null,
+    training: patchedTrainings[0] || null,
     trainings: patchedTrainings,
-    notifications: state.notifications || [],
-    auditLog: state.auditLog || [],
+    notifications: (state.notifications || []).filter((notice) => {
+      const targetIds = [...patchedEvents, ...patchedTrainings].map((item) => item.id);
+      return targetIds.includes(notice.eventId);
+    }),
+    auditLog: (state.auditLog || []).slice(0, 3),
     calendarCursor: state.calendarCursor,
     activeView: state.activeView,
   });

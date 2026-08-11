@@ -750,6 +750,56 @@ async function handleEventsPatch(req, res) {
   return true;
 }
 
+async function handleEventCreate(req, res) {
+  req.headers["x-kamik-operation"] = "manageEvents";
+  const baseState = ensureSavedState();
+  const actor = actorFromRequest(req, baseState);
+  const body = JSON.parse((await readBody(req)) || "{}");
+  const event = body.event || null;
+  const trainings = [...(body.trainings || []), ...(body.training ? [body.training] : [])].filter((item) => item?.id);
+  const incomingItems = [event, ...trainings].filter(Boolean);
+  lastEventPatch = {
+    at: new Date().toISOString(),
+    userId: actor.userId || "",
+    role: actor.role || "",
+    authenticated: Boolean(actor.authenticated),
+    incomingEvents: event ? 1 : 0,
+    incomingTrainings: trainings.length,
+    status: "received",
+  };
+  if (!canPerformOperation({ ...actor, operation: "manageEvents" }, baseState)) {
+    lastEventPatch = { ...lastEventPatch, status: "rejected", error: "Operacion no permitida para este rol" };
+    send(res, 403, JSON.stringify({ error: "Operacion no permitida para este rol" }), { "Content-Type": types[".json"] });
+    return true;
+  }
+  if (!incomingItems.length) {
+    lastEventPatch = { ...lastEventPatch, status: "rejected", error: "No se ha recibido ningun evento" };
+    send(res, 400, JSON.stringify({ error: "No se ha recibido ningun evento" }), { "Content-Type": types[".json"] });
+    return true;
+  }
+  if (!isExecutive(actor.user)) {
+    const teamIds = staffTeamIds(actor.user, baseState);
+    const outside = incomingItems.some((item) => item.teamId && !teamIds.includes(item.teamId));
+    if (outside) {
+      lastEventPatch = { ...lastEventPatch, status: "rejected", error: "No puedes crear eventos fuera de tus equipos" };
+      send(res, 403, JSON.stringify({ error: "No puedes crear eventos fuera de tus equipos" }), { "Content-Type": types[".json"] });
+      return true;
+    }
+  }
+  const nextState = JSON.parse(JSON.stringify(baseState || {}));
+  if (event?.id) nextState.events = upsertById(nextState.events, [event]);
+  if (trainings.length) nextState.trainings = upsertById(nextState.trainings, trainings);
+  nextState.notifications = dedupeStateNotifications(upsertById(nextState.notifications, body.notifications || []));
+  nextState.auditLog = upsertById(body.auditLog || [], nextState.auditLog).slice(0, 120);
+  if (body.calendarCursor) nextState.calendarCursor = body.calendarCursor;
+  if (body.activeView) nextState.activeView = body.activeView;
+  normalizeServerCalendarCursor(nextState);
+  writeStateAtomically(JSON.stringify(nextState));
+  lastEventPatch = { ...lastEventPatch, status: "saved", events: nextState.events.length, trainings: nextState.trainings.length, stateFileExists: fs.existsSync(STATE_FILE) };
+  send(res, 200, JSON.stringify({ ok: true, event, trainings, training: trainings[0] || null, lastEventPatch }), { "Content-Type": types[".json"] });
+  return true;
+}
+
 async function handleStateWrite(req, res, expectedOperation = "") {
   if (expectedOperation) req.headers["x-kamik-operation"] = expectedOperation;
   const requestedOperation = String(req.headers["x-kamik-operation"] || "general");
@@ -1183,6 +1233,10 @@ async function handleApi(req, res, url) {
 
   if (url.pathname === "/api/events/patch" && req.method === "POST") {
     return handleEventsPatch(req, res);
+  }
+
+  if (url.pathname === "/api/events/create" && req.method === "POST") {
+    return handleEventCreate(req, res);
   }
 
   if (stateWriteRoutes[url.pathname] && req.method === "PUT") {

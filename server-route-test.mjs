@@ -165,7 +165,22 @@ try {
   const afterEventPatch = JSON.parse(await fs.readFile(path.join(dataDir, "state.json"), "utf8"));
   if (!afterEventPatch.events.some((event) => event.id === "ev-patch")) throw new Error("Event patch route did not persist the new event");
 
-  await fs.writeFile(path.join(dataDir, "state.json"), JSON.stringify({ ...afterEventPatch, activeView: "results", calendarCursor: "2026-07-01" }, null, 2));
+  const eventCreateRoute = await request(baseUrl, "/api/events/create", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${login.body.token}`, "X-Kamik-Role": "director" },
+    body: JSON.stringify({
+      event: { id: "ev-create", type: "event", title: "Create", date: "2026-08-12", time: "12:00", teamId: "team-1", playerIds: [] },
+      notifications: [],
+      auditLog: [{ id: "audit-create", action: "crear evento", target: "event", label: "Create", at: new Date().toISOString() }],
+      calendarCursor: "2026-08-01",
+      activeView: "clubEvents",
+    }),
+  });
+  if (!eventCreateRoute.response.ok || eventCreateRoute.body.event?.id !== "ev-create") throw new Error(`Event create rejected director write: ${eventCreateRoute.response.status} ${JSON.stringify(eventCreateRoute.body)}`);
+  const afterEventCreate = JSON.parse(await fs.readFile(path.join(dataDir, "state.json"), "utf8"));
+  if (!afterEventCreate.events.some((event) => event.id === "ev-create")) throw new Error("Event create route did not persist the new event");
+
+  await fs.writeFile(path.join(dataDir, "state.json"), JSON.stringify({ ...afterEventCreate, activeView: "results", calendarCursor: "2026-07-01" }, null, 2));
   const cursorState = await request(baseUrl, "/api/state", {
     headers: { Authorization: `Bearer ${login.body.token}`, "X-Kamik-Role": "director" },
   });
