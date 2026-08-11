@@ -3125,6 +3125,12 @@ function renderDashboard() {
     <div class="grid ${statCards.length >= 3 ? "three" : "two"}">
       ${statCards.join("")}
     </div>
+    <section class="panel dashboard-feedback-compact">
+      <div class="panel-header">
+        <div><h2>Feedback beta</h2><p>Envia problemas, dudas o ideas directamente a direccion.</p></div>
+        <button class="btn primary" type="button" onclick="openFeedbackModal()">Enviar feedback</button>
+      </div>
+    </section>
     <section class="panel dashboard-announcements-compact">
       <div class="panel-header">
         <div><h2>${t("announcements")}</h2><p>${announcements.length ? `${announcements.length} anuncio${announcements.length === 1 ? "" : "s"} visible${announcements.length === 1 ? "" : "s"}` : "Sin anuncios."}</p></div>
@@ -3173,8 +3179,10 @@ function renderManagement() {
   const upcomingAbsences = managementUpcomingAbsences();
   const recentFiles = managementRecentFiles();
   const changedEvents = managementChangedEvents();
+  const betaFeedback = betaFeedbackThreads();
   const unread = unreadNotifications().length;
   const dailyItems = [
+    ...betaFeedback.filter((thread) => thread.feedbackStatus !== "closed").slice(0, 4).map((thread) => managementTaskItem("Feedback beta", escapeHtml(thread.subject), `${feedbackTypeLabel(thread.feedbackType)} - ${thread.messages.length} mensajes`, `openThreadFromManagement('${thread.id}')`, "green")),
     ...pendingCallups.slice(0, 4).map((item) => managementTaskItem(t("callups"), `${getTeam(item.teamId)?.name || ""} vs ${escapeHtml(item.rival)}`, `${item.date} · ${item.time} · ${pendingPlayersText(item)}`, `openCallupFromManagement('${item.id}')`, "gold")),
     ...pendingMessages.slice(0, 4).map((thread) => managementTaskItem(t("messages"), escapeHtml(thread.subject), `Para: ${employeeName(thread.assignedToId)} · ${thread.messages.length} mensajes`, `openThreadFromManagement('${thread.id}')`, "blue")),
     ...upcomingAbsences.slice(0, 4).map((row) => managementTaskItem(t("upcomingAbsences"), escapeHtml(row.player), `${row.date} · ${escapeHtml(row.team)} · ${escapeHtml(row.absence)}`, `setView('attendance')`, "red")),
@@ -3187,6 +3195,7 @@ function renderManagement() {
     canCreateCallup() ? { label: t("newCallup"), hint: "Convocatoria con jugadores afectados.", action: "openCallupModal()" } : null,
     canManageResults() ? { label: t("addResult"), hint: "Marcador, crónica y galería posterior.", action: "openResultModal()" } : null,
     canUploadDocument() ? { label: t("newDocument"), hint: "Archivos, fotos o vídeos del equipo.", action: "openDocumentModal()" } : null,
+    { label: "Feedback beta", hint: "Enviar una incidencia o sugerencia sobre la beta.", action: "openFeedbackModal()" },
     { label: t("history"), hint: "Consultar eventos y convocatorias ya archivados.", action: "setView('history')" },
     isExecutive(user) ? { label: t("addTeam"), hint: "Crear equipo y asignar jugadores.", action: "openTeamModal()" } : null,
   ].filter(Boolean);
@@ -3215,6 +3224,14 @@ function renderManagement() {
         </div>
         <div class="management-task-list">${dailyItems.join("") || `<div class="empty">${t("noPendingWork")}</div>`}</div>
       </section>
+      ${
+        isExecutive(user)
+          ? `<section class="panel management-panel">
+              <div class="panel-header"><div><h2>Feedback beta</h2><p>Incidencias y sugerencias recibidas durante la prueba.</p></div><span class="pill ${betaFeedback.some((thread) => thread.feedbackStatus !== "closed") ? "gold" : "green"}">${betaFeedback.filter((thread) => thread.feedbackStatus !== "closed").length} pendientes</span></div>
+              <div class="list compact">${betaFeedback.slice(0, 8).map(renderBetaFeedbackItem).join("") || `<div class="empty">Sin feedback recibido todavia.</div>`}</div>
+            </section>`
+          : ""
+      }
       <section class="panel management-panel">
         <div class="panel-header">
           <div><h2>${t("operationalStatus")}</h2><p>Resumen del estado visible para tu rol.</p></div>
@@ -3245,6 +3262,46 @@ function renderAuditItem(item) {
       <span class="meta">${escapeHtml(item.action)} · ${escapeHtml(item.userName)} · ${date}</span>
     </article>
   `;
+}
+
+function betaFeedbackThreads() {
+  return (state.threads || [])
+    .filter((thread) => thread.betaFeedback)
+    .sort((a, b) => activityDateValue(b.messages?.[b.messages.length - 1]?.at || b.createdAt || "") - activityDateValue(a.messages?.[a.messages.length - 1]?.at || a.createdAt || ""));
+}
+
+function feedbackTypeLabel(type) {
+  return { bug: "Problema", idea: "Idea", question: "Duda", other: "Otro" }[type] || "Feedback";
+}
+
+function renderBetaFeedbackItem(thread) {
+  const last = thread.messages?.[thread.messages.length - 1];
+  const closed = thread.feedbackStatus === "closed";
+  return `
+    <article class="item">
+      <div class="item-row">
+        <div><strong>${escapeHtml(thread.subject)}</strong><span class="meta">${feedbackTypeLabel(thread.feedbackType)} - ${escapeHtml(last?.at || "")}</span></div>
+        <span class="pill ${closed ? "green" : "gold"}">${closed ? "Resuelto" : "Pendiente"}</span>
+      </div>
+      <p class="clamped-text">${escapeHtml(last?.text || "")}</p>
+      <div class="actions inline-actions">
+        <button class="btn" type="button" onclick="openThreadFromManagement('${thread.id}')">Abrir</button>
+        <button class="btn" type="button" onclick="toggleFeedbackStatus('${thread.id}')">${closed ? "Reabrir" : "Marcar resuelto"}</button>
+      </div>
+    </article>
+  `;
+}
+
+function toggleFeedbackStatus(threadId) {
+  if (!isExecutive(currentUser())) return;
+  const thread = state.threads.find((item) => item.id === threadId);
+  if (!thread?.betaFeedback) return;
+  thread.feedbackStatus = thread.feedbackStatus === "closed" ? "open" : "closed";
+  thread.feedbackClosedAt = thread.feedbackStatus === "closed" ? new Date().toISOString() : "";
+  state.toast = thread.feedbackStatus === "closed" ? "Feedback marcado como resuelto" : "Feedback reabierto";
+  appendAudit(thread.feedbackStatus === "closed" ? "cerrar feedback beta" : "reabrir feedback beta", "thread", thread.subject);
+  save("messageClub");
+  render();
 }
 
 function visibleActivityItems() {
@@ -6591,6 +6648,26 @@ function openThreadModal() {
   );
 }
 
+function openFeedbackModal() {
+  const user = currentUser();
+  if (!user) return;
+  const directors = state.users.filter((item) => !item.disabled && isExecutive(item));
+  const assignedId = directors[0]?.id || employees()[0]?.id || "";
+  openModal(
+    "Feedback beta",
+    `<form class="form" onsubmit="createFeedback(event)">
+      <input type="hidden" name="assignedToId" value="${assignedId}" />
+      <div class="form-grid">
+        <div class="form-row"><label>Tipo</label><select name="feedbackType"><option value="bug">Problema</option><option value="idea">Idea</option><option value="question">Duda</option><option value="other">Otro</option></select></div>
+        <div class="form-row"><label>${t("selectedPlayers")}</label><select name="playerId"><option value="">Sin jugador vinculado</option>${visiblePlayerIds(user).map((id) => `<option value="${id}">${escapeHtml(getPlayer(id)?.name || "")}</option>`).join("")}</select></div>
+      </div>
+      <div class="form-row"><label>${t("title")}</label><input name="subject" placeholder="Ej: no veo una convocatoria" required /></div>
+      <div class="form-row"><label>${t("body")}</label><textarea name="message" placeholder="Cuenta que estabas haciendo, desde que dispositivo, y que esperabas ver." required></textarea></div>
+      <button class="btn primary" type="submit">${t("send")}</button>
+    </form>`
+  );
+}
+
 function openPlayerMessageModal(playerId) {
   const player = getPlayer(playerId);
   if (!player) return;
@@ -8448,6 +8525,36 @@ function createThread(event) {
   state.threads.unshift(thread);
   state.activeThreadId = thread.id;
   appendAudit("crear conversación", "thread", thread.subject);
+  saveAndClose("messageClub");
+}
+
+function createFeedback(event) {
+  event.preventDefault();
+  const form = new FormData(event.currentTarget);
+  const user = currentUser();
+  if (!user) return;
+  const assignedToId = String(form.get("assignedToId") || state.users.find((item) => isExecutive(item))?.id || employees()[0]?.id || "");
+  const playerId = String(form.get("playerId") || "");
+  const type = String(form.get("feedbackType") || "other");
+  const subject = String(form.get("subject") || "").trim();
+  const message = String(form.get("message") || "").trim();
+  if (!subject || !message) return;
+  const thread = {
+    id: uid("thread"),
+    subject: `Feedback beta - ${feedbackTypeLabel(type)}: ${subject}`,
+    assignedToId,
+    relatedPlayerIds: playerId ? [playerId] : [],
+    participantUserIds: [user.id],
+    betaFeedback: true,
+    feedbackType: type,
+    feedbackStatus: "open",
+    createdAt: new Date().toISOString(),
+    messages: [{ from: "user", text: message, at: currentTime() }],
+  };
+  state.threads.unshift(thread);
+  state.activeThreadId = thread.id;
+  state.toast = "Feedback enviado";
+  appendAudit("enviar feedback beta", "thread", thread.subject);
   saveAndClose("messageClub");
 }
 

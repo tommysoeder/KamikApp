@@ -154,6 +154,31 @@ if (inviteSmoke !== "true|true|true|si") {
   throw new Error(`Invite text smoke failed: ${inviteSmoke}`);
 }
 
+const feedbackSmoke = vm.runInContext(
+  `(() => {
+    createFeedback({
+      preventDefault() {},
+      currentTarget: {
+        values: {
+          assignedToId: "u-director",
+          feedbackType: "bug",
+          playerId: "p-1",
+          subject: "Smoke feedback",
+          message: "Mensaje de prueba de feedback beta"
+        }
+      }
+    });
+    const thread = state.threads.find((item) => item.betaFeedback && item.subject.includes("Smoke feedback"));
+    return [Boolean(thread), thread?.feedbackStatus, betaFeedbackThreads().some((item) => item.id === thread?.id)].join("|");
+  })()`,
+  context,
+  { filename: "smoke-feedback.js" }
+);
+
+if (feedbackSmoke !== "true|open|true") {
+  throw new Error(`Feedback smoke failed: ${feedbackSmoke}`);
+}
+
 const backupSmoke = vm.runInContext(
   "JSON.stringify(backupSummary(persistentState()))",
   context,

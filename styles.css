@@ -4199,6 +4199,16 @@ body::-webkit-scrollbar-thumb,
   padding: 12px 14px;
 }
 
+.dashboard-feedback-compact {
+  margin-top: 14px;
+  padding: 12px 14px;
+}
+
+.dashboard-feedback-compact .panel-header {
+  align-items: center;
+  margin-bottom: 0;
+}
+
 .dashboard-announcements-compact .panel-header {
   align-items: center;
   margin-bottom: 8px;
