@@ -6087,7 +6087,10 @@ function renderDiagnostics() {
       <section class="panel">
         <div class="panel-header">
           <div><h2>${t("diagnostics")}</h2><p>Estado tecnico, sincronizacion, backups y herramientas de temporada.</p></div>
-          <button class="btn primary" type="button" onclick="loadDiagnostics()">${diagnostics ? "Actualizar" : "Cargar"}</button>
+          <div class="actions inline-actions">
+            <button class="btn" type="button" onclick="exportBetaReport()">Exportar informe beta</button>
+            <button class="btn primary" type="button" onclick="loadDiagnostics()">${diagnostics ? "Actualizar" : "Cargar"}</button>
+          </div>
         </div>
         <div class="list compact diagnostics-paths" style="margin-bottom:14px">
           <article class="item">
@@ -7304,6 +7307,52 @@ function exportBetaAccessCsv() {
     ...rows.map((row) => [row.name, row.email, row.roles, row.linkedPlayer, row.familyPlayers, row.teams, row.status, row.ready, row.invited, row.invitedAt, row.lastLoginAt, row.loginCount, row.acceptedBetaAt, row.notes]),
   ];
   downloadCsv(`accesos-beta-kamikapp-${toLocalDateKey(new Date())}.csv`, lines);
+}
+
+function exportBetaReport() {
+  if (!canBackupData() && !canManageUsers()) return;
+  const diagnostics = state.diagnostics || {};
+  const quality = diagnostics.quality || dataQualityReport(state);
+  const readiness = diagnostics.readiness || launchReadinessReport(state, { ...diagnostics, quality });
+  const accessRows = betaAccessRows();
+  const feedback = betaFeedbackThreads();
+  const testProgress = betaTestProgress();
+  const lines = [
+    "Informe beta KamikApp",
+    `Generado: ${new Date().toISOString()}`,
+    `Version: ${APP_VERSION}`,
+    "",
+    "Resumen",
+    `Usuarios totales: ${state.users.length}`,
+    `Accesos listos: ${accessRows.filter((row) => row.ready === "si").length}`,
+    `Invitados: ${accessRows.filter((row) => row.invited === "si").length}`,
+    `Han entrado: ${accessRows.filter((row) => row.lastLoginAt).length}`,
+    `Aviso beta aceptado: ${accessRows.filter((row) => row.acceptedBetaAt).length}`,
+    `Feedback pendiente: ${feedback.filter((thread) => thread.feedbackStatus !== "closed").length}`,
+    `Pruebas por rol: ${testProgress.done}/${testProgress.total}`,
+    "",
+    "Checklist beta",
+    ...(readiness.items || []).map((item) => `- ${item.status.toUpperCase()} | ${item.title}: ${item.detail}`),
+    "",
+    "Pruebas por rol",
+    ...betaTestItems().map((item) => {
+      const check = state.betaTestChecks?.[item.id] || {};
+      return `- ${check.done ? "OK" : "PENDIENTE"} | ${item.title}${check.at ? ` | ${check.at} | ${check.by || ""}` : ""}`;
+    }),
+    "",
+    "Calidad de datos",
+    `Criticos: ${quality.counts?.error || 0}`,
+    `Avisos: ${quality.counts?.warning || 0}`,
+    `Info: ${quality.counts?.info || 0}`,
+    ...(quality.issues || []).slice(0, 30).map((issue) => `- ${String(issue.level || "").toUpperCase()} | ${issue.area || ""} | ${issue.title || ""} | ${issue.detail || ""}`),
+    "",
+    "Feedback beta",
+    ...feedback.slice(0, 30).map((thread) => `- ${thread.feedbackStatus === "closed" ? "RESUELTO" : "PENDIENTE"} | ${feedbackTypeLabel(thread.feedbackType)} | ${thread.subject}`),
+    "",
+    "Accesos beta",
+    ...accessRows.map((row) => `- ${row.ready === "si" ? "LISTO" : "REVISAR"} | ${row.name} | ${row.email} | invitado:${row.invited} | accesos:${row.loginCount} | aviso:${row.acceptedBetaAt ? "si" : "no"} | ${row.notes}`),
+  ];
+  downloadText(`informe-beta-kamikapp-${toLocalDateKey(new Date())}.txt`, lines.join("\n"), "text/plain;charset=utf-8");
 }
 
 function downloadFullBackup() {

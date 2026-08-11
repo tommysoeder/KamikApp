@@ -199,6 +199,19 @@ if (betaTestSmoke !== "true|true|true") {
   throw new Error(`Beta test checklist smoke failed: ${betaTestSmoke}`);
 }
 
+const betaReportSmoke = vm.runInContext(
+  `(() => {
+    exportBetaReport();
+    return true;
+  })()`,
+  context,
+  { filename: "smoke-beta-report.js" }
+);
+
+if (!betaReportSmoke) {
+  throw new Error("Beta report export failed");
+}
+
 const feedbackSmoke = vm.runInContext(
   `(() => {
     createFeedback({
