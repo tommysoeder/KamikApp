@@ -186,6 +186,27 @@ if (updateNoticeSmoke !== "true|true|true") {
   throw new Error(`Update notice smoke failed: ${updateNoticeSmoke}`);
 }
 
+const syncIndicatorSmoke = vm.runInContext(
+  `(() => {
+    const previousProtocol = location.protocol;
+    location.protocol = "http:";
+    state.syncStatus = { status: "ok", lastSavedAt: new Date().toISOString(), lastReadAt: "", error: "" };
+    const okHtml = renderSyncIndicator();
+    state.syncStatus = { status: "error", lastSavedAt: "", lastReadAt: "", error: "Sin conexion" };
+    const errorHtml = renderSyncIndicator("sidebar");
+    state.syncStatus = { status: "saving", lastSavedAt: "", lastReadAt: "", error: "" };
+    const result = [okHtml.includes("Sincronizado"), errorHtml.includes("Reintentar"), syncIndicatorData().label === "Guardando"].join("|");
+    location.protocol = previousProtocol;
+    return result;
+  })()`,
+  context,
+  { filename: "smoke-sync-indicator.js" }
+);
+
+if (syncIndicatorSmoke !== "true|true|true") {
+  throw new Error(`Sync indicator smoke failed: ${syncIndicatorSmoke}`);
+}
+
 const userSupportSmoke = vm.runInContext(
   `(() => {
     const user = state.users.find((item) => item.email);

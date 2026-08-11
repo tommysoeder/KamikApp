@@ -286,6 +286,84 @@ button {
   color: #111c20;
 }
 
+.sync-indicator {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 2px 8px;
+  align-items: center;
+  max-width: 240px;
+  min-width: 160px;
+  border: 1px solid rgba(15, 104, 106, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 7px 9px;
+}
+
+.sync-indicator > span {
+  grid-row: 1 / span 2;
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: var(--green);
+}
+
+.sync-indicator.saving > span {
+  background: var(--gold);
+}
+
+.sync-indicator.error > span,
+.sync-indicator.local > span {
+  background: var(--red);
+}
+
+.sync-indicator strong,
+.sync-indicator em {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sync-indicator strong {
+  color: #163034;
+  font-size: 0.78rem;
+  font-weight: 860;
+}
+
+.sync-indicator em {
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-style: normal;
+}
+
+.sync-retry {
+  grid-column: 2;
+  width: fit-content;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(185, 74, 72, 0.12);
+  color: #8f2f27;
+  padding: 3px 7px;
+  font-size: 0.68rem;
+  font-weight: 820;
+}
+
+.sidebar-sync {
+  max-width: none;
+  min-width: 0;
+  margin: 0 0 12px;
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-sync strong {
+  color: #fff;
+}
+
+.sidebar-sync em {
+  color: rgba(255, 255, 255, 0.72);
+}
+
 .main {
   min-width: 0;
   margin-left: 264px;

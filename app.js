@@ -646,6 +646,7 @@ const seed = {
   activeProfilePlayerId: "",
   activeFederationTeamId: "",
   diagnostics: null,
+  syncStatus: { status: "idle", lastSavedAt: "", lastReadAt: "", error: "" },
   diagnosticAuditQuery: "",
   diagnosticAuditAction: "",
   diagnosticAuditTeamId: "",
@@ -1023,6 +1024,7 @@ function normalize(raw) {
   next.activeProfilePlayerId ||= "";
   next.activeFederationTeamId ||= "";
   next.diagnostics ||= null;
+  next.syncStatus = { status: "idle", lastSavedAt: "", lastReadAt: "", error: "", ...(next.syncStatus || {}) };
   next.diagnosticAuditQuery ||= "";
   next.diagnosticAuditAction ||= "";
   next.diagnosticAuditTeamId ||= "";
@@ -1345,9 +1347,17 @@ function saveRemoteNow(operation = "general") {
   return sendRemoteState(operation, body);
 }
 
+function setSyncStatus(patch = {}) {
+  state.syncStatus = { status: "idle", lastSavedAt: "", lastReadAt: "", error: "", ...(state.syncStatus || {}), ...patch };
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch {}
+}
+
 async function sendRemoteState(operation, body) {
   remoteSaveInFlight = true;
   lastRemoteSaveAt = Date.now();
+  setSyncStatus({ status: "saving", error: "" });
   try {
     const response = await fetch(apiEndpoint(apiUrlForOperation(operation)), {
       method: "PUT",
@@ -1376,9 +1386,11 @@ async function sendRemoteState(operation, body) {
       showRemoteSaveError(`${readableOperation}: ${message}`, { renderToast: !silentReadSave });
       return false;
     }
+    setSyncStatus({ status: "ok", lastSavedAt: new Date().toISOString(), error: "" });
     return true;
   } catch {
     showRemoteSaveError(`${operation}: sin conexion con el servidor`, { renderToast: false });
+    setSyncStatus({ status: "error", error: "Sin conexion con el servidor" });
     return false;
   } finally {
     remoteSaveInFlight = false;
@@ -1511,6 +1523,7 @@ async function testEventCreate() {
 
 function showRemoteSaveError(message, options = {}) {
   if (options.silent) return;
+  setSyncStatus({ status: "error", error: message });
   state.toast = message;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   persistSession();
@@ -1568,6 +1581,7 @@ async function refreshRemoteState({ keepToast = false, force = false } = {}) {
     remote.activeThreadId = state.activeThreadId;
     remote.mobileMenuOpen = state.mobileMenuOpen;
     remote.toast = keepToast ? state.toast : "";
+    remote.syncStatus = { ...(state.syncStatus || {}), status: "ok", lastReadAt: new Date().toISOString(), error: "" };
     normalizeCalendarCursorForActiveView(remote);
     state = remote;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -2373,6 +2387,7 @@ function render() {
             <h1>${viewTitle(state.activeView)}</h1>
             <p>${topbarText(user)}</p>
           </div>
+          ${renderSyncIndicator()}
           ${renderGlobalSearch("topbar")}
         </header>
         <section class="content">${renderView()}</section>
@@ -2804,6 +2819,7 @@ function renderSidebar(user) {
           </div>
           <button class="btn" type="button" onclick="logout()">${t("switchAccount")}</button>
         </div>
+        ${renderSyncIndicator("sidebar")}
         <strong>Privacidad:</strong> sin datos personales visibles entre familias y comunicacion oficial trazable.
       </div>
     </aside>
@@ -3136,6 +3152,38 @@ function topbarText(user) {
   const count = visiblePlayerIds(user).length;
   if (isExecutive(user)) return `${state.teams.length} equipos · ${state.players.length} jugadores · ${state.users.length} usuarios`;
   return `${roleLabel(activeRole(user))} · ${count} jugador${count === 1 ? "" : "es"} visible${count === 1 ? "" : "s"}`;
+}
+
+function syncIndicatorData() {
+  const sync = state.syncStatus || {};
+  if (typeof location !== "undefined" && location.protocol === "file:") {
+    return { status: "local", label: "Local", detail: "Abre la URL del servidor para sincronizar" };
+  }
+  if (sync.status === "error") return { status: "error", label: "Error sync", detail: sync.error || "No se pudo sincronizar" };
+  if (sync.status === "saving") return { status: "saving", label: "Guardando", detail: "Enviando cambios al servidor" };
+  const last = sync.lastSavedAt || sync.lastReadAt;
+  return { status: "ok", label: "Sincronizado", detail: last ? `Ultima vez ${formatActivityDate(last)}` : "Servidor conectado" };
+}
+
+function renderSyncIndicator(context = "topbar") {
+  const item = syncIndicatorData();
+  const retry = item.status === "error" ? `<button class="sync-retry" type="button" onclick="retrySync()">Reintentar</button>` : "";
+  return `
+    <div class="sync-indicator ${escapeHtml(item.status)} ${context === "sidebar" ? "sidebar-sync" : ""}">
+      <span></span>
+      <strong>${escapeHtml(item.label)}</strong>
+      <em>${escapeHtml(item.detail)}</em>
+      ${retry}
+    </div>
+  `;
+}
+
+async function retrySync() {
+  setSyncStatus({ status: "saving", error: "" });
+  render();
+  await saveRemoteNow("general");
+  await refreshRemoteState({ keepToast: true, force: true });
+  render();
 }
 
 function renderView() {
