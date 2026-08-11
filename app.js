@@ -650,6 +650,8 @@ const seed = {
   diagnosticAuditQuery: "",
   diagnosticAuditAction: "",
   diagnosticAuditTeamId: "",
+  betaFeedbackStatusFilter: "open",
+  betaFeedbackSeverityFilter: "all",
   permissions: {
     coachCanAttendance: true,
     delegateCanAttendance: true,
@@ -1028,6 +1030,8 @@ function normalize(raw) {
   next.diagnosticAuditQuery ||= "";
   next.diagnosticAuditAction ||= "";
   next.diagnosticAuditTeamId ||= "";
+  next.betaFeedbackStatusFilter ||= "open";
+  next.betaFeedbackSeverityFilter ||= "all";
   next.betaTestChecks ||= {};
   next.globalSearchQuery ||= "";
   next.globalSearchOpen ??= false;
@@ -3318,6 +3322,8 @@ function renderManagement() {
   const betaAccepted = betaRows.filter((row) => row.acceptedBetaAt).length;
   const betaPendingFeedback = betaFeedback.filter((thread) => thread.feedbackStatus !== "closed").length;
   const betaFollowup = betaFollowupRows();
+  const betaFeedbackVisible = filteredBetaFeedbackThreads(betaFeedback);
+  const betaFeedbackCounts = betaFeedbackSummary(betaFeedback);
   const unread = unreadNotifications().length;
   const dailyItems = [
     ...betaFeedback.filter((thread) => thread.feedbackStatus !== "closed").slice(0, 4).map((thread) => managementTaskItem("Feedback beta", escapeHtml(thread.subject), `${feedbackTypeLabel(thread.feedbackType)} - ${thread.messages.length} mensajes`, `openThreadFromManagement('${thread.id}')`, "green")),
@@ -3380,8 +3386,34 @@ function renderManagement() {
       ${
         isExecutive(user)
           ? `<section class="panel management-panel">
-              <div class="panel-header"><div><h2>Feedback beta</h2><p>Incidencias y sugerencias recibidas durante la prueba.</p></div><span class="pill ${betaFeedback.some((thread) => thread.feedbackStatus !== "closed") ? "gold" : "green"}">${betaFeedback.filter((thread) => thread.feedbackStatus !== "closed").length} pendientes</span></div>
-              <div class="list compact">${betaFeedback.slice(0, 8).map(renderBetaFeedbackItem).join("") || `<div class="empty">Sin feedback recibido todavia.</div>`}</div>
+              <div class="panel-header">
+                <div><h2>Feedback beta</h2><p>Incidencias y sugerencias recibidas durante la prueba.</p></div>
+                <div class="actions inline-actions">
+                  <span class="pill ${betaPendingFeedback ? "gold" : "green"}">${betaPendingFeedback} pendientes</span>
+                  ${canExportData() ? `<button class="btn" type="button" onclick="exportBetaFeedbackCsv()">Exportar CSV</button>` : ""}
+                </div>
+              </div>
+              <div class="feedback-triage">
+                <article><span>Bloquean</span><strong>${betaFeedbackCounts.blocker}</strong></article>
+                <article><span>Altos</span><strong>${betaFeedbackCounts.high}</strong></article>
+                <article><span>Abiertos</span><strong>${betaFeedbackCounts.open}</strong></article>
+                <article><span>Resueltos</span><strong>${betaFeedbackCounts.closed}</strong></article>
+              </div>
+              <div class="feedback-filters">
+                <select onchange="setBetaFeedbackFilter('betaFeedbackStatusFilter', this.value)">
+                  <option value="open" ${state.betaFeedbackStatusFilter === "open" ? "selected" : ""}>Pendientes</option>
+                  <option value="all" ${state.betaFeedbackStatusFilter === "all" ? "selected" : ""}>Todos</option>
+                  <option value="closed" ${state.betaFeedbackStatusFilter === "closed" ? "selected" : ""}>Resueltos</option>
+                </select>
+                <select onchange="setBetaFeedbackFilter('betaFeedbackSeverityFilter', this.value)">
+                  <option value="all" ${state.betaFeedbackSeverityFilter === "all" ? "selected" : ""}>Todos los impactos</option>
+                  <option value="blocker" ${state.betaFeedbackSeverityFilter === "blocker" ? "selected" : ""}>Bloquea</option>
+                  <option value="high" ${state.betaFeedbackSeverityFilter === "high" ? "selected" : ""}>Alta</option>
+                  <option value="normal" ${state.betaFeedbackSeverityFilter === "normal" ? "selected" : ""}>Media</option>
+                  <option value="low" ${state.betaFeedbackSeverityFilter === "low" ? "selected" : ""}>Baja</option>
+                </select>
+              </div>
+              <div class="list compact">${betaFeedbackVisible.slice(0, 10).map(renderBetaFeedbackItem).join("") || `<div class="empty">Sin feedback con esos filtros.</div>`}</div>
             </section>`
           : ""
       }
@@ -3436,6 +3468,37 @@ function feedbackTypeLabel(type) {
 
 function feedbackSeverityLabel(severity) {
   return { blocker: "Bloquea", high: "Alta", normal: "Media", low: "Baja" }[severity] || "Media";
+}
+
+function betaFeedbackSummary(threads = betaFeedbackThreads()) {
+  return threads.reduce(
+    (acc, thread) => {
+      const severity = thread.feedbackSeverity || "normal";
+      acc[severity] = (acc[severity] || 0) + 1;
+      if (thread.feedbackStatus === "closed") acc.closed += 1;
+      else acc.open += 1;
+      return acc;
+    },
+    { blocker: 0, high: 0, normal: 0, low: 0, open: 0, closed: 0 }
+  );
+}
+
+function filteredBetaFeedbackThreads(threads = betaFeedbackThreads()) {
+  const status = state.betaFeedbackStatusFilter || "open";
+  const severity = state.betaFeedbackSeverityFilter || "all";
+  return threads.filter((thread) => {
+    if (status === "open" && thread.feedbackStatus === "closed") return false;
+    if (status === "closed" && thread.feedbackStatus !== "closed") return false;
+    if (severity !== "all" && (thread.feedbackSeverity || "normal") !== severity) return false;
+    return true;
+  });
+}
+
+function setBetaFeedbackFilter(key, value) {
+  if (!["betaFeedbackStatusFilter", "betaFeedbackSeverityFilter"].includes(key)) return;
+  state[key] = value;
+  save();
+  render();
 }
 
 function renderBetaFeedbackItem(thread) {
@@ -7577,6 +7640,29 @@ function exportBetaAccessCsv() {
     ...rows.map((row) => [row.name, row.email, row.roles, row.linkedPlayer, row.familyPlayers, row.teams, row.status, row.ready, row.invited, row.invitedAt, row.lastLoginAt, row.loginCount, row.acceptedBetaAt, row.notes]),
   ];
   downloadCsv(`accesos-beta-kamikapp-${toLocalDateKey(new Date())}.csv`, lines);
+}
+
+function exportBetaFeedbackCsv() {
+  if (!canExportData()) return;
+  const lines = [
+    ["estado", "impacto", "tipo", "asunto", "creado", "ultimo_mensaje", "participantes", "asignado_a", "texto"],
+    ...betaFeedbackThreads().map((thread) => {
+      const last = thread.messages?.[thread.messages.length - 1] || {};
+      const participants = (thread.participantUserIds || []).map((id) => state.users.find((user) => user.id === id)?.name || id).join("|");
+      return [
+        thread.feedbackStatus === "closed" ? "resuelto" : "pendiente",
+        feedbackSeverityLabel(thread.feedbackSeverity),
+        feedbackTypeLabel(thread.feedbackType),
+        thread.subject || "",
+        thread.createdAt || "",
+        last.at || "",
+        participants,
+        state.users.find((user) => user.id === thread.assignedToId)?.name || "",
+        String(last.text || "").replace(/\s+/g, " ").trim(),
+      ];
+    }),
+  ];
+  downloadCsv(`feedback-beta-kamikapp-${toLocalDateKey(new Date())}.csv`, lines);
 }
 
 function exportBetaReport() {

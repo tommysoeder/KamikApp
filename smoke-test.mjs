@@ -320,6 +320,23 @@ if (feedbackSmoke !== "true|open|blocker|true|true|true|true") {
   throw new Error(`Feedback smoke failed: ${feedbackSmoke}`);
 }
 
+const feedbackTriageSmoke = vm.runInContext(
+  `(() => {
+    const summary = betaFeedbackSummary();
+    state.betaFeedbackStatusFilter = "open";
+    state.betaFeedbackSeverityFilter = "blocker";
+    const filtered = filteredBetaFeedbackThreads();
+    exportBetaFeedbackCsv();
+    return [summary.blocker >= 1, filtered.every((thread) => thread.feedbackStatus !== "closed" && thread.feedbackSeverity === "blocker"), typeof exportBetaFeedbackCsv === "function"].join("|");
+  })()`,
+  context,
+  { filename: "smoke-feedback-triage.js" }
+);
+
+if (feedbackTriageSmoke !== "true|true|true") {
+  throw new Error(`Feedback triage smoke failed: ${feedbackTriageSmoke}`);
+}
+
 const backupSmoke = vm.runInContext(
   "JSON.stringify(backupSummary(persistentState()))",
   context,
