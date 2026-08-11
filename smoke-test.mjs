@@ -185,6 +185,20 @@ if (userSupportSmoke !== "true|true|true") {
   throw new Error(`User support smoke failed: ${userSupportSmoke}`);
 }
 
+const betaTestSmoke = vm.runInContext(
+  `(() => {
+    const before = betaTestProgress().done;
+    toggleBetaTest("director");
+    return [betaTestItems().length >= 5, betaTestProgress().done === before + 1, Boolean(state.betaTestChecks.director?.at)].join("|");
+  })()`,
+  context,
+  { filename: "smoke-beta-test-checklist.js" }
+);
+
+if (betaTestSmoke !== "true|true|true") {
+  throw new Error(`Beta test checklist smoke failed: ${betaTestSmoke}`);
+}
+
 const feedbackSmoke = vm.runInContext(
   `(() => {
     createFeedback({

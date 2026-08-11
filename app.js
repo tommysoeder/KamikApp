@@ -1024,6 +1024,7 @@ function normalize(raw) {
   next.diagnosticAuditQuery ||= "";
   next.diagnosticAuditAction ||= "";
   next.diagnosticAuditTeamId ||= "";
+  next.betaTestChecks ||= {};
   next.globalSearchQuery ||= "";
   next.globalSearchOpen ??= false;
   next.globalSearchSource ||= "";
@@ -6142,6 +6143,13 @@ function renderDiagnostics() {
       </section>
       <section class="panel">
         <div class="panel-header">
+          <div><h2>Pruebas por rol</h2><p>Marca manualmente lo que ya has probado con usuarios reales de beta.</p></div>
+          <span class="pill">${betaTestProgress().done}/${betaTestProgress().total}</span>
+        </div>
+        <div class="beta-test-list">${betaTestItems().map(renderBetaTestItem).join("")}</div>
+      </section>
+      <section class="panel">
+        <div class="panel-header">
           <div><h2>Calidad de datos</h2><p>Revisa inconsistencias antes de invitar a familias y jugadores.</p></div>
           <span class="pill ${quality.ok ? "green" : "red"}">${quality.ok ? "OK" : "Revisar"}</span>
         </div>
@@ -7509,6 +7517,53 @@ function renderReadinessItem(item) {
       <em>${escapeHtml(item.detail)}</em>
     </button>
   `;
+}
+
+function betaTestItems() {
+  return [
+    { id: "director", title: "Direccion", detail: "Crear aviso, evento, convocatoria, resultado y revisar diagnostico." },
+    { id: "coach", title: "Entrenador", detail: "Crear convocatoria/evento de su equipo y revisar asistencia." },
+    { id: "delegate", title: "Delegado", detail: "Subir archivo, abrirlo y gestionar carpeta de su equipo." },
+    { id: "player", title: "Jugador", detail: "Ver calendario, confirmar convocatoria y enviar feedback." },
+    { id: "family", title: "Familia", detail: "Entrar, ver jugador vinculado, mensajes y avisos." },
+    { id: "mobile", title: "Movil", detail: "Probar menu, notificaciones visuales, scroll y cambio de cuenta." },
+    { id: "desktop", title: "Ordenador", detail: "Probar barra lateral, tiempo real, archivos y calendario." },
+    { id: "backup", title: "Backup", detail: "Crear copia manual y descargarla desde Diagnostico." },
+  ];
+}
+
+function betaTestProgress() {
+  const items = betaTestItems();
+  const done = items.filter((item) => state.betaTestChecks?.[item.id]?.done).length;
+  return { done, total: items.length };
+}
+
+function renderBetaTestItem(item) {
+  const checked = state.betaTestChecks?.[item.id] || {};
+  return `
+    <label class="beta-test-item ${checked.done ? "done" : ""}">
+      <input type="checkbox" ${checked.done ? "checked" : ""} onchange="toggleBetaTest('${item.id}')" />
+      <span>
+        <strong>${escapeHtml(item.title)}</strong>
+        <em>${escapeHtml(item.detail)}</em>
+        ${checked.at ? `<i>${formatActivityDate(checked.at)} · ${escapeHtml(checked.by || "")}</i>` : ""}
+      </span>
+    </label>
+  `;
+}
+
+function toggleBetaTest(testId) {
+  if (!canManageUsers()) return;
+  state.betaTestChecks ||= {};
+  const current = state.betaTestChecks[testId];
+  if (current?.done) {
+    state.betaTestChecks[testId] = { done: false, at: "", by: "" };
+  } else {
+    state.betaTestChecks[testId] = { done: true, at: new Date().toISOString(), by: currentUser()?.name || "" };
+  }
+  state.toast = "Checklist beta actualizada";
+  save("updateSelf");
+  render();
 }
 
 async function loadDiagnostics() {
