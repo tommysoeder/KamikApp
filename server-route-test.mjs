@@ -132,6 +132,7 @@ try {
   const migratedLoginState = JSON.parse(await fs.readFile(path.join(dataDir, "state.json"), "utf8"));
   const migratedDirector = migratedLoginState.users.find((user) => user.id === "u-director");
   if (!migratedDirector.passwordHash || migratedDirector.password) throw new Error("Director password was not migrated to hash");
+  if (!migratedDirector.lastLoginAt || Number(migratedDirector.loginCount || 0) < 1) throw new Error("Director login activity was not recorded");
 
   const changedEvents = { ...migratedLoginState, events: [{ id: "ev-test", type: "event", title: "Ruta", date: "2026-07-27", time: "10:00", teamId: "team-1", playerIds: [] }] };
   const oldRoute = await request(baseUrl, "/api/state", {

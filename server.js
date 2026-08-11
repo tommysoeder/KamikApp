@@ -12,7 +12,7 @@ const STATE_FILE = path.join(DATA_DIR, "state.json");
 const BUNDLED_STATE_FILE = path.join(ROOT, "data", "state.json");
 const BACKUP_DIR = path.join(DATA_DIR, "backups");
 const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
-const APP_VERSION = "v131";
+const APP_VERSION = "v132";
 const APP_MODE = String(process.env.APP_MODE || "presentation").toLowerCase();
 const APP_LABEL = process.env.APP_LABEL || (APP_MODE === "beta" ? "Beta privada" : "");
 const SHOW_LOGIN_PROFILES = process.env.SHOW_LOGIN_PROFILES === "1" || (APP_MODE !== "beta" && APP_MODE !== "production");
@@ -381,11 +381,14 @@ function loginUser(payload) {
     return String(item.email || "").toLowerCase() === email && verifyPassword(item, password);
   });
   if (!user) return { error: "Invalid login", status: 401 };
+  const loginAt = new Date().toISOString();
+  user.lastLoginAt = loginAt;
+  user.loginCount = Number(user.loginCount || 0) + 1;
   if (!user.passwordHash && user.password) {
     Object.assign(user, hashPassword(user.password));
     delete user.password;
-    writeStateAtomically(JSON.stringify(state));
   }
+  writeStateAtomically(JSON.stringify(state));
   const token = crypto.randomUUID();
   sessions.set(token, { userId: user.id, createdAt: Date.now() });
   return {
@@ -939,6 +942,7 @@ function launchReadinessReport(state, diagnostics = {}) {
   const teams = state?.teams || [];
   const linkedPlayers = users.filter((user) => (user.roles || []).includes("player") && user.playerId).length;
   const invitedAccounts = users.filter((user) => user.betaInvitedAt).length;
+  const testedAccounts = users.filter((user) => user.lastLoginAt).length;
   const hasFamilies = users.some((user) => (user.roles || []).includes("parent") && (user.children || []).length);
   const staffRoles = new Set(users.flatMap((user) => user.roles || []).filter((role) => ["director", "president", "coach", "delegate", "fees"].includes(role)));
   const items = [
@@ -970,7 +974,7 @@ function launchReadinessReport(state, diagnostics = {}) {
       key: "accounts",
       status: linkedPlayers >= Math.max(1, Math.ceil(players.length * 0.25)) ? "ok" : "warning",
       title: "Cuentas de jugadores",
-      detail: `${invitedAccounts} invitados, ${linkedPlayers}/${players.length} jugadores con cuenta vinculada.`,
+      detail: `${invitedAccounts} invitados, ${testedAccounts} entraron, ${linkedPlayers}/${players.length} jugadores con cuenta vinculada.`,
     },
     {
       key: "families",

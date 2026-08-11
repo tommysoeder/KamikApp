@@ -5841,6 +5841,7 @@ function renderUsers() {
   const accessRows = betaAccessRows();
   const inviteReady = accessRows.filter((row) => row.ready === "si").length;
   const invited = accessRows.filter((row) => row.invited === "si").length;
+  const tested = accessRows.filter((row) => row.lastLoginAt).length;
   const invitePending = accessRows.length - inviteReady;
   return `
     <section class="panel users-admin">
@@ -5881,14 +5882,16 @@ function renderUserCard(user) {
   const linkedPlayer = user.playerId ? getPlayer(user.playerId)?.name : "";
   const children = (user.children || []).map((id) => getPlayer(id)?.name).filter(Boolean);
   const invited = Boolean(user.betaInvitedAt);
+  const entered = Boolean(user.lastLoginAt);
   return `
     <article class="item user-card ${user.disabled ? "disabled" : ""}">
       <div class="item-row">
         <h3>${escapeHtml(user.name)}</h3>
-        <span class="status-pill ${user.disabled ? "off" : "on"}">${user.disabled ? t("inactive") : invited ? "Invitado" : t("active")}</span>
+        <span class="status-pill ${user.disabled ? "off" : "on"}">${user.disabled ? t("inactive") : entered ? "Entro" : invited ? "Invitado" : t("active")}</span>
       </div>
       <div class="meta">${escapeHtml(user.email)}</div>
       ${invited ? `<div class="meta"><strong>Beta:</strong> invitado ${formatActivityDate(user.betaInvitedAt)}</div>` : ""}
+      ${entered ? `<div class="meta"><strong>Acceso:</strong> ${formatActivityDate(user.lastLoginAt)} - ${Number(user.loginCount || 1)} entrada${Number(user.loginCount || 1) === 1 ? "" : "s"}</div>` : ""}
       <div class="pill-line">${user.roles.map((role) => `<span class="pill">${roleLabel(role)}</span>`).join("")}</div>
       ${linkedPlayer ? `<div class="meta"><strong>${t("linkedPlayer")}:</strong> ${escapeHtml(linkedPlayer)}</div>` : ""}
       ${children.length ? `<div class="meta"><strong>${t("familyPlayers")}:</strong> ${children.map(escapeHtml).join(", ")}</div>` : ""}
@@ -7181,6 +7184,8 @@ function betaAccessRows() {
       ready: !user.disabled && hasEmail && hasScope ? "si" : "no",
       invited: user.betaInvitedAt ? "si" : "no",
       invitedAt: user.betaInvitedAt || "",
+      lastLoginAt: user.lastLoginAt || "",
+      loginCount: Number(user.loginCount || 0),
       notes: !hasEmail ? "Falta email" : !hasScope ? "Sin jugador/equipo/rol vinculado" : user.disabled ? "Usuario inactivo" : "",
     };
   });
@@ -7190,8 +7195,8 @@ function exportBetaAccessCsv() {
   if (!canExportData()) return;
   const rows = betaAccessRows();
   const lines = [
-    ["nombre", "email", "roles", "jugador_vinculado", "jugadores_familia", "equipos", "estado", "listo_para_invitar", "invitado", "fecha_invitacion", "observaciones"],
-    ...rows.map((row) => [row.name, row.email, row.roles, row.linkedPlayer, row.familyPlayers, row.teams, row.status, row.ready, row.invited, row.invitedAt, row.notes]),
+    ["nombre", "email", "roles", "jugador_vinculado", "jugadores_familia", "equipos", "estado", "listo_para_invitar", "invitado", "fecha_invitacion", "ultimo_acceso", "numero_accesos", "observaciones"],
+    ...rows.map((row) => [row.name, row.email, row.roles, row.linkedPlayer, row.familyPlayers, row.teams, row.status, row.ready, row.invited, row.invitedAt, row.lastLoginAt, row.loginCount, row.notes]),
   ];
   downloadCsv(`accesos-beta-kamikapp-${toLocalDateKey(new Date())}.csv`, lines);
 }
@@ -7339,6 +7344,7 @@ function launchReadinessReport(readinessState = state, diagnostics = {}) {
   const linkedPlayers = users.filter((user) => (user.roles || []).includes("player") && user.playerId).length;
   const readyAccounts = readinessState === state ? betaAccessRows().filter((row) => row.ready === "si").length : linkedPlayers;
   const invitedAccounts = readinessState === state ? betaAccessRows().filter((row) => row.invited === "si").length : users.filter((user) => user.betaInvitedAt).length;
+  const testedAccounts = readinessState === state ? betaAccessRows().filter((row) => row.lastLoginAt).length : users.filter((user) => user.lastLoginAt).length;
   const hasFamilies = users.some((user) => (user.roles || []).includes("parent") && (user.children || []).length);
   const staffRoles = new Set(users.flatMap((user) => user.roles || []).filter((role) => ["director", "president", "coach", "delegate", "fees"].includes(role)));
   const hasServerState = diagnostics.stateFile?.exists !== false;
@@ -7370,7 +7376,7 @@ function launchReadinessReport(readinessState = state, diagnostics = {}) {
     {
       status: readyAccounts >= Math.max(1, Math.ceil(players.length * 0.25)) ? "ok" : "warning",
       title: "Cuentas de jugadores",
-      detail: `${readyAccounts} accesos listos, ${invitedAccounts} invitados, ${linkedPlayers}/${players.length} jugadores vinculados.`,
+      detail: `${readyAccounts} accesos listos, ${invitedAccounts} invitados, ${testedAccounts} entraron, ${linkedPlayers}/${players.length} jugadores vinculados.`,
       action: "setView('users')",
     },
     {

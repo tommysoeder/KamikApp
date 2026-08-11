@@ -128,13 +128,13 @@ const exportSmoke = vm.runInContext(
     exportUsersCsv();
     exportBetaAccessCsv();
     downloadFullBackup();
-    return [playerImportHeader().join(","), betaAccessRows().length > 0].join("|");
+    return [playerImportHeader().join(","), betaAccessRows().length > 0, Object.hasOwn(betaAccessRows()[0], "lastLoginAt")].join("|");
   })()`,
   context,
   { filename: "smoke-export-csv.js" }
 );
 
-if (!exportSmoke.includes("jugador,edad,equipos") || !exportSmoke.endsWith("|true")) {
+if (!exportSmoke.includes("jugador,edad,equipos") || !exportSmoke.endsWith("|true|true")) {
   throw new Error("CSV export helpers did not run");
 }
 
