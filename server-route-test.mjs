@@ -202,7 +202,7 @@ try {
   const diagnostics = await request(baseUrl, "/api/diagnostics", {
     headers: { Authorization: `Bearer ${login.body.token}`, "X-Kamik-Role": "director" },
   });
-  if (!diagnostics.response.ok || !diagnostics.body.summary || !Array.isArray(diagnostics.body.backups) || !diagnostics.body.quality?.counts) throw new Error("Diagnostics endpoint failed");
+  if (!diagnostics.response.ok || !diagnostics.body.summary || !Array.isArray(diagnostics.body.backups) || !diagnostics.body.quality?.counts || !diagnostics.body.readiness?.counts) throw new Error("Diagnostics endpoint failed");
 
   const backups = await request(baseUrl, "/api/backups", {
     headers: { Authorization: `Bearer ${login.body.token}`, "X-Kamik-Role": "director" },

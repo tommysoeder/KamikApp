@@ -12,7 +12,7 @@ const STATE_FILE = path.join(DATA_DIR, "state.json");
 const BUNDLED_STATE_FILE = path.join(ROOT, "data", "state.json");
 const BACKUP_DIR = path.join(DATA_DIR, "backups");
 const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
-const APP_VERSION = "v126";
+const APP_VERSION = "v127";
 const APP_MODE = String(process.env.APP_MODE || "presentation").toLowerCase();
 const APP_LABEL = process.env.APP_LABEL || (APP_MODE === "beta" ? "Beta privada" : "");
 const SHOW_LOGIN_PROFILES = process.env.SHOW_LOGIN_PROFILES === "1" || (APP_MODE !== "beta" && APP_MODE !== "production");
@@ -932,6 +932,68 @@ function dataQualityReport(state) {
   return { ok: counts.error === 0, counts, issues: issues.slice(0, 80) };
 }
 
+function launchReadinessReport(state, diagnostics = {}) {
+  const quality = diagnostics.quality || dataQualityReport(state);
+  const users = state?.users || [];
+  const players = state?.players || [];
+  const teams = state?.teams || [];
+  const linkedPlayers = users.filter((user) => (user.roles || []).includes("player") && user.playerId).length;
+  const hasFamilies = users.some((user) => (user.roles || []).includes("parent") && (user.children || []).length);
+  const staffRoles = new Set(users.flatMap((user) => user.roles || []).filter((role) => ["director", "president", "coach", "delegate", "fees"].includes(role)));
+  const items = [
+    {
+      key: "persistent-data",
+      status: diagnostics.stateFile?.exists && diagnostics.writeProbe?.ok ? "ok" : "blocker",
+      title: "Datos persistentes",
+      detail: diagnostics.stateFile?.exists && diagnostics.writeProbe?.ok ? "El servidor guarda en disco persistente." : "Revisa carpeta persistente y prueba de escritura.",
+    },
+    {
+      key: "backups",
+      status: (diagnostics.backups || []).length >= 1 ? "ok" : "warning",
+      title: "Backups",
+      detail: (diagnostics.backups || []).length >= 1 ? `${diagnostics.backups.length} copias visibles.` : "Crea una copia manual antes de invitar usuarios.",
+    },
+    {
+      key: "quality",
+      status: quality.counts.error ? "blocker" : quality.counts.warning ? "warning" : "ok",
+      title: "Calidad de datos",
+      detail: `${quality.counts.error || 0} criticos, ${quality.counts.warning || 0} avisos.`,
+    },
+    {
+      key: "teams",
+      status: teams.length && players.length ? "ok" : "blocker",
+      title: "Equipos y jugadores",
+      detail: `${teams.length} equipos, ${players.length} jugadores.`,
+    },
+    {
+      key: "accounts",
+      status: linkedPlayers >= Math.max(1, Math.ceil(players.length * 0.25)) ? "ok" : "warning",
+      title: "Cuentas de jugadores",
+      detail: `${linkedPlayers}/${players.length} jugadores con cuenta vinculada.`,
+    },
+    {
+      key: "families",
+      status: hasFamilies ? "ok" : "warning",
+      title: "Familias",
+      detail: hasFamilies ? "Hay familiares vinculados." : "Aun no hay familiares vinculados a jugadores.",
+    },
+    {
+      key: "staff",
+      status: staffRoles.has("director") && (staffRoles.has("coach") || staffRoles.has("delegate")) ? "ok" : "warning",
+      title: "Roles internos",
+      detail: `${[...staffRoles].length} roles de gestion configurados.`,
+    },
+  ];
+  const counts = items.reduce(
+    (acc, item) => {
+      acc[item.status] = (acc[item.status] || 0) + 1;
+      return acc;
+    },
+    { ok: 0, warning: 0, blocker: 0 }
+  );
+  return { ok: counts.blocker === 0, counts, items };
+}
+
 function diagnosticsPayload(req, state) {
   const writeProbe = (() => {
     try {
@@ -944,7 +1006,7 @@ function diagnosticsPayload(req, state) {
       return { ok: false, error: error.message };
     }
   })();
-  return {
+  const payload = {
     ok: true,
     name: "KamikApp",
     version: APP_VERSION,
@@ -962,9 +1024,11 @@ function diagnosticsPayload(req, state) {
     lastEventPatch,
     backups: backupFiles().slice(0, 12),
     summary: stateSummary(state),
-    quality: dataQualityReport(state),
     actor: actorFromRequest(req, state).userId || "",
   };
+  payload.quality = dataQualityReport(state);
+  payload.readiness = launchReadinessReport(state, payload);
+  return payload;
 }
 
 function readBackup(id) {

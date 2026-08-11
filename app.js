@@ -5840,6 +5840,7 @@ function renderDiagnostics() {
   const backups = diagnostics?.backups || [];
   const summary = diagnostics?.summary || backupSummary(state);
   const quality = diagnostics?.quality || dataQualityReport(state);
+  const readiness = diagnostics?.readiness || launchReadinessReport(state, { ...diagnostics, quality });
   if (!diagnostics && typeof setTimeout === "function") setTimeout(() => loadDiagnostics(), 0);
   return `
     <div class="diagnostics-layout">
@@ -5887,6 +5888,18 @@ function renderDiagnostics() {
           <article class="card stat"><span>${t("calendar")}</span><strong>${summary.events}</strong><span>${summary.results} resultados</span></article>
           <article class="card stat"><span>${t("documents")}</span><strong>${summary.documents}</strong><span>${summary.audit || 0} registros</span></article>
         </div>
+      </section>
+      <section class="panel">
+        <div class="panel-header">
+          <div><h2>Checklist beta</h2><p>Resumen rapido para saber si la app esta lista para invitar equipos.</p></div>
+          <span class="pill ${readiness.ok ? "green" : "red"}">${readiness.ok ? "Lista" : "Pendiente"}</span>
+        </div>
+        <div class="grid three management-stats">
+          <article class="card stat"><span>OK</span><strong>${readiness.counts?.ok || 0}</strong><span>puntos preparados</span></article>
+          <article class="card stat"><span>Avisos</span><strong>${readiness.counts?.warning || 0}</strong><span>revisables</span></article>
+          <article class="card stat"><span>Bloqueos</span><strong>${readiness.counts?.blocker || 0}</strong><span>antes de abrir</span></article>
+        </div>
+        <div class="readiness-list">${(readiness.items || []).map(renderReadinessItem).join("")}</div>
       </section>
       <section class="panel">
         <div class="panel-header">
@@ -7115,6 +7128,80 @@ function renderQualityIssue(issue) {
       <span class="quality-level">${issue.level === "error" ? "Critico" : issue.level === "warning" ? "Aviso" : "Info"}</span>
       <strong>${escapeHtml(issue.title)}</strong>
       <em>${escapeHtml(issue.area || "")} - ${escapeHtml(issue.detail || "")}</em>
+    </button>
+  `;
+}
+
+function launchReadinessReport(readinessState = state, diagnostics = {}) {
+  const quality = diagnostics.quality || dataQualityReport(readinessState);
+  const users = readinessState.users || [];
+  const players = readinessState.players || [];
+  const teams = readinessState.teams || [];
+  const linkedPlayers = users.filter((user) => (user.roles || []).includes("player") && user.playerId).length;
+  const hasFamilies = users.some((user) => (user.roles || []).includes("parent") && (user.children || []).length);
+  const staffRoles = new Set(users.flatMap((user) => user.roles || []).filter((role) => ["director", "president", "coach", "delegate", "fees"].includes(role)));
+  const hasServerState = diagnostics.stateFile?.exists !== false;
+  const items = [
+    {
+      status: hasServerState && diagnostics.writeProbe?.ok !== false ? "ok" : "blocker",
+      title: "Datos persistentes",
+      detail: hasServerState && diagnostics.writeProbe?.ok !== false ? "El servidor guarda en disco persistente." : "Revisa carpeta persistente y prueba de escritura.",
+      action: "setView('diagnostics')",
+    },
+    {
+      status: (diagnostics.backups || []).length >= 1 ? "ok" : "warning",
+      title: "Backups",
+      detail: (diagnostics.backups || []).length >= 1 ? `${diagnostics.backups.length} copias visibles.` : "Crea una copia manual antes de invitar usuarios.",
+      action: "setView('diagnostics')",
+    },
+    {
+      status: quality.counts.error ? "blocker" : quality.counts.warning ? "warning" : "ok",
+      title: "Calidad de datos",
+      detail: `${quality.counts.error || 0} criticos, ${quality.counts.warning || 0} avisos.`,
+      action: "setView('diagnostics')",
+    },
+    {
+      status: teams.length && players.length ? "ok" : "blocker",
+      title: "Equipos y jugadores",
+      detail: `${teams.length} equipos, ${players.length} jugadores.`,
+      action: "setView('teams')",
+    },
+    {
+      status: linkedPlayers >= Math.max(1, Math.ceil(players.length * 0.25)) ? "ok" : "warning",
+      title: "Cuentas de jugadores",
+      detail: `${linkedPlayers}/${players.length} jugadores con cuenta vinculada.`,
+      action: "setView('users')",
+    },
+    {
+      status: hasFamilies ? "ok" : "warning",
+      title: "Familias",
+      detail: hasFamilies ? "Hay familiares vinculados." : "Aun no hay familiares vinculados a jugadores.",
+      action: "setView('users')",
+    },
+    {
+      status: staffRoles.has("director") && (staffRoles.has("coach") || staffRoles.has("delegate")) ? "ok" : "warning",
+      title: "Roles internos",
+      detail: `${[...staffRoles].length} roles de gestion configurados.`,
+      action: "setView('users')",
+    },
+  ];
+  const counts = items.reduce(
+    (acc, item) => {
+      acc[item.status] = (acc[item.status] || 0) + 1;
+      return acc;
+    },
+    { ok: 0, warning: 0, blocker: 0 }
+  );
+  return { ok: counts.blocker === 0, counts, items };
+}
+
+function renderReadinessItem(item) {
+  const label = item.status === "ok" ? "OK" : item.status === "blocker" ? "Bloquea" : "Aviso";
+  return `
+    <button class="readiness-item ${escapeHtml(item.status)}" type="button" onclick="${item.action || ""}">
+      <span>${label}</span>
+      <strong>${escapeHtml(item.title)}</strong>
+      <em>${escapeHtml(item.detail)}</em>
     </button>
   `;
 }
