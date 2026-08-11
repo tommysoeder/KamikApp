@@ -3201,6 +3201,12 @@ function renderManagement() {
   const recentFiles = managementRecentFiles();
   const changedEvents = managementChangedEvents();
   const betaFeedback = betaFeedbackThreads();
+  const betaRows = betaAccessRows();
+  const betaReady = betaRows.filter((row) => row.ready === "si").length;
+  const betaInvited = betaRows.filter((row) => row.invited === "si").length;
+  const betaEntered = betaRows.filter((row) => row.lastLoginAt).length;
+  const betaAccepted = betaRows.filter((row) => row.acceptedBetaAt).length;
+  const betaPendingFeedback = betaFeedback.filter((thread) => thread.feedbackStatus !== "closed").length;
   const unread = unreadNotifications().length;
   const dailyItems = [
     ...betaFeedback.filter((thread) => thread.feedbackStatus !== "closed").slice(0, 4).map((thread) => managementTaskItem("Feedback beta", escapeHtml(thread.subject), `${feedbackTypeLabel(thread.feedbackType)} - ${thread.messages.length} mensajes`, `openThreadFromManagement('${thread.id}')`, "green")),
@@ -3245,6 +3251,20 @@ function renderManagement() {
         </div>
         <div class="management-task-list">${dailyItems.join("") || `<div class="empty">${t("noPendingWork")}</div>`}</div>
       </section>
+      ${
+        isExecutive(user)
+          ? `<section class="panel management-panel beta-control-panel">
+              <div class="panel-header"><div><h2>Control beta</h2><p>Seguimiento de invitaciones, accesos, aviso aceptado y feedback.</p></div><button class="btn" type="button" onclick="setView('users')">Ver usuarios</button></div>
+              <div class="grid five beta-funnel">
+                <article class="card stat clickable-item" onclick="setView('users')"><span>Listos</span><strong>${betaReady}</strong><span>accesos preparados</span></article>
+                <article class="card stat clickable-item" onclick="setView('users')"><span>Invitados</span><strong>${betaInvited}</strong><span>marcados enviados</span></article>
+                <article class="card stat clickable-item" onclick="setView('users')"><span>Entraron</span><strong>${betaEntered}</strong><span>login registrado</span></article>
+                <article class="card stat clickable-item" onclick="setView('users')"><span>Aviso</span><strong>${betaAccepted}</strong><span>aceptado</span></article>
+                <article class="card stat clickable-item" onclick="setView('messages')"><span>Feedback</span><strong>${betaPendingFeedback}</strong><span>pendiente</span></article>
+              </div>
+            </section>`
+          : ""
+      }
       ${
         isExecutive(user)
           ? `<section class="panel management-panel">

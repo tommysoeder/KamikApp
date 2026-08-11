@@ -397,6 +397,10 @@ body.force-mobile .mobile-header-actions button {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.grid.five {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
 .band {
   background: var(--band);
   border-top: 1px solid var(--line);
@@ -3499,6 +3503,23 @@ body::-webkit-scrollbar-thumb,
   min-height: 116px;
 }
 
+.beta-funnel {
+  gap: 10px;
+}
+
+.beta-funnel .stat {
+  min-height: 94px;
+  padding: 12px;
+}
+
+.beta-funnel .stat strong {
+  font-size: 1.65rem;
+}
+
+.beta-funnel .stat span {
+  font-size: 0.78rem;
+}
+
 .section-kicker {
   margin: 14px 0 8px;
   font-size: 0.78rem;
@@ -4444,6 +4465,18 @@ body::-webkit-scrollbar-thumb,
 
 @media (max-width: 720px) {
   .readiness-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 1180px) {
+  .grid.five {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .grid.five {
     grid-template-columns: 1fr;
   }
 }
