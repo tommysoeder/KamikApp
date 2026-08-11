@@ -6081,6 +6081,7 @@ function renderDiagnostics() {
   const summary = diagnostics?.summary || backupSummary(state);
   const quality = diagnostics?.quality || dataQualityReport(state);
   const readiness = diagnostics?.readiness || launchReadinessReport(state, { ...diagnostics, quality });
+  const teamReadiness = teamReadinessReport();
   if (!diagnostics && typeof setTimeout === "function") setTimeout(() => loadDiagnostics(), 0);
   return `
     <div class="diagnostics-layout">
@@ -6150,6 +6151,13 @@ function renderDiagnostics() {
           <span class="pill">${betaTestProgress().done}/${betaTestProgress().total}</span>
         </div>
         <div class="beta-test-list">${betaTestItems().map(renderBetaTestItem).join("")}</div>
+      </section>
+      <section class="panel">
+        <div class="panel-header">
+          <div><h2>Preparación por equipo</h2><p>Semáforo rápido para saber qué equipos están listos para entrar en beta.</p></div>
+          <span class="pill ${teamReadiness.counts.blocker ? "red" : teamReadiness.counts.warning ? "gold" : "green"}">${teamReadiness.counts.ok}/${teamReadiness.teams.length} listos</span>
+        </div>
+        <div class="team-readiness-list">${teamReadiness.teams.map(renderTeamReadinessItem).join("") || `<div class="empty">Aun no hay equipos configurados.</div>`}</div>
       </section>
       <section class="panel">
         <div class="panel-header">
@@ -7317,6 +7325,7 @@ function exportBetaReport() {
   const accessRows = betaAccessRows();
   const feedback = betaFeedbackThreads();
   const testProgress = betaTestProgress();
+  const teamReadiness = teamReadinessReport();
   const lines = [
     "Informe beta KamikApp",
     `Generado: ${new Date().toISOString()}`,
@@ -7330,6 +7339,7 @@ function exportBetaReport() {
     `Aviso beta aceptado: ${accessRows.filter((row) => row.acceptedBetaAt).length}`,
     `Feedback pendiente: ${feedback.filter((thread) => thread.feedbackStatus !== "closed").length}`,
     `Pruebas por rol: ${testProgress.done}/${testProgress.total}`,
+    `Equipos listos: ${teamReadiness.counts.ok}/${teamReadiness.teams.length}`,
     "",
     "Checklist beta",
     ...(readiness.items || []).map((item) => `- ${item.status.toUpperCase()} | ${item.title}: ${item.detail}`),
@@ -7339,6 +7349,9 @@ function exportBetaReport() {
       const check = state.betaTestChecks?.[item.id] || {};
       return `- ${check.done ? "OK" : "PENDIENTE"} | ${item.title}${check.at ? ` | ${check.at} | ${check.by || ""}` : ""}`;
     }),
+    "",
+    "Preparacion por equipo",
+    ...teamReadiness.teams.map((row) => `- ${row.status.toUpperCase()} | ${row.team.name} | jugadores:${row.players} | cuentas:${row.covered} | invitados:${row.invited} | entraron:${row.entered} | actividades:${row.events} | archivos:${row.documents} | ${row.issues.map((issue) => issue.text).join(", ") || "sin incidencias"}`),
     "",
     "Calidad de datos",
     `Criticos: ${quality.counts?.error || 0}`,
@@ -7486,6 +7499,76 @@ function renderQualityIssue(issue) {
       <span class="quality-level">${issue.level === "error" ? "Critico" : issue.level === "warning" ? "Aviso" : "Info"}</span>
       <strong>${escapeHtml(issue.title)}</strong>
       <em>${escapeHtml(issue.area || "")} - ${escapeHtml(issue.detail || "")}</em>
+    </button>
+  `;
+}
+
+function teamReadinessReport(readinessState = state) {
+  const users = readinessState.users || [];
+  const players = readinessState.players || [];
+  const teams = readinessState.teams || [];
+  const documents = readinessState.documents || [];
+  const events = [...(readinessState.events || []), ...(readinessState.trainings || []), ...(readinessState.callups || [])];
+  const usersByPlayer = new Map();
+  users.forEach((user) => {
+    if (user.playerId) usersByPlayer.set(user.playerId, [...(usersByPlayer.get(user.playerId) || []), user]);
+    (user.children || []).forEach((playerId) => usersByPlayer.set(playerId, [...(usersByPlayer.get(playerId) || []), user]));
+  });
+  const rows = teams.map((team) => {
+    const teamPlayers = players.filter((player) => (player.teams || []).includes(team.id));
+    const coveredPlayers = teamPlayers.filter((player) => (usersByPlayer.get(player.id) || []).length);
+    const invitedUsers = [...new Set(teamPlayers.flatMap((player) => usersByPlayer.get(player.id) || []))].filter((user) => user.betaInvitedAt);
+    const enteredUsers = [...new Set(teamPlayers.flatMap((player) => usersByPlayer.get(player.id) || []))].filter((user) => user.lastLoginAt);
+    const teamDocs = documents.filter((doc) => doc.teamId === team.id);
+    const teamEvents = events.filter((item) => item.teamId === team.id);
+    const issues = [];
+    if (!teamPlayers.length) issues.push({ level: "blocker", text: "Sin jugadores" });
+    if (!team.coachId) issues.push({ level: "blocker", text: "Sin entrenador" });
+    if (team.coachId && !users.some((user) => user.id === team.coachId)) issues.push({ level: "blocker", text: "Entrenador no encontrado" });
+    if (!team.delegateId) issues.push({ level: "warning", text: "Sin delegado" });
+    if (team.delegateId && !users.some((user) => user.id === team.delegateId)) issues.push({ level: "warning", text: "Delegado no encontrado" });
+    if (teamPlayers.length && coveredPlayers.length < Math.ceil(teamPlayers.length * 0.5)) issues.push({ level: "warning", text: "Pocas cuentas vinculadas" });
+    if (!teamEvents.length) issues.push({ level: "warning", text: "Sin actividad publicada" });
+    const status = issues.some((issue) => issue.level === "blocker") ? "blocker" : issues.some((issue) => issue.level === "warning") ? "warning" : "ok";
+    return {
+      team,
+      status,
+      issues,
+      players: teamPlayers.length,
+      covered: coveredPlayers.length,
+      invited: invitedUsers.length,
+      entered: enteredUsers.length,
+      documents: teamDocs.length,
+      events: teamEvents.length,
+      coach: users.find((user) => user.id === team.coachId)?.name || "",
+      delegate: users.find((user) => user.id === team.delegateId)?.name || "",
+    };
+  });
+  const counts = rows.reduce(
+    (acc, row) => {
+      acc[row.status] = (acc[row.status] || 0) + 1;
+      return acc;
+    },
+    { ok: 0, warning: 0, blocker: 0 }
+  );
+  return { teams: rows, counts };
+}
+
+function renderTeamReadinessItem(row) {
+  const label = row.status === "ok" ? "Listo" : row.status === "blocker" ? "Bloquea" : "Revisar";
+  const accountText = row.players ? `${row.covered}/${row.players} con cuenta` : "Sin jugadores";
+  const details = [
+    row.coach ? `Entrenador: ${row.coach}` : "Sin entrenador",
+    row.delegate ? `Delegado: ${row.delegate}` : "Sin delegado",
+    `${row.events} actividades`,
+    `${row.documents} archivos`,
+  ];
+  return `
+    <button class="team-readiness-item ${escapeHtml(row.status)}" type="button" onclick="setView('teams')">
+      <span>${label}</span>
+      <strong>${escapeHtml(row.team.name || row.team.category || "Equipo")}</strong>
+      <em>${escapeHtml(accountText)} · ${row.invited} invitados · ${row.entered} entraron</em>
+      <i>${escapeHtml(row.issues.map((issue) => issue.text).join(" · ") || details.join(" · "))}</i>
     </button>
   `;
 }

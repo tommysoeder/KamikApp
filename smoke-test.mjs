@@ -199,6 +199,20 @@ if (betaTestSmoke !== "true|true|true") {
   throw new Error(`Beta test checklist smoke failed: ${betaTestSmoke}`);
 }
 
+const teamReadinessSmoke = vm.runInContext(
+  `(() => {
+    const report = teamReadinessReport();
+    const html = report.teams.map(renderTeamReadinessItem).join("");
+    return [report.teams.length === state.teams.length, report.teams.some((row) => row.players > 0), html.includes("team-readiness-item")].join("|");
+  })()`,
+  context,
+  { filename: "smoke-team-readiness.js" }
+);
+
+if (teamReadinessSmoke !== "true|true|true") {
+  throw new Error(`Team readiness smoke failed: ${teamReadinessSmoke}`);
+}
+
 const betaReportSmoke = vm.runInContext(
   `(() => {
     exportBetaReport();
