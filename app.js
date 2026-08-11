@@ -5783,6 +5783,7 @@ function renderUsers() {
   const linkedPlayers = state.users.filter((user) => user.roles.includes("player") && user.playerId).length;
   const accessRows = betaAccessRows();
   const inviteReady = accessRows.filter((row) => row.ready === "si").length;
+  const invited = accessRows.filter((row) => row.invited === "si").length;
   const invitePending = accessRows.length - inviteReady;
   return `
     <section class="panel users-admin">
@@ -5810,7 +5811,7 @@ function renderUsers() {
       <div class="grid three management-stats">
         <article class="card stat"><span>${t("active")}</span><strong>${activeUsers}</strong><span>${state.users.length} usuarios totales</span></article>
         <article class="card stat"><span>${t("linkedPlayer")}</span><strong>${linkedPlayers}</strong><span>jugadores con acceso propio</span></article>
-        <article class="card stat"><span>Beta</span><strong>${inviteReady}</strong><span>${invitePending} accesos pendientes</span></article>
+        <article class="card stat"><span>Beta</span><strong>${inviteReady}</strong><span>${invited} invitados · ${invitePending} pendientes</span></article>
       </div>
       <div class="user-grid">
         ${state.users.map(renderUserCard).join("")}
@@ -5822,13 +5823,15 @@ function renderUsers() {
 function renderUserCard(user) {
   const linkedPlayer = user.playerId ? getPlayer(user.playerId)?.name : "";
   const children = (user.children || []).map((id) => getPlayer(id)?.name).filter(Boolean);
+  const invited = Boolean(user.betaInvitedAt);
   return `
     <article class="item user-card ${user.disabled ? "disabled" : ""}">
       <div class="item-row">
         <h3>${escapeHtml(user.name)}</h3>
-        <span class="status-pill ${user.disabled ? "off" : "on"}">${user.disabled ? t("inactive") : t("active")}</span>
+        <span class="status-pill ${user.disabled ? "off" : "on"}">${user.disabled ? t("inactive") : invited ? "Invitado" : t("active")}</span>
       </div>
       <div class="meta">${escapeHtml(user.email)}</div>
+      ${invited ? `<div class="meta"><strong>Beta:</strong> invitado ${formatActivityDate(user.betaInvitedAt)}</div>` : ""}
       <div class="pill-line">${user.roles.map((role) => `<span class="pill">${roleLabel(role)}</span>`).join("")}</div>
       ${linkedPlayer ? `<div class="meta"><strong>${t("linkedPlayer")}:</strong> ${escapeHtml(linkedPlayer)}</div>` : ""}
       ${children.length ? `<div class="meta"><strong>${t("familyPlayers")}:</strong> ${children.map(escapeHtml).join(", ")}</div>` : ""}
@@ -5836,6 +5839,7 @@ function renderUserCard(user) {
         canManageUsers()
           ? `<div class="actions inline-actions">
               <button class="btn" type="button" onclick="openUserInviteModal('${user.id}')">Invitacion</button>
+              <button class="btn" type="button" onclick="toggleBetaInvited('${user.id}')">${invited ? "Marcar pendiente" : "Marcar invitado"}</button>
               <button class="btn" type="button" onclick="openEditUserModal('${user.id}')">${t("edit")}</button>
               <button class="btn ${user.disabled ? "" : "danger"}" type="button" onclick="toggleUserDisabled('${user.id}')">${user.disabled ? t("activate") : t("deactivate")}</button>
             </div>`
@@ -5892,6 +5896,7 @@ function openUserInviteModal(userId) {
       <div class="form-row"><label>Mensaje</label><textarea id="invite-message-text" rows="12" readonly>${escapeHtml(text)}</textarea></div>
       <div class="actions inline-actions">
         <button class="btn primary" type="button" onclick="copyInviteMessage()">Copiar mensaje</button>
+        <button class="btn" type="button" onclick="toggleBetaInvited('${user.id}'); closeModal()">Marcar invitado</button>
         <button class="btn" type="button" onclick="exportBetaAccessCsv()">Exportar accesos beta</button>
       </div>
     </section>`
@@ -6940,6 +6945,7 @@ function userFromForm(form, id = uid("user"), existing = {}) {
     playerId: roles.includes("player") ? String(form.get("playerId") || "") : "",
     children: roles.includes("parent") ? form.getAll("children") : [],
     disabled: Boolean(existing.disabled),
+    betaInvitedAt: existing.betaInvitedAt || "",
   };
 }
 
@@ -7096,6 +7102,8 @@ function betaAccessRows() {
       teams: teamNames.join("|"),
       status: user.disabled ? "inactivo" : "activo",
       ready: !user.disabled && hasEmail && hasScope ? "si" : "no",
+      invited: user.betaInvitedAt ? "si" : "no",
+      invitedAt: user.betaInvitedAt || "",
       notes: !hasEmail ? "Falta email" : !hasScope ? "Sin jugador/equipo/rol vinculado" : user.disabled ? "Usuario inactivo" : "",
     };
   });
@@ -7105,8 +7113,8 @@ function exportBetaAccessCsv() {
   if (!canExportData()) return;
   const rows = betaAccessRows();
   const lines = [
-    ["nombre", "email", "roles", "jugador_vinculado", "jugadores_familia", "equipos", "estado", "listo_para_invitar", "observaciones"],
-    ...rows.map((row) => [row.name, row.email, row.roles, row.linkedPlayer, row.familyPlayers, row.teams, row.status, row.ready, row.notes]),
+    ["nombre", "email", "roles", "jugador_vinculado", "jugadores_familia", "equipos", "estado", "listo_para_invitar", "invitado", "fecha_invitacion", "observaciones"],
+    ...rows.map((row) => [row.name, row.email, row.roles, row.linkedPlayer, row.familyPlayers, row.teams, row.status, row.ready, row.invited, row.invitedAt, row.notes]),
   ];
   downloadCsv(`accesos-beta-kamikapp-${toLocalDateKey(new Date())}.csv`, lines);
 }
@@ -7253,6 +7261,7 @@ function launchReadinessReport(readinessState = state, diagnostics = {}) {
   const teams = readinessState.teams || [];
   const linkedPlayers = users.filter((user) => (user.roles || []).includes("player") && user.playerId).length;
   const readyAccounts = readinessState === state ? betaAccessRows().filter((row) => row.ready === "si").length : linkedPlayers;
+  const invitedAccounts = readinessState === state ? betaAccessRows().filter((row) => row.invited === "si").length : users.filter((user) => user.betaInvitedAt).length;
   const hasFamilies = users.some((user) => (user.roles || []).includes("parent") && (user.children || []).length);
   const staffRoles = new Set(users.flatMap((user) => user.roles || []).filter((role) => ["director", "president", "coach", "delegate", "fees"].includes(role)));
   const hasServerState = diagnostics.stateFile?.exists !== false;
@@ -7284,7 +7293,7 @@ function launchReadinessReport(readinessState = state, diagnostics = {}) {
     {
       status: readyAccounts >= Math.max(1, Math.ceil(players.length * 0.25)) ? "ok" : "warning",
       title: "Cuentas de jugadores",
-      detail: `${readyAccounts} accesos listos, ${linkedPlayers}/${players.length} jugadores con cuenta vinculada.`,
+      detail: `${readyAccounts} accesos listos, ${invitedAccounts} invitados, ${linkedPlayers}/${players.length} jugadores vinculados.`,
       action: "setView('users')",
     },
     {
@@ -7829,6 +7838,17 @@ function toggleUserDisabled(userId) {
   user.disabled = !user.disabled;
   state.toast = user.disabled ? "Usuario desactivado" : "Usuario activado";
   appendAudit(user.disabled ? "desactivar usuario" : "activar usuario", "user", user.name);
+  save("manageUsers");
+  render();
+}
+
+function toggleBetaInvited(userId) {
+  if (!canManageUsers()) return;
+  const user = state.users.find((item) => item.id === userId);
+  if (!user) return;
+  user.betaInvitedAt = user.betaInvitedAt ? "" : new Date().toISOString();
+  state.toast = user.betaInvitedAt ? "Usuario marcado como invitado" : "Usuario marcado como pendiente";
+  appendAudit(user.betaInvitedAt ? "marcar invitado beta" : "marcar pendiente beta", "user", user.name);
   save("manageUsers");
   render();
 }

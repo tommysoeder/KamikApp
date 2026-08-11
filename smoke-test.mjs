@@ -142,13 +142,15 @@ const inviteSmoke = vm.runInContext(
   `(() => {
     const user = state.users.find((item) => item.email);
     const text = userInviteText(user);
-    return [text.includes(user.email), text.includes("Enlace:"), text.includes("KamikApp")].join("|");
+    toggleBetaInvited(user.id);
+    const row = betaAccessRows().find((item) => item.email === user.email);
+    return [text.includes(user.email), text.includes("Enlace:"), text.includes("KamikApp"), row.invited].join("|");
   })()`,
   context,
   { filename: "smoke-invite-text.js" }
 );
 
-if (inviteSmoke !== "true|true|true") {
+if (inviteSmoke !== "true|true|true|si") {
   throw new Error(`Invite text smoke failed: ${inviteSmoke}`);
 }
 
