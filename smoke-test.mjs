@@ -308,13 +308,14 @@ const feedbackSmoke = vm.runInContext(
       }
     });
     const thread = state.threads.find((item) => item.betaFeedback && item.subject.includes("Smoke feedback"));
-    return [Boolean(thread), thread?.feedbackStatus, betaFeedbackThreads().some((item) => item.id === thread?.id)].join("|");
+    const text = thread?.messages?.[0]?.text || "";
+    return [Boolean(thread), thread?.feedbackStatus, betaFeedbackThreads().some((item) => item.id === thread?.id), text.includes("Contexto tecnico automatico"), text.includes("Version app:"), text.includes("Vista:")].join("|");
   })()`,
   context,
   { filename: "smoke-feedback.js" }
 );
 
-if (feedbackSmoke !== "true|open|true") {
+if (feedbackSmoke !== "true|open|true|true|true|true") {
   throw new Error(`Feedback smoke failed: ${feedbackSmoke}`);
 }
 

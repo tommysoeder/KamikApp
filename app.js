@@ -7000,6 +7000,7 @@ function openFeedbackModal() {
       </div>
       <div class="form-row"><label>${t("title")}</label><input name="subject" placeholder="Ej: no veo una convocatoria" required /></div>
       <div class="form-row"><label>${t("body")}</label><textarea name="message" placeholder="Cuenta que estabas haciendo, desde que dispositivo, y que esperabas ver." required></textarea></div>
+      <p class="meta">Se añadirá automáticamente versión, rol, vista y estado de sincronización para poder investigarlo mejor.</p>
       <button class="btn primary" type="submit">${t("send")}</button>
     </form>`
   );
@@ -7020,6 +7021,33 @@ function openPlayerMessageModal(playerId) {
       <button class="btn primary" type="submit">${t("send")}</button>
     </form>`
   );
+}
+
+function feedbackSupportContext(user, playerId = "") {
+  const sync = syncIndicatorData();
+  const player = playerId ? getPlayer(playerId) : null;
+  const teams = player
+    ? (player.teams || []).map((id) => getTeam(id)?.name).filter(Boolean)
+    : visibleTeamIds(user).map((id) => getTeam(id)?.name).filter(Boolean);
+  const lines = [
+    "",
+    "---",
+    "Contexto tecnico automatico",
+    `Version app: ${APP_VERSION}`,
+    `Version servidor: ${state.serverVersion || APP_VERSION}`,
+    `Modo: ${APP_MODE}`,
+    `Vista: ${viewTitle(state.activeView)} (${state.activeView})`,
+    `Usuario: ${user.name} <${user.email || "sin email"}>`,
+    `Rol activo: ${roleLabel(activeRole(user))}`,
+    `Sincronizacion: ${sync.label} - ${sync.detail}`,
+    `Jugador: ${player?.name || "sin jugador seleccionado"}`,
+    `Equipos: ${teams.join(", ") || "sin equipos visibles"}`,
+    `Fecha local: ${new Date().toISOString()}`,
+  ];
+  if (typeof navigator !== "undefined") {
+    lines.push(`Dispositivo: ${navigator.userAgent || "sin user agent"}`);
+  }
+  return lines.join("\n");
 }
 
 function openEditPlayerProfileModal(playerId) {
@@ -9050,6 +9078,7 @@ function createFeedback(event) {
   const subject = String(form.get("subject") || "").trim();
   const message = String(form.get("message") || "").trim();
   if (!subject || !message) return;
+  const enrichedMessage = `${message}${feedbackSupportContext(user, playerId)}`;
   const thread = {
     id: uid("thread"),
     subject: `Feedback beta - ${feedbackTypeLabel(type)}: ${subject}`,
@@ -9060,7 +9089,7 @@ function createFeedback(event) {
     feedbackType: type,
     feedbackStatus: "open",
     createdAt: new Date().toISOString(),
-    messages: [{ from: "user", text: message, at: currentTime() }],
+    messages: [{ from: "user", text: enrichedMessage, at: currentTime() }],
   };
   state.threads.unshift(thread);
   state.activeThreadId = thread.id;
