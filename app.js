@@ -2022,6 +2022,13 @@ function markVisibleThreadsSeen(shouldRender = true) {
   }
 }
 
+function isIncomingThreadMessage(thread, message, user = currentUser()) {
+  if (!thread || !message || !user) return false;
+  if (message.from === "system") return thread.participantUserIds?.includes(user.id) && thread.assignedToId !== user.id && !isExecutive(user);
+  if (thread.assignedToId === user.id || isExecutive(user)) return message.from === "user";
+  return message.from === "club";
+}
+
 function unreadAnnouncements() {
   if (!notificationPreferenceEnabled("announcements")) return [];
   const read = new Set(state.readAnnouncementIds || []);
@@ -2065,8 +2072,7 @@ function notifyUnreadVisibleItems() {
     const user = currentUser();
     const last = thread.messages?.[thread.messages.length - 1];
     if (!user || !last) return;
-    const incoming = thread.assignedToId === user.id ? last.from === "user" : last.from === "club";
-    if (!incoming || thread.seenBy?.[user.id] === thread.messages.length) return;
+    if (!isIncomingThreadMessage(thread, last, user) || thread.seenBy?.[user.id] === thread.messages.length) return;
     const key = `thread:${thread.id}:${thread.messages.length}`;
     if (seen.has(key)) return;
     pushNotification(t("messages"), last.text || thread.subject || "");
@@ -2472,8 +2478,7 @@ function unreadMessageCount() {
   return visibleThreads().filter((thread) => {
     const last = thread.messages[thread.messages.length - 1];
     if (!last) return false;
-    const incoming = thread.assignedToId === user.id ? last.from === "user" : last.from === "club";
-    return incoming && thread.seenBy?.[user.id] !== thread.messages.length;
+    return isIncomingThreadMessage(thread, last, user) && thread.seenBy?.[user.id] !== thread.messages.length;
   }).length;
 }
 
@@ -3744,8 +3749,7 @@ function managementUnreadThreads() {
   return visibleThreads().filter((thread) => {
     const last = thread.messages[thread.messages.length - 1];
     if (!last) return false;
-    const incoming = thread.assignedToId === user.id ? last.from === "user" : last.from === "club";
-    return incoming && thread.seenBy?.[user.id] !== thread.messages.length;
+    return isIncomingThreadMessage(thread, last, user) && thread.seenBy?.[user.id] !== thread.messages.length;
   });
 }
 

@@ -361,6 +361,31 @@ if (feedbackWorkflowSmoke !== "review|deferred|closed|true|En revisión|true|tru
   throw new Error(`Feedback workflow smoke failed: ${feedbackWorkflowSmoke}`);
 }
 
+const feedbackSystemUnreadSmoke = vm.runInContext(
+  `(() => {
+    const thread = state.threads.find((item) => item.betaFeedback && item.subject.includes("Smoke feedback"));
+    thread.assignedToId = "u-director";
+    thread.participantUserIds = ["u-player"];
+    thread.seenBy = { "u-player": thread.messages.length - 1, "u-director": thread.messages.length - 1 };
+    state.session = { userId: "u-player", email: "leo@club.test", activeRole: "player" };
+    const playerUnread = unreadMessageCount();
+    state.threads.forEach((item) => {
+      item.seenBy ||= {};
+      item.seenBy["u-director"] = item.messages.length;
+    });
+    thread.seenBy["u-director"] = thread.messages.length - 1;
+    state.session = { userId: "u-director", email: "direccion@club.test", activeRole: "director" };
+    const directorUnread = unreadMessageCount();
+    return [playerUnread, directorUnread].join("|");
+  })()`,
+  context,
+  { filename: "smoke-feedback-system-unread.js" }
+);
+
+if (feedbackSystemUnreadSmoke !== "1|0") {
+  throw new Error(`Feedback system unread smoke failed: ${feedbackSystemUnreadSmoke}`);
+}
+
 const backupSmoke = vm.runInContext(
   "JSON.stringify(backupSummary(persistentState()))",
   context,
