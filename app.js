@@ -6153,7 +6153,7 @@ function openEventModal(defaultType = "match") {
   const selectedType = ["match", "tournament", "event", "training"].includes(defaultType) ? defaultType : "match";
   openModal(
     t("newEvent"),
-    `<form class="form" onsubmit="createEvent(event)">
+    `<form class="form" onsubmit="createEventFromForm(this); return false;">
       <div class="form-grid">
         <div class="form-row"><label>${t("title")}</label><input name="title" placeholder="Solo necesario para partido, torneo o evento" /></div>
         <div class="form-row"><label>${t("type")}</label><select name="type"><option value="match" ${selectedType === "match" ? "selected" : ""}>${t("match")}</option><option value="tournament" ${selectedType === "tournament" ? "selected" : ""}>${t("tournament")}</option><option value="event" ${selectedType === "event" ? "selected" : ""}>${t("event")}</option><option value="training" ${selectedType === "training" ? "selected" : ""}>${t("training")}</option></select></div>
@@ -7693,9 +7693,26 @@ function deleteAnnouncement(announcementId) {
   render();
 }
 
+function createEventFromForm(form) {
+  createEvent({
+    preventDefault() {},
+    currentTarget: form,
+  });
+  return false;
+}
+
 async function createEvent(event) {
   event.preventDefault();
   if (!canCreateEvent()) return;
+  state.lastEventPatch = {
+    at: new Date().toISOString(),
+    userId: currentUser()?.id || "",
+    role: currentUser()?.roles?.join(", ") || "",
+    authenticated: Boolean(state.session?.token),
+    incomingEvents: 0,
+    incomingTrainings: 0,
+    status: "form-submitted",
+  };
   const form = new FormData(event.currentTarget);
   const date = form.get("date");
   const type = form.get("type");
