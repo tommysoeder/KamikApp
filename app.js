@@ -3208,6 +3208,7 @@ function renderManagement() {
   const betaEntered = betaRows.filter((row) => row.lastLoginAt).length;
   const betaAccepted = betaRows.filter((row) => row.acceptedBetaAt).length;
   const betaPendingFeedback = betaFeedback.filter((thread) => thread.feedbackStatus !== "closed").length;
+  const betaFollowup = betaFollowupRows();
   const unread = unreadNotifications().length;
   const dailyItems = [
     ...betaFeedback.filter((thread) => thread.feedbackStatus !== "closed").slice(0, 4).map((thread) => managementTaskItem("Feedback beta", escapeHtml(thread.subject), `${feedbackTypeLabel(thread.feedbackType)} - ${thread.messages.length} mensajes`, `openThreadFromManagement('${thread.id}')`, "green")),
@@ -3263,6 +3264,7 @@ function renderManagement() {
                 <article class="card stat clickable-item" onclick="setView('users')"><span>Aviso</span><strong>${betaAccepted}</strong><span>aceptado</span></article>
                 <article class="card stat clickable-item" onclick="setView('messages')"><span>Feedback</span><strong>${betaPendingFeedback}</strong><span>pendiente</span></article>
               </div>
+              <div class="beta-followup-list">${betaFollowup.slice(0, 8).map(renderBetaFollowupItem).join("") || `<div class="empty compact-empty">Sin seguimientos pendientes de beta.</div>`}</div>
             </section>`
           : ""
       }
@@ -5940,6 +5942,31 @@ function renderBetaInviteQueue(accessRows = betaAccessRows()) {
         ${canExportData() ? `<button class="btn" type="button" onclick="exportBetaAccessCsv()">Exportar CSV</button>` : ""}
       </div>
     </section>
+  `;
+}
+
+function betaFollowupRows(accessRows = betaAccessRows()) {
+  return accessRows
+    .filter((row) => row.status === "activo" && (row.ready !== "si" || row.invited !== "si" || !row.lastLoginAt || !row.acceptedBetaAt))
+    .map((row) => {
+      if (row.ready !== "si") return { ...row, priority: 1, type: "Revisar", detail: row.notes || "Faltan datos para invitar", action: `openUserSupportModal('${row.userId}')` };
+      if (row.invited !== "si") return { ...row, priority: 2, type: "Invitar", detail: "Acceso listo, pendiente de enviar mensaje", action: `openUserInviteModal('${row.userId}')` };
+      if (!row.lastLoginAt) return { ...row, priority: 3, type: "Recordar", detail: "Invitado, pero aun no ha entrado", action: `openUserInviteModal('${row.userId}')` };
+      if (!row.acceptedBetaAt) return { ...row, priority: 4, type: "Aviso", detail: "Entro, pero no acepto el aviso beta", action: `openUserSupportModal('${row.userId}')` };
+      return null;
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.priority - b.priority || String(a.name).localeCompare(String(b.name)));
+}
+
+function renderBetaFollowupItem(row) {
+  const tone = row.priority <= 1 ? "blocker" : row.priority === 2 ? "warning" : "";
+  return `
+    <button class="beta-followup-item ${tone}" type="button" onclick="${row.action}">
+      <span>${escapeHtml(row.type)}</span>
+      <strong>${escapeHtml(row.name)}</strong>
+      <em>${escapeHtml(row.detail)} · ${escapeHtml(row.teams || row.roles || "")}</em>
+    </button>
   `;
 }
 

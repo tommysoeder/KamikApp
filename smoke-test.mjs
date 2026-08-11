@@ -228,6 +228,20 @@ if (betaInviteQueueSmoke !== "true|true|true|true") {
   throw new Error(`Beta invite queue smoke failed: ${betaInviteQueueSmoke}`);
 }
 
+const betaFollowupSmoke = vm.runInContext(
+  `(() => {
+    const rows = betaFollowupRows();
+    const html = rows.map(renderBetaFollowupItem).join("");
+    return [rows.length > 0, rows.every((row) => row.userId && row.type && row.action), html.includes("beta-followup-item")].join("|");
+  })()`,
+  context,
+  { filename: "smoke-beta-followup.js" }
+);
+
+if (betaFollowupSmoke !== "true|true|true") {
+  throw new Error(`Beta followup smoke failed: ${betaFollowupSmoke}`);
+}
+
 const betaReportSmoke = vm.runInContext(
   `(() => {
     exportBetaReport();
