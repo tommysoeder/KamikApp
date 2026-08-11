@@ -3396,6 +3396,7 @@ function renderManagement() {
               <div class="feedback-triage">
                 <article><span>Bloquean</span><strong>${betaFeedbackCounts.blocker}</strong></article>
                 <article><span>Altos</span><strong>${betaFeedbackCounts.high}</strong></article>
+                <article class="${betaFeedbackCounts.attention ? "attention" : ""}"><span>Atencion</span><strong>${betaFeedbackCounts.attention}</strong></article>
                 <article><span>En revisión</span><strong>${betaFeedbackCounts.review}</strong></article>
                 <article><span>Aplazados</span><strong>${betaFeedbackCounts.deferred}</strong></article>
                 <article><span>Resueltos</span><strong>${betaFeedbackCounts.closed}</strong></article>
@@ -3479,6 +3480,27 @@ function feedbackStatusLabel(status) {
   return { open: "Pendiente", review: "En revisión", deferred: "Aplazado", closed: "Resuelto" }[status] || "Pendiente";
 }
 
+function feedbackReferenceDate(thread) {
+  return thread.feedbackStatusUpdatedAt || thread.createdAt || thread.messages?.[0]?.at || "";
+}
+
+function feedbackAgeHours(thread) {
+  const value = feedbackReferenceDate(thread);
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 0;
+  return Math.max(0, Math.floor((Date.now() - date.getTime()) / 3600000));
+}
+
+function feedbackAttentionReason(thread) {
+  const status = thread.feedbackStatus || "open";
+  if (status === "closed" || status === "deferred") return "";
+  const hours = feedbackAgeHours(thread);
+  if (status === "open" && hours >= 48) return `Pendiente ${Math.floor(hours / 24)} dias`;
+  if (status === "review" && hours >= 72) return `En revision ${Math.floor(hours / 24)} dias`;
+  if (["blocker", "high"].includes(thread.feedbackSeverity || "normal") && hours >= 24) return `Impacto ${feedbackSeverityLabel(thread.feedbackSeverity).toLowerCase()} sin cerrar`;
+  return "";
+}
+
 function betaFeedbackSummary(threads = betaFeedbackThreads()) {
   return threads.reduce(
     (acc, thread) => {
@@ -3488,9 +3510,10 @@ function betaFeedbackSummary(threads = betaFeedbackThreads()) {
       acc[status] = (acc[status] || 0) + 1;
       if (status === "closed") acc.closed += 1;
       else acc.active += 1;
+      if (feedbackAttentionReason(thread)) acc.attention += 1;
       return acc;
     },
-    { blocker: 0, high: 0, normal: 0, low: 0, open: 0, review: 0, deferred: 0, active: 0, closed: 0 }
+    { blocker: 0, high: 0, normal: 0, low: 0, open: 0, review: 0, deferred: 0, active: 0, closed: 0, attention: 0 }
   );
 }
 
@@ -3518,10 +3541,11 @@ function renderBetaFeedbackItem(thread) {
   const status = thread.feedbackStatus || "open";
   const closed = status === "closed";
   const severity = thread.feedbackSeverity || "normal";
+  const attention = feedbackAttentionReason(thread);
   return `
-    <article class="item">
+    <article class="item beta-feedback-item ${attention ? "attention" : ""}">
       <div class="item-row">
-        <div><strong>${escapeHtml(thread.subject)}</strong><span class="meta">${feedbackTypeLabel(thread.feedbackType)} - ${feedbackSeverityLabel(severity)} - ${escapeHtml(last?.at || "")}</span></div>
+        <div><strong>${escapeHtml(thread.subject)}</strong><span class="meta">${feedbackTypeLabel(thread.feedbackType)} - ${feedbackSeverityLabel(severity)} - ${escapeHtml(last?.at || "")}${attention ? ` - ${escapeHtml(attention)}` : ""}</span></div>
         <span class="pill ${feedbackStatusPillClass(status, severity)}">${feedbackStatusLabel(status)}</span>
       </div>
       <p class="clamped-text">${escapeHtml(last?.text || "")}</p>
@@ -7686,13 +7710,14 @@ function exportBetaAccessCsv() {
 function exportBetaFeedbackCsv() {
   if (!canExportData()) return;
   const lines = [
-    ["estado", "impacto", "tipo", "asunto", "creado", "ultimo_mensaje", "participantes", "asignado_a", "texto"],
+    ["estado", "impacto", "atencion", "tipo", "asunto", "creado", "ultimo_mensaje", "participantes", "asignado_a", "texto"],
     ...betaFeedbackThreads().map((thread) => {
       const last = thread.messages?.[thread.messages.length - 1] || {};
       const participants = (thread.participantUserIds || []).map((id) => state.users.find((user) => user.id === id)?.name || id).join("|");
       return [
         feedbackStatusLabel(thread.feedbackStatus),
         feedbackSeverityLabel(thread.feedbackSeverity),
+        feedbackAttentionReason(thread),
         feedbackTypeLabel(thread.feedbackType),
         thread.subject || "",
         thread.createdAt || "",
@@ -7749,7 +7774,7 @@ function exportBetaReport() {
     ...(quality.issues || []).slice(0, 30).map((issue) => `- ${String(issue.level || "").toUpperCase()} | ${issue.area || ""} | ${issue.title || ""} | ${issue.detail || ""}`),
     "",
     "Feedback beta",
-    ...feedback.slice(0, 30).map((thread) => `- ${feedbackStatusLabel(thread.feedbackStatus).toUpperCase()} | ${feedbackSeverityLabel(thread.feedbackSeverity)} | ${feedbackTypeLabel(thread.feedbackType)} | ${thread.subject}`),
+    ...feedback.slice(0, 30).map((thread) => `- ${feedbackStatusLabel(thread.feedbackStatus).toUpperCase()} | ${feedbackSeverityLabel(thread.feedbackSeverity)} | ${feedbackAttentionReason(thread) || "sin atencion"} | ${feedbackTypeLabel(thread.feedbackType)} | ${thread.subject}`),
     "",
     "Accesos beta",
     ...accessRows.map((row) => `- ${row.ready === "si" ? "LISTO" : "REVISAR"} | ${row.name} | ${row.email} | invitado:${row.invited} | accesos:${row.loginCount} | aviso:${row.acceptedBetaAt ? "si" : "no"} | ${row.notes}`),

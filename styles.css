@@ -3723,7 +3723,7 @@ body::-webkit-scrollbar-thumb,
 
 .feedback-triage {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
   gap: 8px;
   margin-bottom: 10px;
 }
@@ -3751,6 +3751,16 @@ body::-webkit-scrollbar-thumb,
   margin-top: 3px;
   color: #123034;
   font-size: 1.25rem;
+}
+
+.feedback-triage article.attention,
+.beta-feedback-item.attention {
+  border-color: rgba(185, 74, 72, 0.24);
+  background: rgba(255, 246, 241, 0.9);
+}
+
+.feedback-triage article.attention strong {
+  color: #9b312b;
 }
 
 .feedback-filters {
