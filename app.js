@@ -1023,6 +1023,7 @@ function normalize(raw) {
   next.globalSearchSource ||= "";
   next.lastUndo ||= null;
   next.lastEventPatch ||= null;
+  next.lastCreatedEventIds ||= [];
   next.users = (next.users || seed.users).map((user) => ({
     ...user,
     roles: user.roles || [user.role || "parent"],
@@ -1389,7 +1390,10 @@ async function saveEventsPatch(payload) {
     lastRemoteSnapshot = "";
     lastRemoteSaveAt = 0;
     await refreshRemoteState({ keepToast: true, force: true });
-    if (body?.savedEvents?.length) state.events = upsertLocalItems(state.events || [], body.savedEvents);
+    if (body?.savedEvents?.length) {
+      state.events = upsertLocalItems(state.events || [], body.savedEvents);
+      state.lastCreatedEventIds = [...body.savedEvents.map((item) => item.id), ...(state.lastCreatedEventIds || [])].filter(Boolean).slice(0, 5);
+    }
     if (body?.savedTrainings?.length) state.trainings = upsertLocalItems(state.trainings || [], body.savedTrainings);
     return true;
   } catch (error) {
@@ -1460,6 +1464,7 @@ async function refreshRemoteState({ keepToast = false, force = false } = {}) {
     remote.activeThreadId = state.activeThreadId;
     remote.mobileMenuOpen = state.mobileMenuOpen;
     remote.toast = keepToast ? state.toast : "";
+    normalizeCalendarCursorForActiveView(remote);
     state = remote;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     render();
@@ -2191,7 +2196,14 @@ function goView(view, options = {}) {
   state.activeView = view;
   if (options.closeMenu !== false) state.mobileMenuOpen = false;
   if (options.closeSearch !== false) state.globalSearchOpen = false;
+  normalizeCalendarCursorForActiveView(state);
   resetScrollAfterRender = true;
+}
+
+function normalizeCalendarCursorForActiveView(targetState = state) {
+  if (!["calendar", "clubEvents"].includes(targetState.activeView)) return;
+  const currentMonth = monthKey(new Date());
+  if (!targetState.calendarCursor || targetState.calendarCursor < currentMonth) targetState.calendarCursor = currentMonth;
 }
 
 function setLang(lang) {
@@ -4536,6 +4548,7 @@ function renderClubEvents() {
   const monthName = cursor.toLocaleDateString(state.lang === "es" ? "es-ES" : "en-US", { month: "long", year: "numeric" });
   const visibleTeams = visibleTeamIds().map(getTeam).filter(Boolean);
   const eventPatch = state.lastEventPatch || state.diagnostics?.lastEventPatch || null;
+  const recentCreated = (state.lastCreatedEventIds || []).map((id) => state.events.find((item) => item.id === id)).filter(Boolean);
   const byTeam = new Map();
   items.forEach((item) => {
     const key = item.teamId || "all";
@@ -4574,6 +4587,14 @@ function renderClubEvents() {
             : ""
         }
       </section>
+      ${
+        recentCreated.length
+          ? `<section class="panel">
+              <div class="panel-header"><div><h2>Recién creados</h2><p>Eventos creados desde este dispositivo en esta sesión.</p></div></div>
+              <div class="list compact">${recentCreated.map((item) => renderScheduleItem({ ...item, source: "event", color: "green" })).join("")}</div>
+            </section>`
+          : ""
+      }
       <section class="panel">
         <div class="panel-header"><div><h2>Listado</h2><p>Pulsa cualquier evento para abrir detalle, editar o borrar.</p></div></div>
         <div class="list">
@@ -7621,6 +7642,7 @@ async function createEvent(event) {
     };
     state.events.push(eventItem);
     patchedEvents = [eventItem];
+    state.lastCreatedEventIds = [eventItem.id, ...(state.lastCreatedEventIds || []).filter((id) => id !== eventItem.id)].slice(0, 5);
     if (playerIds.length) notifyAffectedPlayers(playerIds, "Nuevo evento en tu calendario", `${eventItem.title} · ${eventItem.date} ${eventItem.time}`, eventItem.id);
     state.toast = "Evento guardado en el calendario";
     appendAudit("crear evento", "event", eventItem.title);
