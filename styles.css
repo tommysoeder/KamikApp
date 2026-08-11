@@ -3805,6 +3805,60 @@ body::-webkit-scrollbar-thumb,
   background: rgba(255, 255, 255, 0.58);
 }
 
+.beta-invite-queue {
+  display: grid;
+  grid-template-columns: minmax(210px, 0.95fr) minmax(0, 1.25fr) auto;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid rgba(15, 104, 106, 0.12);
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(240, 248, 245, 0.95), rgba(255, 255, 255, 0.78));
+  padding: 12px;
+}
+
+.beta-invite-queue strong,
+.beta-invite-queue span,
+.beta-invite-queue em {
+  display: block;
+}
+
+.beta-invite-queue strong {
+  color: #12282b;
+  font-size: 0.95rem;
+}
+
+.beta-invite-queue span,
+.beta-invite-queue em {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-style: normal;
+}
+
+.beta-invite-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+.beta-invite-preview span,
+.beta-invite-preview em {
+  border-radius: 999px;
+  background: rgba(15, 104, 106, 0.09);
+  color: #174d50;
+  padding: 5px 8px;
+  font-weight: 760;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.beta-invite-preview em {
+  background: rgba(200, 148, 58, 0.14);
+  color: #765212;
+}
+
 .support-diagnostic {
   display: grid;
   gap: 14px;
@@ -3817,6 +3871,10 @@ body::-webkit-scrollbar-thumb,
 }
 
 @media (max-width: 720px) {
+  .beta-invite-queue {
+    grid-template-columns: 1fr;
+  }
+
   .support-grid {
     grid-template-columns: 1fr;
   }

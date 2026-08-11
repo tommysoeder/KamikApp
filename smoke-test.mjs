@@ -213,6 +213,21 @@ if (teamReadinessSmoke !== "true|true|true") {
   throw new Error(`Team readiness smoke failed: ${teamReadinessSmoke}`);
 }
 
+const betaInviteQueueSmoke = vm.runInContext(
+  `(() => {
+    const pending = betaInvitePendingUsers();
+    const html = renderBetaInviteQueue(betaAccessRows());
+    openBetaInviteQueueModal();
+    return [pending.length > 0, betaInviteQueueText(pending).includes("Enlace:"), html.includes("beta-invite-queue"), document.querySelector("#modal-root").innerHTML.includes("Invitaciones beta pendientes")].join("|");
+  })()`,
+  context,
+  { filename: "smoke-beta-invite-queue.js" }
+);
+
+if (betaInviteQueueSmoke !== "true|true|true|true") {
+  throw new Error(`Beta invite queue smoke failed: ${betaInviteQueueSmoke}`);
+}
+
 const betaReportSmoke = vm.runInContext(
   `(() => {
     exportBetaReport();

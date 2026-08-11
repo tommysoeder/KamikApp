@@ -5913,8 +5913,31 @@ function renderUsers() {
         <article class="card stat"><span>${t("linkedPlayer")}</span><strong>${linkedPlayers}</strong><span>jugadores con acceso propio</span></article>
         <article class="card stat"><span>Beta</span><strong>${inviteReady}</strong><span>${invited} invitados · ${invitePending} pendientes</span></article>
       </div>
+      ${canManageUsers() ? renderBetaInviteQueue(accessRows) : ""}
       <div class="user-grid">
         ${state.users.map(renderUserCard).join("")}
+      </div>
+    </section>
+  `;
+}
+
+function renderBetaInviteQueue(accessRows = betaAccessRows()) {
+  const pending = accessRows.filter((row) => row.ready === "si" && row.invited !== "si");
+  const waiting = accessRows.filter((row) => row.invited === "si" && !row.lastLoginAt);
+  const blocked = accessRows.filter((row) => row.ready !== "si");
+  return `
+    <section class="beta-invite-queue">
+      <div>
+        <strong>Cola de invitaciones beta</strong>
+        <span>${pending.length} listos para invitar · ${waiting.length} invitados sin entrar · ${blocked.length} a revisar</span>
+      </div>
+      <div class="beta-invite-preview">
+        ${pending.slice(0, 5).map((row) => `<span>${escapeHtml(row.name)}</span>`).join("") || `<em>No hay usuarios listos pendientes.</em>`}
+        ${pending.length > 5 ? `<em>+${pending.length - 5} más</em>` : ""}
+      </div>
+      <div class="actions inline-actions">
+        <button class="btn primary" type="button" onclick="openBetaInviteQueueModal()">Preparar invitaciones</button>
+        ${canExportData() ? `<button class="btn" type="button" onclick="exportBetaAccessCsv()">Exportar CSV</button>` : ""}
       </div>
     </section>
   `;
@@ -5987,6 +6010,66 @@ function userInviteText(user) {
     "",
     "Durante la beta, si ves algo raro o te falta informacion, avisanos para corregirlo antes del lanzamiento definitivo.",
   ].join("\n");
+}
+
+function betaInvitePendingUsers() {
+  const readyPendingIds = new Set(betaAccessRows().filter((row) => row.ready === "si" && row.invited !== "si").map((row) => row.userId));
+  return state.users.filter((user) => readyPendingIds.has(user.id));
+}
+
+function betaInviteQueueText(users = betaInvitePendingUsers()) {
+  return users.map(userInviteText).join("\n\n---\n\n");
+}
+
+function openBetaInviteQueueModal() {
+  if (!canManageUsers()) return;
+  const users = betaInvitePendingUsers();
+  const text = betaInviteQueueText(users);
+  openModal(
+    "Invitaciones beta pendientes",
+    `<section class="form invite-tool">
+      <p class="meta">${users.length ? `${users.length} mensajes preparados para copiar y enviar.` : "No hay usuarios listos pendientes de invitar."}</p>
+      <div class="form-row"><label>Mensajes</label><textarea id="invite-queue-text" rows="16" readonly>${escapeHtml(text || "Sin invitaciones pendientes.")}</textarea></div>
+      <div class="actions inline-actions">
+        <button class="btn primary" type="button" onclick="copyBetaInviteQueue()">Copiar todos</button>
+        <button class="btn" type="button" onclick="downloadBetaInviteQueue()">Descargar TXT</button>
+        ${users.length ? `<button class="btn" type="button" onclick="markPendingBetaInvited(); closeModal()">Marcar enviados</button>` : ""}
+      </div>
+    </section>`
+  );
+}
+
+async function copyBetaInviteQueue() {
+  const textarea = document.querySelector("#invite-queue-text");
+  if (!textarea) return;
+  textarea.focus();
+  textarea.select();
+  try {
+    await navigator.clipboard?.writeText(textarea.value);
+    state.toast = "Invitaciones copiadas";
+  } catch {
+    state.toast = "Texto seleccionado para copiar";
+  }
+  save();
+  render();
+}
+
+function downloadBetaInviteQueue() {
+  const text = betaInviteQueueText();
+  downloadText(`invitaciones-beta-kamikapp-${toLocalDateKey(new Date())}.txt`, text || "Sin invitaciones pendientes.", "text/plain;charset=utf-8");
+}
+
+function markPendingBetaInvited() {
+  if (!canManageUsers()) return;
+  const users = betaInvitePendingUsers();
+  const at = new Date().toISOString();
+  users.forEach((user) => {
+    user.betaInvitedAt ||= at;
+    appendAudit("marcar invitado beta", "user", user.name);
+  });
+  state.toast = `${users.length} invitaciones marcadas como enviadas`;
+  save();
+  render();
 }
 
 function openUserInviteModal(userId) {
@@ -7289,6 +7372,7 @@ function betaAccessRows() {
     const hasEmail = Boolean(String(user.email || "").trim());
     const hasScope = Boolean(linkedPlayer || familyPlayers.length || (user.roles || []).some((role) => ["director", "president", "coach", "delegate", "fees"].includes(role)));
     return {
+      userId: user.id,
       name: user.name || "",
       email: user.email || "",
       roles,
