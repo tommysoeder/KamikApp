@@ -3418,23 +3418,35 @@ function renderAuditItem(item) {
 }
 
 function betaFeedbackThreads() {
+  const severityOrder = { blocker: 0, high: 1, normal: 2, low: 3 };
   return (state.threads || [])
     .filter((thread) => thread.betaFeedback)
-    .sort((a, b) => activityDateValue(b.messages?.[b.messages.length - 1]?.at || b.createdAt || "") - activityDateValue(a.messages?.[a.messages.length - 1]?.at || a.createdAt || ""));
+    .sort((a, b) => {
+      const statusDiff = Number(a.feedbackStatus === "closed") - Number(b.feedbackStatus === "closed");
+      if (statusDiff) return statusDiff;
+      const severityDiff = (severityOrder[a.feedbackSeverity] ?? 2) - (severityOrder[b.feedbackSeverity] ?? 2);
+      if (severityDiff) return severityDiff;
+      return activityDateValue(b.messages?.[b.messages.length - 1]?.at || b.createdAt || "") - activityDateValue(a.messages?.[a.messages.length - 1]?.at || a.createdAt || "");
+    });
 }
 
 function feedbackTypeLabel(type) {
   return { bug: "Problema", idea: "Idea", question: "Duda", other: "Otro" }[type] || "Feedback";
 }
 
+function feedbackSeverityLabel(severity) {
+  return { blocker: "Bloquea", high: "Alta", normal: "Media", low: "Baja" }[severity] || "Media";
+}
+
 function renderBetaFeedbackItem(thread) {
   const last = thread.messages?.[thread.messages.length - 1];
   const closed = thread.feedbackStatus === "closed";
+  const severity = thread.feedbackSeverity || "normal";
   return `
     <article class="item">
       <div class="item-row">
-        <div><strong>${escapeHtml(thread.subject)}</strong><span class="meta">${feedbackTypeLabel(thread.feedbackType)} - ${escapeHtml(last?.at || "")}</span></div>
-        <span class="pill ${closed ? "green" : "gold"}">${closed ? "Resuelto" : "Pendiente"}</span>
+        <div><strong>${escapeHtml(thread.subject)}</strong><span class="meta">${feedbackTypeLabel(thread.feedbackType)} - ${feedbackSeverityLabel(severity)} - ${escapeHtml(last?.at || "")}</span></div>
+        <span class="pill ${closed ? "green" : severity === "blocker" || severity === "high" ? "red" : "gold"}">${closed ? "Resuelto" : feedbackSeverityLabel(severity)}</span>
       </div>
       <p class="clamped-text">${escapeHtml(last?.text || "")}</p>
       <div class="actions inline-actions">
@@ -6996,6 +7008,7 @@ function openFeedbackModal() {
       <input type="hidden" name="assignedToId" value="${assignedId}" />
       <div class="form-grid">
         <div class="form-row"><label>Tipo</label><select name="feedbackType"><option value="bug">Problema</option><option value="idea">Idea</option><option value="question">Duda</option><option value="other">Otro</option></select></div>
+        <div class="form-row"><label>Impacto</label><select name="feedbackSeverity"><option value="normal">Medio</option><option value="blocker">Bloquea el uso</option><option value="high">Alto</option><option value="low">Bajo</option></select></div>
         <div class="form-row"><label>${t("selectedPlayers")}</label><select name="playerId"><option value="">Sin jugador vinculado</option>${visiblePlayerIds(user).map((id) => `<option value="${id}">${escapeHtml(getPlayer(id)?.name || "")}</option>`).join("")}</select></div>
       </div>
       <div class="form-row"><label>${t("title")}</label><input name="subject" placeholder="Ej: no veo una convocatoria" required /></div>
@@ -7023,7 +7036,7 @@ function openPlayerMessageModal(playerId) {
   );
 }
 
-function feedbackSupportContext(user, playerId = "") {
+function feedbackSupportContext(user, playerId = "", severity = "normal") {
   const sync = syncIndicatorData();
   const player = playerId ? getPlayer(playerId) : null;
   const teams = player
@@ -7039,6 +7052,7 @@ function feedbackSupportContext(user, playerId = "") {
     `Vista: ${viewTitle(state.activeView)} (${state.activeView})`,
     `Usuario: ${user.name} <${user.email || "sin email"}>`,
     `Rol activo: ${roleLabel(activeRole(user))}`,
+    `Impacto declarado: ${feedbackSeverityLabel(severity)}`,
     `Sincronizacion: ${sync.label} - ${sync.detail}`,
     `Jugador: ${player?.name || "sin jugador seleccionado"}`,
     `Equipos: ${teams.join(", ") || "sin equipos visibles"}`,
@@ -7608,7 +7622,7 @@ function exportBetaReport() {
     ...(quality.issues || []).slice(0, 30).map((issue) => `- ${String(issue.level || "").toUpperCase()} | ${issue.area || ""} | ${issue.title || ""} | ${issue.detail || ""}`),
     "",
     "Feedback beta",
-    ...feedback.slice(0, 30).map((thread) => `- ${thread.feedbackStatus === "closed" ? "RESUELTO" : "PENDIENTE"} | ${feedbackTypeLabel(thread.feedbackType)} | ${thread.subject}`),
+    ...feedback.slice(0, 30).map((thread) => `- ${thread.feedbackStatus === "closed" ? "RESUELTO" : "PENDIENTE"} | ${feedbackSeverityLabel(thread.feedbackSeverity)} | ${feedbackTypeLabel(thread.feedbackType)} | ${thread.subject}`),
     "",
     "Accesos beta",
     ...accessRows.map((row) => `- ${row.ready === "si" ? "LISTO" : "REVISAR"} | ${row.name} | ${row.email} | invitado:${row.invited} | accesos:${row.loginCount} | aviso:${row.acceptedBetaAt ? "si" : "no"} | ${row.notes}`),
@@ -9075,10 +9089,11 @@ function createFeedback(event) {
   const assignedToId = String(form.get("assignedToId") || state.users.find((item) => isExecutive(item))?.id || employees()[0]?.id || "");
   const playerId = String(form.get("playerId") || "");
   const type = String(form.get("feedbackType") || "other");
+  const severity = String(form.get("feedbackSeverity") || "normal");
   const subject = String(form.get("subject") || "").trim();
   const message = String(form.get("message") || "").trim();
   if (!subject || !message) return;
-  const enrichedMessage = `${message}${feedbackSupportContext(user, playerId)}`;
+  const enrichedMessage = `${message}${feedbackSupportContext(user, playerId, severity)}`;
   const thread = {
     id: uid("thread"),
     subject: `Feedback beta - ${feedbackTypeLabel(type)}: ${subject}`,
@@ -9087,6 +9102,7 @@ function createFeedback(event) {
     participantUserIds: [user.id],
     betaFeedback: true,
     feedbackType: type,
+    feedbackSeverity: severity,
     feedbackStatus: "open",
     createdAt: new Date().toISOString(),
     messages: [{ from: "user", text: enrichedMessage, at: currentTime() }],

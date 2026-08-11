@@ -301,6 +301,7 @@ const feedbackSmoke = vm.runInContext(
         values: {
           assignedToId: "u-director",
           feedbackType: "bug",
+          feedbackSeverity: "blocker",
           playerId: "p-1",
           subject: "Smoke feedback",
           message: "Mensaje de prueba de feedback beta"
@@ -309,13 +310,13 @@ const feedbackSmoke = vm.runInContext(
     });
     const thread = state.threads.find((item) => item.betaFeedback && item.subject.includes("Smoke feedback"));
     const text = thread?.messages?.[0]?.text || "";
-    return [Boolean(thread), thread?.feedbackStatus, betaFeedbackThreads().some((item) => item.id === thread?.id), text.includes("Contexto tecnico automatico"), text.includes("Version app:"), text.includes("Vista:")].join("|");
+    return [Boolean(thread), thread?.feedbackStatus, thread?.feedbackSeverity, betaFeedbackThreads().some((item) => item.id === thread?.id), text.includes("Contexto tecnico automatico"), text.includes("Impacto declarado: Bloquea"), text.includes("Vista:")].join("|");
   })()`,
   context,
   { filename: "smoke-feedback.js" }
 );
 
-if (feedbackSmoke !== "true|open|true|true|true|true") {
+if (feedbackSmoke !== "true|open|blocker|true|true|true|true") {
   throw new Error(`Feedback smoke failed: ${feedbackSmoke}`);
 }
 
