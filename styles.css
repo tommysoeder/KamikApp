@@ -1107,6 +1107,15 @@ tr:last-child td {
   align-self: flex-start;
 }
 
+.bubble.system {
+  align-self: center;
+  max-width: min(620px, 92%);
+  border: 1px solid rgba(15, 104, 106, 0.16);
+  background: #f3f8f6;
+  color: #21484b;
+  text-align: center;
+}
+
 .composer {
   padding: 12px;
   border-top: 1px solid var(--line);

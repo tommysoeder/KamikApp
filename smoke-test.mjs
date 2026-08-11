@@ -340,19 +340,21 @@ if (feedbackTriageSmoke !== "true|true|true") {
 const feedbackWorkflowSmoke = vm.runInContext(
   `(() => {
     const thread = state.threads.find((item) => item.betaFeedback && item.subject.includes("Smoke feedback"));
+    const beforeMessages = thread.messages.length;
     setFeedbackStatus(thread.id, "review");
     const review = thread.feedbackStatus;
     setFeedbackStatus(thread.id, "deferred");
     const deferred = thread.feedbackStatus;
     setFeedbackStatus(thread.id, "closed");
     const closed = thread.feedbackStatus;
-    return [review, deferred, closed, Boolean(thread.feedbackClosedAt), feedbackStatusLabel("review")].join("|");
+    const systemMessages = thread.messages.filter((message) => message.from === "system").length;
+    return [review, deferred, closed, Boolean(thread.feedbackClosedAt), feedbackStatusLabel("review"), systemMessages >= 3, thread.messages.length === beforeMessages + 3].join("|");
   })()`,
   context,
   { filename: "smoke-feedback-workflow.js" }
 );
 
-if (feedbackWorkflowSmoke !== "review|deferred|closed|true|En revisión") {
+if (feedbackWorkflowSmoke !== "review|deferred|closed|true|En revisión|true|true") {
   throw new Error(`Feedback workflow smoke failed: ${feedbackWorkflowSmoke}`);
 }
 

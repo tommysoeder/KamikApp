@@ -3556,9 +3556,17 @@ function setFeedbackStatus(threadId, status) {
   const thread = state.threads.find((item) => item.id === threadId);
   if (!thread?.betaFeedback) return;
   if (!["open", "review", "deferred", "closed"].includes(status)) return;
+  const before = thread.feedbackStatus || "open";
+  if (before === status) return;
   thread.feedbackStatus = status;
   thread.feedbackClosedAt = status === "closed" ? new Date().toISOString() : "";
   thread.feedbackStatusUpdatedAt = new Date().toISOString();
+  thread.messages ||= [];
+  thread.messages.push({
+    from: "system",
+    text: `Estado del feedback: ${feedbackStatusLabel(before)} -> ${feedbackStatusLabel(status)}`,
+    at: currentTime(),
+  });
   state.toast = `Feedback: ${feedbackStatusLabel(status)}`;
   appendAudit("cambiar estado feedback beta", "thread", `${thread.subject} -> ${feedbackStatusLabel(status)}`);
   save("messageClub");
@@ -5918,7 +5926,7 @@ function renderMessages() {
           ? `<div class="chat-window">
               <div class="chat-head"><strong>${escapeHtml(active.subject)}</strong><div class="meta">Canal vertical empleado-familia/jugador</div></div>
               <div class="messages">${active.messages
-                .map((message) => `<div class="bubble ${message.from === "club" ? "club" : "user"}"><div>${escapeHtml(message.text)}</div><div class="meta">${message.at}</div></div>`)
+                .map((message) => `<div class="bubble ${message.from === "club" ? "club" : message.from === "system" ? "system" : "user"}"><div>${escapeHtml(message.text)}</div><div class="meta">${message.at}</div></div>`)
                 .join("")}</div>
               <form class="composer" onsubmit="sendMessage(event,'${active.id}')">
                 <input name="message" placeholder="${t("messagePlaceholder")}" />
