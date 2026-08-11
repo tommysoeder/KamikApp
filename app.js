@@ -5941,6 +5941,7 @@ function renderUserCard(user) {
       ${
         canManageUsers()
           ? `<div class="actions inline-actions">
+              <button class="btn" type="button" onclick="openUserSupportModal('${user.id}')">Diagnostico</button>
               <button class="btn" type="button" onclick="openUserInviteModal('${user.id}')">Invitacion</button>
               <button class="btn" type="button" onclick="toggleBetaInvited('${user.id}')">${invited ? "Marcar pendiente" : "Marcar invitado"}</button>
               <button class="btn" type="button" onclick="openEditUserModal('${user.id}')">${t("edit")}</button>
@@ -6001,6 +6002,58 @@ function openUserInviteModal(userId) {
         <button class="btn primary" type="button" onclick="copyInviteMessage()">Copiar mensaje</button>
         <button class="btn" type="button" onclick="toggleBetaInvited('${user.id}'); closeModal()">Marcar invitado</button>
         <button class="btn" type="button" onclick="exportBetaAccessCsv()">Exportar accesos beta</button>
+      </div>
+    </section>`
+  );
+}
+
+function userSupportIssues(user) {
+  const issues = [];
+  const context = userInviteContext(user);
+  if (user.disabled) issues.push({ level: "error", label: "Cuenta desactivada" });
+  if (!String(user.email || "").trim()) issues.push({ level: "error", label: "Sin email" });
+  if ((user.roles || []).includes("player") && !user.playerId) issues.push({ level: "warning", label: "Rol jugador sin perfil vinculado" });
+  if ((user.roles || []).includes("parent") && !(user.children || []).length) issues.push({ level: "warning", label: "Rol familia sin jugadores vinculados" });
+  if (!context.linkedPlayer && !context.familyPlayers.length && !(user.roles || []).some((role) => ["director", "president", "coach", "delegate", "fees"].includes(role))) issues.push({ level: "warning", label: "Sin alcance visible claro" });
+  if (user.betaInvitedAt && !user.lastLoginAt) issues.push({ level: "info", label: "Invitado pero aun no ha entrado" });
+  if (user.lastLoginAt && !user.acceptedBetaAt) issues.push({ level: "info", label: "Entro pero no acepto el aviso beta" });
+  return issues;
+}
+
+function userVisibleScopeSummary(user) {
+  const playerIds = visiblePlayerIds(user);
+  const teamIds = visibleTeamIds(user);
+  return {
+    players: playerIds.map(getPlayer).filter(Boolean),
+    teams: teamIds.map(getTeam).filter(Boolean),
+  };
+}
+
+function openUserSupportModal(userId) {
+  const user = state.users.find((item) => item.id === userId);
+  if (!user || !canManageUsers()) return;
+  const context = userInviteContext(user);
+  const scope = userVisibleScopeSummary(user);
+  const issues = userSupportIssues(user);
+  openModal(
+    "Diagnostico de usuario",
+    `<section class="form support-diagnostic">
+      <div class="grid three management-stats">
+        <article class="card stat"><span>Estado</span><strong>${user.disabled ? "OFF" : "ON"}</strong><span>${user.email || "sin email"}</span></article>
+        <article class="card stat"><span>Accesos</span><strong>${Number(user.loginCount || 0)}</strong><span>${user.lastLoginAt ? formatActivityDate(user.lastLoginAt) : "sin login"}</span></article>
+        <article class="card stat"><span>Beta</span><strong>${user.acceptedBetaAt ? "OK" : "-"}</strong><span>${user.betaInvitedAt ? `invitado ${formatActivityDate(user.betaInvitedAt)}` : "no invitado"}</span></article>
+      </div>
+      <div class="support-grid">
+        <article class="item"><strong>Roles</strong><span class="meta">${(user.roles || []).map(roleLabel).join(" + ") || "Sin roles"}</span></article>
+        <article class="item"><strong>Perfil jugador</strong><span class="meta">${context.linkedPlayer?.name || "Sin jugador vinculado"}</span></article>
+        <article class="item"><strong>Familia</strong><span class="meta">${context.familyPlayers.map((player) => player.name).join(", ") || "Sin jugadores familiares"}</span></article>
+        <article class="item"><strong>Equipos visibles</strong><span class="meta">${scope.teams.map((team) => team.name).join(", ") || "Sin equipos visibles"}</span></article>
+        <article class="item"><strong>Jugadores visibles</strong><span class="meta">${scope.players.map((player) => player.name).join(", ") || "Sin jugadores visibles"}</span></article>
+      </div>
+      <div class="quality-list">${issues.map((issue) => `<div class="quality-issue ${issue.level}"><span class="quality-level">${issue.level === "error" ? "Critico" : issue.level === "warning" ? "Aviso" : "Info"}</span><strong>${escapeHtml(issue.label)}</strong><em>Revision de soporte</em></div>`).join("") || `<div class="empty">No se detectan incidencias evidentes.</div>`}</div>
+      <div class="actions inline-actions">
+        <button class="btn" type="button" onclick="openUserInviteModal('${user.id}')">Ver invitacion</button>
+        <button class="btn" type="button" onclick="openEditUserModal('${user.id}')">${t("edit")}</button>
       </div>
     </section>`
   );

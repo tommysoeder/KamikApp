@@ -169,6 +169,22 @@ if (betaNoticeSmoke !== "false|true") {
   throw new Error(`Beta notice smoke failed: ${betaNoticeSmoke}`);
 }
 
+const userSupportSmoke = vm.runInContext(
+  `(() => {
+    const user = state.users.find((item) => item.email);
+    const issues = userSupportIssues(user);
+    const scope = userVisibleScopeSummary(user);
+    openUserSupportModal(user.id);
+    return [Array.isArray(issues), Array.isArray(scope.players), document.querySelector("#modal-root").innerHTML.includes("Diagnostico de usuario")].join("|");
+  })()`,
+  context,
+  { filename: "smoke-user-support.js" }
+);
+
+if (userSupportSmoke !== "true|true|true") {
+  throw new Error(`User support smoke failed: ${userSupportSmoke}`);
+}
+
 const feedbackSmoke = vm.runInContext(
   `(() => {
     createFeedback({
