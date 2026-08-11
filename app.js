@@ -1290,6 +1290,11 @@ function apiEndpoint(path) {
   return new URL(path, location.origin).toString();
 }
 
+function appPublicUrl() {
+  if (typeof location === "undefined" || location.protocol === "file:") return "http://127.0.0.1:4173";
+  return location.origin;
+}
+
 async function postJson(path, operation, payload) {
   const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
   const timer = controller ? setTimeout(() => controller.abort(), 20000) : null;
@@ -5830,6 +5835,7 @@ function renderUserCard(user) {
       ${
         canManageUsers()
           ? `<div class="actions inline-actions">
+              <button class="btn" type="button" onclick="openUserInviteModal('${user.id}')">Invitacion</button>
               <button class="btn" type="button" onclick="openEditUserModal('${user.id}')">${t("edit")}</button>
               <button class="btn ${user.disabled ? "" : "danger"}" type="button" onclick="toggleUserDisabled('${user.id}')">${user.disabled ? t("activate") : t("deactivate")}</button>
             </div>`
@@ -5837,6 +5843,74 @@ function renderUserCard(user) {
       }
     </article>
   `;
+}
+
+function userInviteContext(user) {
+  const linkedPlayer = user.playerId ? getPlayer(user.playerId) : null;
+  const familyPlayers = (user.children || []).map(getPlayer).filter(Boolean);
+  const teamIds = [
+    ...(linkedPlayer?.teams || []),
+    ...familyPlayers.flatMap((player) => player.teams || []),
+  ];
+  const teams = [...new Set(teamIds)].map((id) => getTeam(id)?.name).filter(Boolean);
+  return { linkedPlayer, familyPlayers, teams };
+}
+
+function userInviteText(user) {
+  const context = userInviteContext(user);
+  const profileLine = context.linkedPlayer
+    ? `Perfil vinculado: ${context.linkedPlayer.name}`
+    : context.familyPlayers.length
+      ? `Jugadores vinculados: ${context.familyPlayers.map((player) => player.name).join(", ")}`
+      : "Perfil vinculado: pendiente de configurar";
+  const teamLine = context.teams.length ? `Equipos: ${context.teams.join(", ")}` : "Equipos: pendiente de asignar";
+  return [
+    `Hola ${user.name},`,
+    "",
+    "Te damos acceso a la beta privada de KamikApp para probar la gestion del club esta temporada.",
+    "",
+    `Enlace: ${appPublicUrl()}`,
+    `Email: ${user.email || "pendiente"}`,
+    "Contrasena: la que te haya facilitado el club. Podras cambiarla desde Mi perfil.",
+    "",
+    profileLine,
+    teamLine,
+    "",
+    "Durante la beta, si ves algo raro o te falta informacion, avisanos para corregirlo antes del lanzamiento definitivo.",
+  ].join("\n");
+}
+
+function openUserInviteModal(userId) {
+  const user = state.users.find((item) => item.id === userId);
+  if (!user || !canManageUsers()) return;
+  const text = userInviteText(user);
+  openModal(
+    "Invitacion beta",
+    `<section class="form invite-tool">
+      <p class="meta">Texto preparado para enviar por WhatsApp o email. No incluye contrasenas guardadas.</p>
+      <div class="form-row"><label>${t("email")}</label><input value="${escapeHtml(user.email || "")}" readonly /></div>
+      <div class="form-row"><label>Mensaje</label><textarea id="invite-message-text" rows="12" readonly>${escapeHtml(text)}</textarea></div>
+      <div class="actions inline-actions">
+        <button class="btn primary" type="button" onclick="copyInviteMessage()">Copiar mensaje</button>
+        <button class="btn" type="button" onclick="exportBetaAccessCsv()">Exportar accesos beta</button>
+      </div>
+    </section>`
+  );
+}
+
+async function copyInviteMessage() {
+  const textarea = document.querySelector("#invite-message-text");
+  if (!textarea) return;
+  textarea.focus();
+  textarea.select();
+  try {
+    await navigator.clipboard?.writeText(textarea.value);
+    state.toast = "Invitacion copiada";
+  } catch {
+    state.toast = "Texto seleccionado para copiar";
+  }
+  save();
+  render();
 }
 
 function renderDiagnostics() {

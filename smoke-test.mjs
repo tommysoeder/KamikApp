@@ -138,6 +138,20 @@ if (!exportSmoke.includes("jugador,edad,equipos") || !exportSmoke.endsWith("|tru
   throw new Error("CSV export helpers did not run");
 }
 
+const inviteSmoke = vm.runInContext(
+  `(() => {
+    const user = state.users.find((item) => item.email);
+    const text = userInviteText(user);
+    return [text.includes(user.email), text.includes("Enlace:"), text.includes("KamikApp")].join("|");
+  })()`,
+  context,
+  { filename: "smoke-invite-text.js" }
+);
+
+if (inviteSmoke !== "true|true|true") {
+  throw new Error(`Invite text smoke failed: ${inviteSmoke}`);
+}
+
 const backupSmoke = vm.runInContext(
   "JSON.stringify(backupSummary(persistentState()))",
   context,
