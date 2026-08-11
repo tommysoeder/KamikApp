@@ -3118,17 +3118,14 @@ function renderDashboard() {
     <div class="grid ${statCards.length >= 3 ? "three" : "two"}">
       ${statCards.join("")}
     </div>
-    <div class="grid two" style="margin-top:16px">
-      <section class="panel">
-        <div class="panel-header"><div><h2>${t("announcements")}</h2><p>Comunicacion oficial segmentada.</p></div></div>
-        <div class="list">${announcements.map(renderAnnouncementItem).join("") || `<div class="empty">Sin anuncios.</div>`}</div>
-      </section>
-      <section class="panel">
-        <div class="panel-header"><div><h2>${t("activityCenter")}</h2><p>${t("activityText")}</p></div><span class="sync-pill">${t("synced")}</span></div>
-        <div class="activity-list">${activityItems.map(renderActivityItem).join("") || `<div class="empty">Sin actividad reciente.</div>`}</div>
-      </section>
-    </div>
-    <div class="grid two" style="margin-top:16px">
+    <section class="panel dashboard-announcements-compact">
+      <div class="panel-header">
+        <div><h2>${t("announcements")}</h2><p>${announcements.length ? `${announcements.length} anuncio${announcements.length === 1 ? "" : "s"} visible${announcements.length === 1 ? "" : "s"}` : "Sin anuncios."}</p></div>
+        <button class="btn ghost" type="button" onclick="setView('announcements')">${t("open")}</button>
+      </div>
+      <div class="dashboard-announcement-strip">${announcements.length ? announcements.map(renderDashboardAnnouncement).join("") : `<div class="empty compact-empty">Sin anuncios publicados.</div>`}</div>
+    </section>
+    <div class="grid two dashboard-week-row">
       <section class="panel">
         <div class="panel-header"><div><h2>${t("visibleWeek")}</h2><p>${t("weekAuto")}</p></div></div>
         <div class="list">${weekItems.map(renderScheduleItem).join("") || `<div class="empty">Sin eventos esta semana.</div>`}</div>
@@ -3138,9 +3135,24 @@ function renderDashboard() {
         <div class="list">${callups.map(renderCallupItem).join("") || `<div class="empty">Sin convocatorias.</div>`}</div>
       </section>
     </div>
+    <section class="panel dashboard-activity-panel">
+      <div class="panel-header"><div><h2>${t("activityCenter")}</h2><p>${t("activityText")}</p></div><span class="sync-pill">${t("synced")}</span></div>
+      <div class="activity-list">${activityItems.map(renderActivityItem).join("") || `<div class="empty">Sin actividad reciente.</div>`}</div>
+    </section>
     <div class="grid two dashboard-bottom-stat" style="margin-top:16px">
       <article class="card stat clickable-item dashboard-teams-stat" onclick="setView('teams')"><span>${t("teams")}</span><strong>${state.teams.length}</strong><span>${state.categories.length} categorias configurables</span></article>
     </div>
+  `;
+}
+
+function renderDashboardAnnouncement(announcement) {
+  const read = (state.readAnnouncementIds || []).includes(announcement.id);
+  return `
+    <button class="dashboard-announcement-pill ${read ? "read-item" : ""}" type="button" onclick="openAnnouncementDetail('${announcement.id}')">
+      <strong>${escapeHtml(announcement.title)}</strong>
+      <span>${escapeHtml(targetLabel(announcement) || announcement.createdAt || "")}</span>
+      ${!read ? `<i>Nuevo</i>` : ""}
+    </button>
   `;
 }
 
