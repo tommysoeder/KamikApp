@@ -264,6 +264,31 @@ if (teamReadinessSmoke !== "true|true|true") {
   throw new Error(`Team readiness smoke failed: ${teamReadinessSmoke}`);
 }
 
+const presidentCoachOptionSmoke = vm.runInContext(
+  `(() => {
+    state.users.push({
+      id: "u-president-smoke",
+      name: "Presidenta Smoke",
+      roles: ["president"],
+      email: "presidenta@test.local",
+      children: [],
+      disabled: false,
+      notificationPrefs: defaultNotificationPrefs()
+    });
+    openEditTeamModal("team-1");
+    const html = document.querySelector("#modal-root").innerHTML;
+    state.users = state.users.filter((user) => user.id !== "u-president-smoke");
+    closeModal();
+    return [teamCoachUsers().some((user) => user.id === "u-director"), html.includes("u-president-smoke"), html.includes("Presidenta Smoke")].join("|");
+  })()`,
+  context,
+  { filename: "smoke-president-coach-option.js" }
+);
+
+if (presidentCoachOptionSmoke !== "true|true|true") {
+  throw new Error(`President coach option smoke failed: ${presidentCoachOptionSmoke}`);
+}
+
 const betaInviteQueueSmoke = vm.runInContext(
   `(() => {
     const pending = betaInvitePendingUsers();

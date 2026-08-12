@@ -6119,6 +6119,14 @@ function employees() {
   return state.users.filter((user) => !user.disabled && user.roles.some((role) => ["president", "director", "coach", "delegate", "fees"].includes(role)));
 }
 
+function teamCoachUsers() {
+  return employees().filter((user) => hasRole(user, "coach") || hasRole(user, "director") || hasRole(user, "president"));
+}
+
+function teamDelegateUsers() {
+  return employees().filter((user) => hasRole(user, "delegate"));
+}
+
 function visibleThreads() {
   const user = currentUser();
   if (isExecutive(user)) return state.threads;
@@ -7614,8 +7622,8 @@ function openTeamModal() {
       <div class="form-grid">
         <div class="form-row"><label>${t("categories")}</label><select name="category">${state.categories.map((cat) => `<option value="${cat}">${cat}</option>`).join("")}</select></div>
         <div class="form-row"><label>${t("title")}</label><input name="name" placeholder="Infantil B" required /></div>
-        <div class="form-row"><label>${t("coach")}</label><select name="coachId"><option value="">Sin asignar</option>${employees().filter((user) => hasRole(user, "coach")).map((user) => `<option value="${user.id}">${user.name}</option>`).join("")}</select></div>
-        <div class="form-row"><label>${t("delegate")}</label><select name="delegateId"><option value="">Sin asignar</option>${employees().filter((user) => hasRole(user, "delegate")).map((user) => `<option value="${user.id}">${user.name}</option>`).join("")}</select></div>
+        <div class="form-row"><label>${t("coach")}</label><select name="coachId"><option value="">Sin asignar</option>${teamCoachUsers().map((user) => `<option value="${user.id}">${escapeHtml(user.name)}</option>`).join("")}</select></div>
+        <div class="form-row"><label>${t("delegate")}</label><select name="delegateId"><option value="">Sin asignar</option>${teamDelegateUsers().map((user) => `<option value="${user.id}">${escapeHtml(user.name)}</option>`).join("")}</select></div>
         <div class="form-row"><label>${t("federationTeamName")}</label><input name="federationTeamName" placeholder="Nombre exacto en la federación" /></div>
         <div class="form-row"><label>${t("teamFederationUrl")}</label><input name="federationUrl" type="url" /></div>
         <div class="form-row"><label>${t("standingsUrl")}</label><input name="standingsUrl" type="url" /></div>
@@ -7635,8 +7643,8 @@ function openEditTeamModal(teamId) {
       <div class="form-grid">
         <div class="form-row"><label>${t("categories")}</label><select name="category">${state.categories.map((cat) => `<option value="${cat}" ${team.category === cat ? "selected" : ""}>${cat}</option>`).join("")}</select></div>
         <div class="form-row"><label>${t("title")}</label><input name="name" value="${escapeHtml(team.name)}" required /></div>
-        <div class="form-row"><label>${t("coach")}</label><select name="coachId"><option value="">Sin asignar</option>${employees().filter((user) => hasRole(user, "coach")).map((user) => `<option value="${user.id}" ${team.coachId === user.id ? "selected" : ""}>${user.name}</option>`).join("")}</select></div>
-        <div class="form-row"><label>${t("delegate")}</label><select name="delegateId"><option value="">Sin asignar</option>${employees().filter((user) => hasRole(user, "delegate")).map((user) => `<option value="${user.id}" ${team.delegateId === user.id ? "selected" : ""}>${user.name}</option>`).join("")}</select></div>
+        <div class="form-row"><label>${t("coach")}</label><select name="coachId"><option value="">Sin asignar</option>${teamCoachUsers().map((user) => `<option value="${user.id}" ${team.coachId === user.id ? "selected" : ""}>${escapeHtml(user.name)}</option>`).join("")}</select></div>
+        <div class="form-row"><label>${t("delegate")}</label><select name="delegateId"><option value="">Sin asignar</option>${teamDelegateUsers().map((user) => `<option value="${user.id}" ${team.delegateId === user.id ? "selected" : ""}>${escapeHtml(user.name)}</option>`).join("")}</select></div>
         <div class="form-row"><label>${t("federationTeamName")}</label><input name="federationTeamName" value="${escapeHtml(team.federationTeamName || "")}" placeholder="Nombre exacto en la federación" /></div>
         <div class="form-row"><label>${t("teamFederationUrl")}</label><input name="federationUrl" type="url" value="${escapeHtml(team.federationUrl || "")}" /></div>
         <div class="form-row"><label>${t("standingsUrl")}</label><input name="standingsUrl" type="url" value="${escapeHtml(team.standingsUrl || "")}" /></div>
