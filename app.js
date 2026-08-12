@@ -162,7 +162,7 @@ const copy = {
     place: "Lugar",
     rival: "Rival",
     arrival: "Hora de llegada",
-    kit: "Equipacion",
+    kit: "Equipación",
     notes: "Observaciones",
     selectedPlayers: "Convocados",
     google: "Google Calendar",
@@ -172,7 +172,7 @@ const copy = {
     confirmTraining: "Confirmar entreno",
     messagePlaceholder: "Escribe al canal oficial...",
     send: "Enviar",
-    categories: "Categorias",
+    categories: "Categorías",
     users: "Usuarios",
     profiles: "Perfiles",
     playerProfiles: "Perfiles de jugador",
@@ -724,7 +724,7 @@ const seed = {
     { id: "team-3", category: "Oro Femenino", name: "Oro Femenino", coachId: "", delegateId: "u-delegate" },
   ],
   users: [
-    { id: "u-director", name: "Direccion deportiva", roles: ["director", "coach"], email: "direccion@club.test", password: "demo1234", children: [] },
+    { id: "u-director", name: "Dirección deportiva", roles: ["director", "coach"], email: "direccion@club.test", password: "demo1234", children: [] },
     { id: "u-coach", name: "Entrenador Senior Oro", roles: ["coach"], email: "coach@club.test", password: "demo1234", children: [] },
     { id: "u-delegate", name: "Delegada equipo", roles: ["delegate"], email: "delegada@club.test", password: "demo1234", children: [] },
     { id: "u-parent", name: "Familia Martin", roles: ["parent"], email: "familia@club.test", password: "demo1234", children: ["p-1", "p-2"] },
@@ -867,7 +867,7 @@ const seed = {
   threads: [
     {
       id: "thread-1",
-      subject: "Familia Martin -> Direccion deportiva",
+      subject: "Familia Martin -> Dirección deportiva",
       assignedToId: "u-director",
       relatedPlayerIds: ["p-1", "p-2"],
       participantUserIds: ["u-parent"],
@@ -894,7 +894,7 @@ const seed = {
       size: 18400000,
       notes: "Subido por el club para Infantil A.",
       createdAt: iso(0),
-      uploadedBy: "Direccion deportiva",
+      uploadedBy: "Dirección deportiva",
     },
   ],
   documentFolders: [
@@ -997,7 +997,7 @@ function normalize(raw) {
   next.permissions.feesCanUndoBulk ??= false;
   next.mobileMenuOpen ??= false;
   next.toast ||= "";
-  if (/operacion no permitida|no se pudo conectar|sin conexion|servidor local/i.test(next.toast)) next.toast = "";
+  if (/operaci[oó]n no permitida|no se pudo conectar|sin conexi[oó]n|servidor local/i.test(next.toast)) next.toast = "";
   const versionChanged = next.appVersion && next.appVersion !== APP_VERSION;
   next.appVersion = APP_VERSION;
   next.serverVersion ||= APP_VERSION;
@@ -1547,7 +1547,7 @@ function showRemoteSaveError(message, options = {}) {
   if (options.renderToast && typeof document !== "undefined" && state.session) render();
 }
 
-function expireSession(message = "Sesion caducada. Vuelve a entrar.", options = {}) {
+function expireSession(message = "Sesión caducada. Vuelve a entrar.", options = {}) {
   const hadSession = Boolean(state.session);
   state.session = null;
   state.toast = options.silent ? "" : message;
@@ -1577,7 +1577,7 @@ async function refreshRemoteState({ keepToast = false, force = false } = {}) {
   try {
     const response = await fetch(API_STATE_URL, { cache: "no-store", headers: requestHeaders("readState") });
     if (response.status === 401) {
-      let message = "Sesion caducada. Vuelve a entrar.";
+      let message = "Sesión caducada. Vuelve a entrar.";
       try {
         const payload = await response.json();
         if (payload?.error) message = payload.error;
@@ -3363,7 +3363,7 @@ function renderDashboard() {
     }
     <section class="panel dashboard-feedback-compact">
       <div class="panel-header">
-        <div><h2>Feedback beta</h2><p>Envia problemas, dudas o ideas directamente a direccion.</p></div>
+        <div><h2>Feedback beta</h2><p>Envía problemas, dudas o ideas directamente a dirección.</p></div>
         <button class="btn primary" type="button" onclick="openFeedbackModal()">Enviar feedback</button>
       </div>
     </section>
@@ -5876,7 +5876,7 @@ function renderCallups() {
   return `
     <section class="panel">
       <div class="panel-header">
-        <div><h2>${t("callups")}</h2><p>Direccion publica; padres y jugadores confirman asistencia.</p></div>
+        <div><h2>${t("callups")}</h2><p>Dirección publica; padres y jugadores confirman asistencia.</p></div>
         ${canCreateCallup() ? `<button class="btn primary" type="button" onclick="openCallupModal()">${t("newCallup")}</button>` : ""}
       </div>
       <div class="list">${visibleCallups().map(renderCallupItem).join("") || `<div class="empty">Sin convocatorias.</div>`}</div>
@@ -6502,7 +6502,7 @@ function openUserInviteModal(userId) {
   openModal(
     "Invitacion beta",
     `<section class="form invite-tool">
-      <p class="meta">Texto preparado para enviar por WhatsApp o email. No incluye contrasenas guardadas.</p>
+      <p class="meta">Texto preparado para enviar por WhatsApp o email. No incluye contraseñas guardadas.</p>
       <div class="form-row"><label>${t("email")}</label><input value="${escapeHtml(user.email || "")}" readonly /></div>
       <div class="form-row"><label>Mensaje</label><textarea id="invite-message-text" rows="12" readonly>${escapeHtml(text)}</textarea></div>
       <div class="actions inline-actions">
@@ -6760,7 +6760,7 @@ function renderDiagnosticAuditItem(item) {
 function renderSettings() {
   return `
     <section class="panel">
-      <div class="panel-header"><div><h2>${t("settings")}</h2><p>Matriz completa por rol. Direccion queda como acceso total; las casillas marcan permisos delegables.</p></div></div>
+      <div class="panel-header"><div><h2>${t("settings")}</h2><p>Matriz completa por rol. Dirección queda como acceso total; las casillas marcan permisos delegables.</p></div></div>
       <div class="table-wrap permission-matrix">
         <table>
           <thead>
@@ -8216,7 +8216,7 @@ function renderReadinessItem(item) {
 
 function betaTestItems() {
   return [
-    { id: "director", title: "Direccion", detail: "Crear aviso, evento, convocatoria, resultado y revisar diagnostico." },
+    { id: "director", title: "Dirección", detail: "Crear aviso, evento, convocatoria, resultado y revisar diagnóstico." },
     { id: "coach", title: "Entrenador", detail: "Crear convocatoria/evento de su equipo y revisar asistencia." },
     { id: "delegate", title: "Delegado", detail: "Subir archivo, abrirlo y gestionar carpeta de su equipo." },
     { id: "player", title: "Jugador", detail: "Ver calendario, confirmar convocatoria y enviar feedback." },
@@ -8280,13 +8280,13 @@ async function loadDiagnostics() {
   }
   try {
     const response = await fetch(API_DIAGNOSTICS_URL, { cache: "no-store", headers: requestHeaders("backupData") });
-    if (!response.ok) throw new Error("No se pudo cargar diagnostico");
+    if (!response.ok) throw new Error("No se pudo cargar diagnóstico");
     state.diagnostics = await response.json();
-    state.toast = "Diagnostico actualizado";
+    state.toast = "Diagnóstico actualizado";
     save();
     render();
   } catch (error) {
-    state.toast = error.message || "No se pudo cargar diagnostico";
+    state.toast = error.message || "No se pudo cargar diagnóstico";
     save();
     render();
   }

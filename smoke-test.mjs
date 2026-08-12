@@ -51,7 +51,7 @@ vm.runInContext(
   { filename: "smoke-login.js" }
 );
 
-if (!appElement.innerHTML.includes("Direccion deportiva") || !appElement.innerHTML.includes("Inicio")) {
+if (!appElement.innerHTML.includes("Dirección deportiva") || !appElement.innerHTML.includes("Inicio")) {
   throw new Error("Dashboard did not render");
 }
 

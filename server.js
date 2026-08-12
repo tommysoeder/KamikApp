@@ -12,7 +12,7 @@ const STATE_FILE = path.join(DATA_DIR, "state.json");
 const BUNDLED_STATE_FILE = path.join(ROOT, "data", "state.json");
 const BACKUP_DIR = path.join(DATA_DIR, "backups");
 const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
-const APP_VERSION = "v157";
+const APP_VERSION = "v158";
 const APP_MODE = String(process.env.APP_MODE || "presentation").toLowerCase();
 const APP_LABEL = process.env.APP_LABEL || (APP_MODE === "beta" ? "Beta privada" : "");
 const SHOW_LOGIN_PROFILES = process.env.SHOW_LOGIN_PROFILES === "1" || (APP_MODE !== "beta" && APP_MODE !== "production");
@@ -219,7 +219,7 @@ function canPerformOperation(actor, baseState) {
 function requireOperation(req, res, operation, baseState = readSavedState()) {
   const actor = actorFromRequest(req, baseState);
   if (!canPerformOperation({ ...actor, operation }, baseState)) {
-    send(res, 403, JSON.stringify({ error: "Operacion no permitida para este rol" }), { "Content-Type": types[".json"] });
+    send(res, 403, JSON.stringify({ error: "Operación no permitida para este rol" }), { "Content-Type": types[".json"] });
     return null;
   }
   return actor;
@@ -553,7 +553,7 @@ function authorizeTeamScope(actor, beforeState, afterState) {
 }
 
 function authorizeSelfUpdate(actor, beforeState, afterState) {
-  if (!actor?.user || !beforeState || !afterState) return "Operacion no permitida para este rol";
+  if (!actor?.user || !beforeState || !afterState) return "Operación no permitida para este rol";
   const beforeUsers = beforeState.users || [];
   const afterUsers = afterState.users || [];
   if (beforeUsers.length !== afterUsers.length) return "Solo puedes modificar tu propio perfil";
@@ -588,23 +588,23 @@ function authorizeChangedDomains(actor, beforeState, afterState) {
   if (!beforeState) return "";
   const changed = changedDomains(beforeState, afterState);
   const blocked = changed.filter((domain) => !domainOperations[domain].includes(actor.operation));
-  return blocked.length ? `Operacion ${actor.operation} no puede modificar: ${blocked.join(", ")}` : "";
+  return blocked.length ? `Operación ${actor.operation} no puede modificar: ${blocked.join(", ")}` : "";
 }
 
 function authorizeStateWrite(req, nextState) {
   const baseState = readSavedState();
   const actor = actorFromRequest(req, baseState || nextState);
-  if (!canPerformOperation(actor, baseState || nextState)) return "Operacion no permitida para este rol";
+  if (!canPerformOperation(actor, baseState || nextState)) return "Operación no permitida para este rol";
   if (actor.operation === "updateSelf") return authorizeSelfUpdate(actor, baseState, nextState);
   const domainError = authorizeChangedDomains(actor, baseState, nextState);
   if (domainError) return domainError;
   const scopeError = authorizeTeamScope(actor, baseState, nextState);
   if (scopeError) return scopeError;
   if (baseState && permissionsChanged(baseState, nextState) && !isExecutive(actor.user)) {
-    return "Solo direccion puede modificar permisos";
+    return "Solo dirección puede modificar permisos";
   }
   if (baseState && userSecurityChanged(baseState, nextState) && !isExecutive(actor.user) && !["importMembers", "manageProfiles", "restoreData", "undoBulk"].includes(actor.operation)) {
-    return "Solo direccion puede gestionar usuarios";
+    return "Solo dirección puede gestionar usuarios";
   }
   return "";
 }
@@ -783,8 +783,8 @@ async function handleEventCreate(req, res) {
     status: "received",
   };
   if (!canPerformOperation({ ...actor, operation: "manageEvents" }, baseState)) {
-    lastEventPatch = { ...lastEventPatch, status: "rejected", error: "Operacion no permitida para este rol" };
-    send(res, 403, JSON.stringify({ error: "Operacion no permitida para este rol" }), { "Content-Type": types[".json"] });
+    lastEventPatch = { ...lastEventPatch, status: "rejected", error: "Operación no permitida para este rol" };
+    send(res, 403, JSON.stringify({ error: "Operación no permitida para este rol" }), { "Content-Type": types[".json"] });
     return true;
   }
   if (!incomingItems.length) {
@@ -1409,7 +1409,7 @@ async function handleApi(req, res, url) {
     }
     const actor = actorFromRequest(req, state);
     if (!actor.authenticated || !actor.user) {
-      send(res, 401, JSON.stringify({ error: "Sesion caducada. Vuelve a entrar." }), { "Content-Type": types[".json"], "Cache-Control": "no-store" });
+      send(res, 401, JSON.stringify({ error: "Sesión caducada. Vuelve a entrar." }), { "Content-Type": types[".json"], "Cache-Control": "no-store" });
       return true;
     }
     send(res, 200, JSON.stringify(sanitizeStateForRead(state, actor)), { "Content-Type": types[".json"] });
