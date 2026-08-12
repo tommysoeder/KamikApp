@@ -591,6 +591,49 @@ if (crossTeamAffectedPlayerSmoke !== "true|false|true") {
   throw new Error(`Cross-team affected player visibility failed: ${crossTeamAffectedPlayerSmoke}`);
 }
 
+const playerSyncPreserveSmoke = vm.runInContext(
+  `(() => {
+    const user = state.users.find((item) => item.id === "u-vega");
+    const player = state.players.find((item) => item.id === "p-5");
+    const date = toLocalDateKey(new Date(Date.now() + 345600000));
+    const eventItem = {
+      id: "ev-player-sync-preserve",
+      type: "event",
+      title: "Evento visible antes de sync",
+      teamId: "team-1",
+      seasonId: seasonIdForDate(date),
+      competitionId: "",
+      date,
+      time: "12:45",
+      place: "Pista sync",
+      notes: "",
+      playerIds: ["p-5"]
+    };
+    const beforePlayerId = user.playerId;
+    const beforePlayerUserId = player.userId;
+    user.playerId = "";
+    player.userId = "";
+    player.name = user.name;
+    state.events.push(eventItem);
+    state.session = { userId: "u-vega", email: "vega@club.test", activeRole: "player" };
+    const beforeSync = scheduleItems().some((item) => item.id === eventItem.id);
+    const remote = normalize({ ...state, players: [], events: [] });
+    preservePlayerVisibleRemoteSchedule(remote, state);
+    const preservedPlayers = remote.players.some((item) => item.id === "p-5");
+    const preservedEvents = remote.events.some((item) => item.id === eventItem.id);
+    user.playerId = beforePlayerId;
+    player.userId = beforePlayerUserId;
+    state.session = { userId: "u-director", email: "direccion@club.test", activeRole: "director" };
+    return [beforeSync, preservedPlayers, preservedEvents].join("|");
+  })()`,
+  context,
+  { filename: "smoke-player-sync-preserve.js" }
+);
+
+if (playerSyncPreserveSmoke !== "true|true|true") {
+  throw new Error(`Player sync preserve smoke failed: ${playerSyncPreserveSmoke}`);
+}
+
 vm.runInContext(
   `location = { protocol: "http:", origin: "http://127.0.0.1:4173" };
    fetch = async (path, options = {}) => {

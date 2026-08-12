@@ -1593,6 +1593,7 @@ async function refreshRemoteState({ keepToast = false, force = false } = {}) {
     }
     const remote = normalize(JSON.parse(raw));
     lastRemoteSnapshot = raw;
+    preservePlayerVisibleRemoteSchedule(remote, state);
     remote.session = state.session;
     remote.activeView = state.activeView;
     remote.activeThreadId = state.activeThreadId;
@@ -1608,6 +1609,46 @@ async function refreshRemoteState({ keepToast = false, force = false } = {}) {
   } finally {
     remoteRefreshInFlight = false;
   }
+}
+
+function preservePlayerVisibleRemoteSchedule(remote, previous) {
+  const session = previous?.session;
+  const user = (previous?.users || []).find((item) => item.id === session?.userId);
+  if (!user || isExecutive(user) || hasRole(user, "coach") || hasRole(user, "delegate") || hasRole(user, "president") || hasRole(user, "fees")) return;
+  const playerIds = playerIdsForSnapshot(user, previous);
+  if (!playerIds.length) return;
+  const playerSet = new Set(playerIds);
+  const previousTeams = new Set(
+    (previous.players || [])
+      .filter((player) => playerSet.has(player.id))
+      .flatMap((player) => player.teams || [])
+  );
+  const applies = (item) => {
+    const itemPlayers = item.playerIds || [];
+    if (itemPlayers.length) return itemPlayers.some((id) => playerSet.has(id));
+    return Boolean(item.teamId && previousTeams.has(item.teamId));
+  };
+  const remotePlayerIds = new Set((remote.players || []).map((player) => player.id));
+  const missingPlayers = (previous.players || []).filter((player) => playerSet.has(player.id) && !remotePlayerIds.has(player.id));
+  if (missingPlayers.length) remote.players = [...(remote.players || []), ...missingPlayers];
+  const mergeVisible = (key) => {
+    const remoteIds = new Set((remote[key] || []).map((item) => item.id));
+    const missing = (previous[key] || []).filter((item) => item?.id && applies(item) && !remoteIds.has(item.id));
+    if (missing.length) remote[key] = [...(remote[key] || []), ...missing];
+  };
+  mergeVisible("events");
+  mergeVisible("trainings");
+  mergeVisible("callups");
+}
+
+function playerIdsForSnapshot(user, snapshot) {
+  const ids = new Set([...(user.children || [])]);
+  if (user.playerId) ids.add(user.playerId);
+  const userNameKey = comparableName(user.name);
+  (snapshot?.players || [])
+    .filter((player) => player.userId === user.id || (userNameKey && comparableName(player.name) === userNameKey))
+    .forEach((player) => ids.add(player.id));
+  return [...ids];
 }
 
 function startRemoteSync() {
@@ -1641,6 +1682,15 @@ function uid(prefix) {
 function currentUser() {
   const user = state.users.find((item) => item.id === state.session?.userId) || null;
   return user?.disabled ? null : user;
+}
+
+function comparableName(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
 }
 
 function appendAudit(action, target, label, details = null) {
@@ -2103,6 +2153,12 @@ function visiblePlayerIds(user = currentUser()) {
   const ids = new Set();
   if (hasRole(user, "parent")) (user.children || []).forEach((id) => ids.add(id));
   if (hasRole(user, "player") && user.playerId) ids.add(user.playerId);
+  if (hasRole(user, "player")) {
+    const userNameKey = comparableName(user.name);
+    state.players
+      .filter((player) => player.userId === user.id || (userNameKey && comparableName(player.name) === userNameKey))
+      .forEach((player) => ids.add(player.id));
+  }
   const staffTeamIds = state.teams
     .filter((team) => (hasRole(user, "coach") && team.coachId === user.id) || (hasRole(user, "delegate") && team.delegateId === user.id))
     .map((team) => team.id);

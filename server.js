@@ -12,7 +12,7 @@ const STATE_FILE = path.join(DATA_DIR, "state.json");
 const BUNDLED_STATE_FILE = path.join(ROOT, "data", "state.json");
 const BACKUP_DIR = path.join(DATA_DIR, "backups");
 const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
-const APP_VERSION = "v153";
+const APP_VERSION = "v154";
 const APP_MODE = String(process.env.APP_MODE || "presentation").toLowerCase();
 const APP_LABEL = process.env.APP_LABEL || (APP_MODE === "beta" ? "Beta privada" : "");
 const SHOW_LOGIN_PROFILES = process.env.SHOW_LOGIN_PROFILES === "1" || (APP_MODE !== "beta" && APP_MODE !== "production");
@@ -159,6 +159,15 @@ function hasRole(user, role) {
   return Boolean(user?.roles?.includes(role));
 }
 
+function comparableName(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
 function isExecutive(user) {
   return hasRole(user, "director");
 }
@@ -249,8 +258,9 @@ function playerIdsForUser(user, state) {
   }
   const ids = new Set([...(user.children || [])]);
   if (user.playerId) ids.add(user.playerId);
+  const userNameKey = comparableName(user.name);
   (state.players || [])
-    .filter((player) => player.userId === user.id)
+    .filter((player) => player.userId === user.id || (userNameKey && comparableName(player.name) === userNameKey))
     .forEach((player) => ids.add(player.id));
   return [...ids];
 }
