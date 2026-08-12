@@ -5475,9 +5475,14 @@ function renderMonthCalendar() {
 }
 
 function renderCalendarDayEvent(item) {
-  const typeLabel = t(item.type);
+  const typeLabel = calendarDayEventLabel(item);
   const hoverTitle = scheduleHoverTitle(item);
   return `<button type="button" class="${item.color}" title="${escapeHtml(hoverTitle)}" onclick="openScheduleDetail('${item.source}','${item.id}')"><span class="event-type-label">${escapeHtml(typeLabel)}</span><span class="event-tooltip">${escapeHtml(hoverTitle)}</span></button>`;
+}
+
+function calendarDayEventLabel(item) {
+  if (item.type === "event" || item.type === "tournament") return item.title || t(item.type);
+  return t(item.type);
 }
 
 function scheduleHoverTitle(item) {
@@ -6236,7 +6241,7 @@ function documentPreview(doc) {
   if (!doc.url) return `<div class="doc-preview empty-preview">${escapeHtml((doc.kind || "archivo").split("/").pop() || "file")}</div>`;
   if ((doc.kind || "").startsWith("image/")) return `<img class="doc-preview" src="${doc.url}" alt="${escapeHtml(doc.name)}" loading="lazy" />`;
   if ((doc.kind || "").startsWith("video/")) return `<video class="doc-preview" src="${doc.url}" muted preload="metadata"></video>`;
-  if (doc.kind === "application/pdf") return `<iframe class="doc-preview" src="${doc.url}#toolbar=0" title="${escapeHtml(doc.name)}"></iframe>`;
+  if (doc.kind === "application/pdf") return `<button class="doc-preview pdf-preview" type="button" onclick="openDocumentFile('${doc.id}')"><strong>PDF</strong><span>${escapeHtml(doc.name)}</span></button>`;
   return `<div class="doc-preview empty-preview">${escapeHtml((doc.kind || "archivo").split("/").pop() || "file")}</div>`;
 }
 
@@ -6262,7 +6267,7 @@ function openDocumentFile(docId) {
 function documentLargePreview(doc) {
   if ((doc.kind || "").startsWith("image/")) return `<img class="file-preview-large" src="${doc.url}" alt="${escapeHtml(doc.name)}" />`;
   if ((doc.kind || "").startsWith("video/")) return `<video class="file-preview-large" src="${doc.url}" controls></video>`;
-  if (doc.kind === "application/pdf") return `<iframe class="file-preview-large" src="${doc.url}" title="${escapeHtml(doc.name)}"></iframe>`;
+  if (doc.kind === "application/pdf") return `<iframe class="file-preview-large pdf-large-preview" src="${doc.url}#toolbar=0&navpanes=0" title="${escapeHtml(doc.name)}"></iframe>`;
   return `<div class="file-preview-large empty-preview">${escapeHtml(doc.name)}</div>`;
 }
 

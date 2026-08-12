@@ -12,7 +12,7 @@ const STATE_FILE = path.join(DATA_DIR, "state.json");
 const BUNDLED_STATE_FILE = path.join(ROOT, "data", "state.json");
 const BACKUP_DIR = path.join(DATA_DIR, "backups");
 const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
-const APP_VERSION = "v160";
+const APP_VERSION = "v161";
 const APP_MODE = String(process.env.APP_MODE || "presentation").toLowerCase();
 const APP_LABEL = process.env.APP_LABEL || (APP_MODE === "beta" ? "Beta privada" : "");
 const SHOW_LOGIN_PROFILES = process.env.SHOW_LOGIN_PROFILES === "1" || (APP_MODE !== "beta" && APP_MODE !== "production");
@@ -1504,12 +1504,14 @@ const server = http.createServer(async (req, res) => {
         send(res, 200, html, {
           "Content-Type": types[path.extname(filePath)] || "text/html; charset=utf-8",
           "Cache-Control": "no-store",
+          "X-Frame-Options": "SAMEORIGIN",
         });
         return;
       }
       send(res, 200, data, {
         "Content-Type": types[path.extname(filePath)] || "application/octet-stream",
         "Cache-Control": "no-store",
+        "X-Frame-Options": "SAMEORIGIN",
       });
     });
   } catch (error) {

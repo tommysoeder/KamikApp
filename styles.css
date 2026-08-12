@@ -771,7 +771,7 @@ body.force-mobile .mobile-header-actions button {
 
 .drive-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
   gap: 12px;
 }
 
@@ -781,7 +781,8 @@ body.force-mobile .mobile-header-actions button {
 
 .doc-preview {
   width: 100%;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 16 / 9;
+  max-height: 118px;
   border: 1px solid var(--line);
   border-radius: 7px;
   background: #f4f6f5;
@@ -791,6 +792,39 @@ body.force-mobile .mobile-header-actions button {
 
 iframe.doc-preview {
   pointer-events: none;
+}
+
+.pdf-preview {
+  display: grid;
+  place-items: center;
+  gap: 6px;
+  cursor: pointer;
+  color: #063c41;
+  background:
+    linear-gradient(135deg, rgba(229, 57, 53, 0.12), rgba(250, 252, 251, 0.96));
+}
+
+.pdf-preview strong {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 58px;
+  border-radius: 6px;
+  background: #fff;
+  border: 1px solid rgba(229, 57, 53, 0.26);
+  color: #b3261e;
+  font-weight: 900;
+  box-shadow: 0 10px 20px rgba(16, 51, 55, 0.08);
+}
+
+.pdf-preview span {
+  max-width: 86%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 750;
 }
 
 .empty-preview {
@@ -809,7 +843,7 @@ iframe.doc-preview {
 
 .file-preview-large {
   width: 100%;
-  height: min(68dvh, 720px);
+  height: min(62dvh, 620px);
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #f4f6f5;
@@ -2774,17 +2808,17 @@ textarea {
 }
 
 .drive-grid {
-  grid-template-columns: repeat(auto-fill, minmax(246px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 16px;
 }
 
 .document-card {
-  min-height: 250px;
+  min-height: 218px;
   border-left: 0;
 }
 
 .doc-preview {
-  min-height: 132px;
+  min-height: 104px;
   background:
     linear-gradient(135deg, #eaf2ef, #f9fbfa);
   border: 1px solid rgba(16, 51, 55, 0.1);
@@ -3509,6 +3543,7 @@ body::-webkit-scrollbar-thumb,
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .event-tooltip {
