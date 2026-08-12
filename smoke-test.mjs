@@ -691,6 +691,39 @@ if (allClubEventSmoke !== "true|true") {
   throw new Error(`All-club event visibility failed: ${allClubEventSmoke}`);
 }
 
+const multiTeamEventSmoke = vm.runInContext(
+  `(() => {
+    const date = toLocalDateKey(new Date(Date.now() + 518400000));
+    const eventItem = {
+      id: "ev-multi-team-smoke",
+      type: "event",
+      title: "Evento varios equipos",
+      teamId: "team-3",
+      teamIds: ["team-3", "team-2"],
+      seasonId: seasonIdForDate(date),
+      competitionId: "",
+      date,
+      time: "18:00",
+      place: "Pista club",
+      notes: "",
+      playerIds: []
+    };
+    state.events.push(eventItem);
+    notifyScheduleEvent(eventItem, "Nuevo evento en tu calendario", eventItem.title);
+    state.session = { userId: "u-player", email: "leo@club.test", activeRole: "player" };
+    const visible = scheduleItems().some((item) => item.id === eventItem.id);
+    const notified = visibleNotifications().some((notice) => notice.eventId === eventItem.id);
+    state.session = { userId: "u-director", email: "direccion@club.test", activeRole: "director" };
+    return [visible, notified].join("|");
+  })()`,
+  context,
+  { filename: "smoke-multi-team-event.js" }
+);
+
+if (multiTeamEventSmoke !== "true|true") {
+  throw new Error(`Multi-team event visibility failed: ${multiTeamEventSmoke}`);
+}
+
 vm.runInContext(
   `location = { protocol: "http:", origin: "http://127.0.0.1:4173" };
    fetch = async (path, options = {}) => {

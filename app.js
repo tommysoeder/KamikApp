@@ -1626,7 +1626,8 @@ function preservePlayerVisibleRemoteSchedule(remote, previous) {
   const applies = (item) => {
     const itemPlayers = item.playerIds || [];
     if (itemPlayers.length) return itemPlayers.some((id) => playerSet.has(id));
-    return Boolean(item.teamId && previousTeams.has(item.teamId));
+    const teamIds = itemTeamIds(item);
+    return Boolean(teamIds.length && teamIds.some((teamId) => previousTeams.has(teamId)));
   };
   const remotePlayerIds = new Set((remote.players || []).map((player) => player.id));
   const missingPlayers = (previous.players || []).filter((player) => playerSet.has(player.id) && !remotePlayerIds.has(player.id));
@@ -1828,6 +1829,26 @@ function eventPlayerIds(item) {
   return item.playerIds?.length ? item.playerIds : [];
 }
 
+function itemTeamIds(item) {
+  const ids = [...(item?.teamIds || []), item?.teamId || ""].filter(Boolean);
+  return [...new Set(ids)];
+}
+
+function itemTeams(item) {
+  return itemTeamIds(item).map(getTeam).filter(Boolean);
+}
+
+function itemTeamLabel(item) {
+  const teams = itemTeams(item);
+  if (!teams.length) return t("allClub");
+  if (teams.length <= 2) return teams.map((team) => team.name).join(" + ");
+  return `${teams.length} equipos`;
+}
+
+function itemTeamSearchText(item) {
+  return itemTeams(item).map((team) => `${team.name} ${team.category || ""}`).join(" ");
+}
+
 function isWithinVisibleGrace(item, days = 3) {
   if (!item?.date) return true;
   const limit = new Date(`${item.date}T23:59:59`);
@@ -1838,14 +1859,21 @@ function isWithinVisibleGrace(item, days = 3) {
 function playerCanSeeItem(item, user = currentUser()) {
   const players = visiblePlayerIds(user);
   const itemPlayers = eventPlayerIds(item);
-  if (item.teamId && visibleTeamIds(user).includes(item.teamId) && !itemPlayers.length) return true;
-  if (!itemPlayers.length) return true;
+  const teamIds = itemTeamIds(item);
+  if (teamIds.length && teamIds.some((teamId) => visibleTeamIds(user).includes(teamId)) && !itemPlayers.length) return true;
+  if (!teamIds.length && !itemPlayers.length) return true;
   return itemPlayers.some((id) => players.includes(id));
 }
 
 function staffCanSeeTeam(teamId, user = currentUser()) {
   if (!teamId) return isExecutive(user);
   return isExecutive(user) || staffTeamIds(user).includes(teamId);
+}
+
+function staffCanSeeScheduleItem(item, user = currentUser()) {
+  const teamIds = itemTeamIds(item);
+  if (!teamIds.length) return isExecutive(user);
+  return isExecutive(user) || teamIds.some((teamId) => staffTeamIds(user).includes(teamId));
 }
 
 function visibleNotifications(user = currentUser(), limit = 8) {
@@ -1896,13 +1924,15 @@ function usersForScheduleEvent(item) {
     [...new Set(item.playerIds)].forEach((playerId) => usersForPlayer(playerId).forEach((user) => add(user, playerId)));
     return [...recipients.values()];
   }
-  if (item.teamId) {
+  const teamIds = itemTeamIds(item);
+  if (teamIds.length) {
     state.players
-      .filter((player) => (player.teams || []).includes(item.teamId))
+      .filter((player) => (player.teams || []).some((teamId) => teamIds.includes(teamId)))
       .forEach((player) => usersForPlayer(player.id).forEach((user) => add(user, player.id)));
-    const team = getTeam(item.teamId);
-    add(state.users.find((user) => user.id === team?.coachId));
-    add(state.users.find((user) => user.id === team?.delegateId));
+    itemTeams(item).forEach((team) => {
+      add(state.users.find((user) => user.id === team?.coachId));
+      add(state.users.find((user) => user.id === team?.delegateId));
+    });
     return [...recipients.values()];
   }
   state.users.forEach((user) => add(user));
@@ -2249,13 +2279,23 @@ function editableEventTeamIds(user = currentUser()) {
 function canManageScheduleItem(item, user = currentUser()) {
   if (!item || !user) return false;
   if (isExecutive(user)) return true;
-  return Boolean(item.teamId && editableEventTeamIds(user).includes(item.teamId));
+  const teamIds = itemTeamIds(item);
+  if (!teamIds.length) return false;
+  const editableIds = editableEventTeamIds(user);
+  return teamIds.every((teamId) => editableIds.includes(teamId));
 }
 
 function canUseEventTeam(teamId, user = currentUser()) {
+  return canUseEventTeams(teamId ? [teamId] : [], user);
+}
+
+function canUseEventTeams(teamIds, user = currentUser()) {
   if (!user) return false;
   if (isExecutive(user)) return true;
-  return Boolean(teamId && editableEventTeamIds(user).includes(teamId));
+  const ids = [...new Set(teamIds || [])].filter(Boolean);
+  if (!ids.length) return false;
+  const editableIds = editableEventTeamIds(user);
+  return ids.every((teamId) => editableIds.includes(teamId));
 }
 
 function canCreateCallup(user = currentUser()) {
@@ -3104,7 +3144,7 @@ function globalSearchResults(query) {
         action: `openTeamFromSearch('${team.id}')`,
       })),
     ...schedule
-      .filter((item) => matchesSearch(`${scheduleHoverTitle(item)} ${item.title || ""} ${item.date || ""} ${item.time || ""} ${item.place || ""} ${getTeam(item.teamId)?.name || ""}`, words))
+      .filter((item) => matchesSearch(`${scheduleHoverTitle(item)} ${item.title || ""} ${item.date || ""} ${item.time || ""} ${item.place || ""} ${itemTeamSearchText(item)}`, words))
       .map((item) => ({
         group: t("calendar"),
         title: scheduleHoverTitle(item),
@@ -5163,7 +5203,7 @@ function renderClubEvents() {
   const recentCreated = (state.lastCreatedEventIds || []).map((id) => state.events.find((item) => item.id === id)).filter(Boolean);
   const byTeam = new Map();
   items.forEach((item) => {
-    const key = item.teamId || "all";
+    const key = itemTeamIds(item).join("|") || "all";
     if (!byTeam.has(key)) byTeam.set(key, []);
     byTeam.get(key).push(item);
   });
@@ -5182,7 +5222,7 @@ function renderClubEvents() {
         </div>
         <div class="grid three management-stats">
           <article class="card stat"><span>Eventos</span><strong>${items.length}</strong><span>${escapeHtml(monthName)}</span></article>
-          <article class="card stat"><span>Equipos</span><strong>${new Set(items.map((item) => item.teamId || "all")).size || 0}</strong><span>${visibleTeams.length} visibles</span></article>
+          <article class="card stat"><span>Equipos</span><strong>${new Set(items.flatMap((item) => itemTeamIds(item).length ? itemTeamIds(item) : ["all"])).size || 0}</strong><span>${visibleTeams.length} visibles</span></article>
           <article class="card stat clickable-item" onclick="setView('calendar')"><span>${t("calendar")}</span><strong>${scheduleItems({ includeExpired: true }).filter((item) => item.date?.slice(0, 7) === state.calendarCursor.slice(0, 7)).length}</strong><span>Ver calendario completo</span></article>
         </div>
         ${
@@ -5214,7 +5254,7 @@ function renderClubEvents() {
             items.length
               ? [...byTeam.entries()]
                   .map(([teamId, teamItems]) => `
-                    <div class="section-kicker">${teamId === "all" ? t("allClub") : escapeHtml(getTeam(teamId)?.name || "Equipo")}</div>
+                    <div class="section-kicker">${teamId === "all" ? t("allClub") : escapeHtml(itemTeamLabel(teamItems[0]))}</div>
                     ${teamItems.map(renderScheduleItem).join("")}
                   `)
                   .join("")
@@ -5241,11 +5281,11 @@ function scheduleItems(options = {}) {
   const user = currentUser();
   const events = state.events
     .filter((event) => includeExpired || isWithinVisibleGrace(event))
-    .filter((event) => !event.teamId || staffCanSeeTeam(event.teamId, user) || playerCanSeeItem(event, user))
+    .filter((event) => !itemTeamIds(event).length || staffCanSeeScheduleItem(event, user) || playerCanSeeItem(event, user))
     .map((event) => ({ ...event, source: "event", color: event.type === "match" ? "blue" : event.type === "tournament" ? "gold" : "green" }));
   const trainings = state.trainings
     .filter((training) => includeExpired || isWithinVisibleGrace(training))
-    .filter((training) => !training.teamId || staffCanSeeTeam(training.teamId, user) || playerCanSeeItem(training, user))
+    .filter((training) => !itemTeamIds(training).length || staffCanSeeScheduleItem(training, user) || playerCanSeeItem(training, user))
     .map((training) => ({
       id: training.id,
       source: "training",
@@ -5266,11 +5306,11 @@ function archivedScheduleItems() {
   const user = currentUser();
   const events = state.events
     .filter((event) => !isWithinVisibleGrace(event))
-    .filter((event) => !event.teamId || staffCanSeeTeam(event.teamId, user) || playerCanSeeItem(event, user))
+    .filter((event) => !itemTeamIds(event).length || staffCanSeeScheduleItem(event, user) || playerCanSeeItem(event, user))
     .map((event) => ({ ...event, source: "event", color: event.type === "match" ? "blue" : event.type === "tournament" ? "gold" : "green" }));
   const trainings = state.trainings
     .filter((training) => !isWithinVisibleGrace(training))
-    .filter((training) => !training.teamId || staffCanSeeTeam(training.teamId, user) || playerCanSeeItem(training, user))
+    .filter((training) => !itemTeamIds(training).length || staffCanSeeScheduleItem(training, user) || playerCanSeeItem(training, user))
     .map((training) => ({
       id: training.id,
       source: "training",
@@ -5306,7 +5346,7 @@ function weeklyScheduleItems() {
 }
 
 function renderScheduleItem(item) {
-  const team = getTeam(item.teamId);
+  const teams = itemTeams(item);
   const players = eventPlayerIds(item).map(getPlayer).filter(Boolean);
   const manageable = canManageScheduleItem(item);
   return `
@@ -5319,7 +5359,7 @@ function renderScheduleItem(item) {
         <span class="pill ${item.color}">${t(item.type)}</span>
       </div>
       <div class="pill-line">
-        ${team ? `<span class="pill">${team.name}</span>` : `<span class="pill">${t("allClub")}</span>`}
+        ${teams.length ? teams.map((team) => `<span class="pill">${escapeHtml(team.name)}</span>`).join("") : `<span class="pill">${t("allClub")}</span>`}
         ${players.length ? `<span class="pill">${players.length} ${t("selectedPlayers").toLowerCase()}</span>` : ""}
         ${item.source === "event" ? `<a class="btn" href="${googleCalendarUrl(item)}" target="_blank" rel="noreferrer" onclick="event.stopPropagation()">${t("google")}</a>` : ""}
         ${item.source === "event" && manageable ? `<button class="btn" type="button" onclick="event.stopPropagation(); openEditEventModal('${item.id}')">${t("editEvent")}</button>` : ""}
@@ -5338,7 +5378,8 @@ function openScheduleDetail(source, id) {
       ? state.trainings.find((training) => training.id === id)
       : state.events.find((eventItem) => eventItem.id === id);
   if (!item) return;
-  const team = getTeam(item.teamId);
+  const teams = itemTeams(item);
+  const team = teams[0];
   const title = source === "training" ? `${t("training")} · ${team?.name || t("allClub")}` : item.title;
   const players = eventPlayerIds(item).map(getPlayer).filter(Boolean);
   const manageable = canManageScheduleItem(item);
@@ -5347,7 +5388,7 @@ function openScheduleDetail(source, id) {
     `<article class="article-detail schedule-detail">
       <div class="meta">${item.date} · ${item.time} · ${escapeHtml(item.place || "")}</div>
       <div class="pill-line" style="margin:10px 0">
-        ${team ? `<span class="pill">${team.name}</span>` : `<span class="pill">${t("allClub")}</span>`}
+        ${teams.length ? teams.map((team) => `<span class="pill">${escapeHtml(team.name)}</span>`).join("") : `<span class="pill">${t("allClub")}</span>`}
         ${players.map((player) => `<span class="pill">${escapeHtml(player.name)}</span>`).join("")}
       </div>
       <p>${escapeHtml(item.notes || "")}</p>
@@ -5443,7 +5484,7 @@ function scheduleHoverTitle(item) {
   const typeLabel = t(item.type);
   if (item.type === "training") return `${typeLabel} ${getTeam(item.teamId)?.name || ""}`.trim();
   if (item.type === "match") return `${typeLabel} ${matchCalendarTitle(item)}`.trim();
-  return `${typeLabel} ${item.title || getTeam(item.teamId)?.name || ""}`.trim();
+  return `${typeLabel} ${item.title || itemTeamLabel(item) || ""}`.trim();
 }
 
 function matchCalendarTitle(item) {
@@ -5640,7 +5681,8 @@ function playerScheduleItems(playerId) {
   return scheduleItems().filter((item) => {
     const ids = eventPlayerIds(item);
     if (ids.length) return ids.includes(playerId);
-    return Boolean(item.teamId && getPlayer(playerId)?.teams?.includes(item.teamId));
+    const teamIds = itemTeamIds(item);
+    return Boolean(teamIds.length && (getPlayer(playerId)?.teams || []).some((teamId) => teamIds.includes(teamId)));
   });
 }
 
@@ -5714,7 +5756,8 @@ function playerHistoryItems(player) {
 function playerScheduleItemApplies(item, playerId) {
   const ids = eventPlayerIds(item);
   if (ids.length) return ids.includes(playerId);
-  return Boolean(item.teamId && getPlayer(playerId)?.teams?.includes(item.teamId));
+  const teamIds = itemTeamIds(item);
+  return Boolean(teamIds.length && (getPlayer(playerId)?.teams || []).some((teamId) => teamIds.includes(teamId)));
 }
 
 function renderPlayerHistoryItem(item) {
@@ -6971,7 +7014,6 @@ function renderTargetOptions(type, selectedCsv = "") {
 function openEventModal(defaultType = "match") {
   const teams = editableEventTeamIds().map(getTeam).filter(Boolean);
   const initialTeamId = teams[0]?.id || "";
-  const allClubOption = isExecutive(currentUser()) ? `<option value="">${t("allClub")}</option>` : "";
   const competitions = state.competitions.filter((competition) => competition.seasonId === state.activeSeasonId);
   const selectedType = ["match", "tournament", "event", "training"].includes(defaultType) ? defaultType : "match";
   openModal(
@@ -6980,7 +7022,7 @@ function openEventModal(defaultType = "match") {
       <div class="form-grid">
         <div class="form-row"><label>${t("title")}</label><input name="title" placeholder="Solo necesario para partido, torneo o evento" /></div>
         <div class="form-row"><label>${t("type")}</label><select name="type"><option value="match" ${selectedType === "match" ? "selected" : ""}>${t("match")}</option><option value="tournament" ${selectedType === "tournament" ? "selected" : ""}>${t("tournament")}</option><option value="event" ${selectedType === "event" ? "selected" : ""}>${t("event")}</option><option value="training" ${selectedType === "training" ? "selected" : ""}>${t("training")}</option></select></div>
-        <div class="form-row"><label>${t("team")}</label><select name="teamId" onchange="renderEventPlayerOptions(this.value)">${allClubOption}${teams.map((team) => `<option value="${team.id}" ${team.id === initialTeamId ? "selected" : ""}>${team.name}</option>`).join("")}</select></div>
+        <div class="form-row"><label>${t("team")}</label>${eventTeamCheckboxList(teams, initialTeamId ? [initialTeamId] : [], isExecutive(currentUser()))}</div>
         <div class="form-row"><label>${t("competition")}</label><select name="competitionId"><option value="">Sin competición</option>${competitions.map((competition) => `<option value="${competition.id}" ${competition.id === state.activeCompetitionId ? "selected" : ""}>${escapeHtml(competition.name)}</option>`).join("")}</select></div>
         <div class="form-row"><label>${t("place")}</label><input name="place" required /></div>
         <div class="form-row"><label>${t("date")}</label><input name="date" type="date" required /></div>
@@ -7006,7 +7048,7 @@ function openEditEventModal(eventId) {
   const eventItem = state.events.find((item) => item.id === eventId);
   if (!eventItem || !canManageScheduleItem(eventItem)) return;
   const teams = editableEventTeamIds().map(getTeam).filter(Boolean);
-  const allClubOption = isExecutive(currentUser()) ? `<option value="">${t("allClub")}</option>` : "";
+  const selectedTeamIds = itemTeamIds(eventItem);
   const competitions = state.competitions.filter((competition) => competition.seasonId === (eventItem.seasonId || state.activeSeasonId));
   openModal(
     t("editEvent"),
@@ -7014,7 +7056,7 @@ function openEditEventModal(eventId) {
       <div class="form-grid">
         <div class="form-row"><label>${t("title")}</label><input name="title" value="${escapeHtml(eventItem.title)}" required /></div>
         <div class="form-row"><label>${t("type")}</label><select name="type"><option value="match" ${eventItem.type === "match" ? "selected" : ""}>${t("match")}</option><option value="tournament" ${eventItem.type === "tournament" ? "selected" : ""}>${t("tournament")}</option><option value="event" ${eventItem.type === "event" ? "selected" : ""}>${t("event")}</option></select></div>
-        <div class="form-row"><label>${t("team")}</label><select name="teamId" onchange="renderEventPlayerOptions(this.value,'${eventItem.playerIds.join(",")}')">${allClubOption}${teams.map((team) => `<option value="${team.id}" ${eventItem.teamId === team.id ? "selected" : ""}>${team.name}</option>`).join("")}</select></div>
+        <div class="form-row"><label>${t("team")}</label>${eventTeamCheckboxList(teams, selectedTeamIds, isExecutive(currentUser()), (eventItem.playerIds || []).join(","))}</div>
         <div class="form-row"><label>${t("competition")}</label><select name="competitionId"><option value="">Sin competición</option>${competitions.map((competition) => `<option value="${competition.id}" ${eventItem.competitionId === competition.id ? "selected" : ""}>${escapeHtml(competition.name)}</option>`).join("")}</select></div>
         <div class="form-row"><label>${t("place")}</label><input name="place" value="${escapeHtml(eventItem.place || "")}" required /></div>
         <div class="form-row"><label>${t("date")}</label><input name="date" type="date" value="${eventItem.date}" required /></div>
@@ -7025,7 +7067,7 @@ function openEditEventModal(eventId) {
       <button class="btn primary" type="submit">${t("save")}</button>
     </form>`
   );
-  renderEventPlayerOptions(eventItem.teamId, eventItem.playerIds.join(","));
+  renderEventPlayerOptions(selectedTeamIds.join(","), (eventItem.playerIds || []).join(","));
 }
 
 function openEditTrainingModal(trainingId) {
@@ -7054,14 +7096,14 @@ function openDuplicateEventModal(eventId) {
   const eventItem = state.events.find((item) => item.id === eventId);
   if (!eventItem || !canManageScheduleItem(eventItem)) return;
   const teams = editableEventTeamIds().map(getTeam).filter(Boolean);
-  const allClubOption = isExecutive(currentUser()) ? `<option value="">${t("allClub")}</option>` : "";
+  const selectedTeamIds = itemTeamIds(eventItem);
   openModal(
     t("duplicateEvent"),
     `<form class="form" onsubmit="duplicateEvent(event,'${eventItem.id}')">
       <div class="form-grid">
         <div class="form-row"><label>${t("title")}</label><input name="title" value="${escapeHtml(eventItem.title)}" required /></div>
         <div class="form-row"><label>${t("type")}</label><select name="type"><option value="match" ${eventItem.type === "match" ? "selected" : ""}>${t("match")}</option><option value="tournament" ${eventItem.type === "tournament" ? "selected" : ""}>${t("tournament")}</option><option value="event" ${eventItem.type === "event" ? "selected" : ""}>${t("event")}</option></select></div>
-        <div class="form-row"><label>${t("team")}</label><select name="teamId" onchange="renderEventPlayerOptions(this.value,'${(eventItem.playerIds || []).join(",")}')">${allClubOption}${teams.map((team) => `<option value="${team.id}" ${eventItem.teamId === team.id ? "selected" : ""}>${team.name}</option>`).join("")}</select></div>
+        <div class="form-row"><label>${t("team")}</label>${eventTeamCheckboxList(teams, selectedTeamIds, isExecutive(currentUser()), (eventItem.playerIds || []).join(","))}</div>
         <div class="form-row"><label>${t("place")}</label><input name="place" value="${escapeHtml(eventItem.place || "")}" required /></div>
         <div class="form-row"><label>${t("date")}</label><input name="date" type="date" value="${eventItem.date}" required /></div>
         <div class="form-row"><label>${t("time")}</label><input name="time" type="time" value="${eventItem.time}" required /></div>
@@ -7071,7 +7113,7 @@ function openDuplicateEventModal(eventId) {
       <button class="btn primary" type="submit">${t("save")}</button>
     </form>`
   );
-  renderEventPlayerOptions(eventItem.teamId, (eventItem.playerIds || []).join(","));
+  renderEventPlayerOptions(selectedTeamIds.join(","), (eventItem.playerIds || []).join(","));
 }
 
 function openDuplicateTrainingModal(trainingId) {
@@ -7132,6 +7174,52 @@ function renderEventPlayerOptions(teamId, selectedCsv = "") {
   root.innerHTML = affectedPlayerCheckboxList(teamId, selectedCsv);
 }
 
+function eventTeamCheckboxList(teams, selectedIds = [], includeAllClub = false, selectedPlayerCsv = "") {
+  const selected = new Set(selectedIds || []);
+  const allClubChecked = includeAllClub && !selected.size;
+  return `
+    <div class="checkbox-list event-team-list">
+      ${
+        includeAllClub
+          ? `<label class="check-row">
+              <input class="event-team-all-check" name="teamIds" type="checkbox" value="" ${allClubChecked ? "checked" : ""} onchange="syncEventTeamSelection(this,'${selectedPlayerCsv}')" />
+              <span><strong>${t("allClub")}</strong><em>Evento visible para todos</em></span>
+            </label>`
+          : ""
+      }
+      ${teams
+        .map(
+          (team) => `
+          <label class="check-row">
+            <input class="event-team-check" name="teamIds" type="checkbox" value="${team.id}" ${selected.has(team.id) ? "checked" : ""} onchange="syncEventTeamSelection(this,'${selectedPlayerCsv}')" />
+            <span><strong>${escapeHtml(team.name)}</strong><em>${escapeHtml(team.category || "")}</em></span>
+          </label>
+        `
+        )
+        .join("")}
+    </div>
+  `;
+}
+
+function selectedEventTeamIds() {
+  return [...document.querySelectorAll(".event-team-check:checked")].map((input) => input.value).filter(Boolean);
+}
+
+function syncEventTeamSelection(source, selectedPlayerCsv = "") {
+  const list = source.closest(".event-team-list");
+  if (!list) return;
+  const allClub = list.querySelector(".event-team-all-check");
+  if (source.classList.contains("event-team-all-check") && source.checked) {
+    list.querySelectorAll(".event-team-check").forEach((input) => {
+      input.checked = false;
+    });
+  } else if (source.classList.contains("event-team-check") && source.checked && allClub) {
+    allClub.checked = false;
+  }
+  if (allClub && !selectedEventTeamIds().length) allClub.checked = true;
+  renderEventPlayerOptions(selectedEventTeamIds().join(","), selectedPlayerCsv);
+}
+
 function openCallupModal() {
   const teams = isExecutive(currentUser()) ? state.teams : state.teams.filter((team) => team.coachId === currentUser().id);
   const competitions = state.competitions.filter((competition) => competition.seasonId === state.activeSeasonId);
@@ -7188,14 +7276,15 @@ function renderPlayerOptions(teamId, selectedCsv = "") {
 
 function affectedPlayerCheckboxList(teamId, selectedCsv = "") {
   const selected = new Set(String(selectedCsv || "").split(",").filter(Boolean));
-  const players = teamId ? state.players.filter((player) => player.teams.includes(teamId)) : [];
-  if (!players.length) return `<div class="empty">Selecciona un equipo para cargar jugadores.</div>`;
+  const teamIds = [...new Set(String(teamId || "").split(",").filter(Boolean))];
+  const players = teamIds.length ? state.players.filter((player) => (player.teams || []).some((id) => teamIds.includes(id))) : [];
+  if (!players.length) return `<div class="empty">Selecciona uno o varios equipos para cargar jugadores.</div>`;
   const shouldSelectAll = selected.size === 0;
   return `
     <div class="checkbox-list">
       <label class="check-row player-check select-all-row">
         <input type="checkbox" onchange="toggleAffectedPlayers(this)" ${shouldSelectAll ? "checked" : ""} />
-        <span><strong>Seleccionar todos</strong><em>${players.length} jugadores del equipo</em></span>
+        <span><strong>Seleccionar todos</strong><em>${players.length} jugadores seleccionables</em></span>
       </label>
       ${players
         .map(
@@ -8091,7 +8180,7 @@ function teamReadinessReport(readinessState = state) {
     const invitedUsers = [...new Set(teamPlayers.flatMap((player) => usersByPlayer.get(player.id) || []))].filter((user) => user.betaInvitedAt);
     const enteredUsers = [...new Set(teamPlayers.flatMap((player) => usersByPlayer.get(player.id) || []))].filter((user) => user.lastLoginAt);
     const teamDocs = documents.filter((doc) => doc.teamId === team.id);
-    const teamEvents = events.filter((item) => item.teamId === team.id);
+    const teamEvents = events.filter((item) => itemTeamIds(item).includes(team.id));
     const issues = [];
     if (!teamPlayers.length) issues.push({ level: "blocker", text: "Sin jugadores" });
     if (!team.coachId) issues.push({ level: "blocker", text: "Sin entrenador" });
@@ -9017,6 +9106,12 @@ function createEventFromForm(form) {
   return false;
 }
 
+function eventTeamIdsFromForm(form) {
+  const selected = form.getAll("teamIds").map(String).filter(Boolean);
+  const legacy = String(form.get("teamId") || "");
+  return [...new Set(selected.length ? selected : legacy ? [legacy] : [])];
+}
+
 async function createEvent(event) {
   event.preventDefault();
   if (!canCreateEvent()) return;
@@ -9033,8 +9128,9 @@ async function createEvent(event) {
   const date = form.get("date");
   const type = form.get("type");
   const playerIds = form.getAll("playerIds");
-  const teamId = String(form.get("teamId") || "");
-  if (!canUseEventTeam(teamId)) {
+  const teamIds = eventTeamIdsFromForm(form);
+  const teamId = teamIds[0] || "";
+  if (!canUseEventTeams(teamIds)) {
     state.toast = "No tienes permiso para crear eventos en ese equipo";
     save();
     closeModal();
@@ -9052,13 +9148,15 @@ async function createEvent(event) {
     state.toast = trainings.length === 1 ? "Entreno guardado en el calendario" : `${trainings.length} entrenos guardados`;
     appendAudit("crear entreno", "training", `${trainings.length} · ${getTeam(teamId)?.name || t("allClub")}`);
   } else {
-    const fallbackTitle = `${t(type)} ${getTeam(teamId)?.name || t("allClub")}`.trim();
+    const teamLabel = teamIds.length > 2 ? `${teamIds.length} equipos` : teamIds.map((id) => getTeam(id)?.name).filter(Boolean).join(" + ");
+    const fallbackTitle = `${t(type)} ${teamLabel || t("allClub")}`.trim();
     const title = String(form.get("title") || fallbackTitle).trim();
     const eventItem = {
     id: uid("ev"),
     type,
     title,
     teamId,
+    teamIds,
     seasonId: seasonIdForDate(date),
     competitionId: form.get("competitionId") || "",
     date,
@@ -9132,13 +9230,15 @@ function duplicateEvent(event, eventId) {
   const original = state.events.find((item) => item.id === eventId);
   if (!original || !canManageScheduleItem(original)) return;
   const form = new FormData(event.currentTarget);
-  const teamId = String(form.get("teamId") || "");
-  if (!canUseEventTeam(teamId)) return;
+  const teamIds = eventTeamIdsFromForm(form);
+  const teamId = teamIds[0] || "";
+  if (!canUseEventTeams(teamIds)) return;
   const eventItem = {
     id: uid("ev"),
     type: form.get("type"),
     title: form.get("title"),
     teamId,
+    teamIds,
     seasonId: seasonIdForDate(form.get("date")),
     competitionId: form.get("competitionId") || original.competitionId || "",
     date: form.get("date"),
@@ -9201,12 +9301,14 @@ function updateEvent(event, eventId) {
   const eventItem = state.events.find((item) => item.id === eventId);
   if (!eventItem || !canManageScheduleItem(eventItem)) return;
   const form = new FormData(event.currentTarget);
-  const nextTeamId = String(form.get("teamId") || "");
-  if (!canUseEventTeam(nextTeamId)) return;
+  const nextTeamIds = eventTeamIdsFromForm(form);
+  const nextTeamId = nextTeamIds[0] || "";
+  if (!canUseEventTeams(nextTeamIds)) return;
   const before = {
     title: eventItem.title,
     type: eventItem.type,
     teamId: eventItem.teamId,
+    teamIds: itemTeamIds(eventItem),
     date: eventItem.date,
     time: eventItem.time,
     place: eventItem.place,
@@ -9217,6 +9319,7 @@ function updateEvent(event, eventId) {
   eventItem.title = form.get("title");
   eventItem.type = form.get("type");
   eventItem.teamId = nextTeamId;
+  eventItem.teamIds = nextTeamIds;
   eventItem.seasonId = seasonIdForDate(form.get("date"));
   eventItem.competitionId = form.get("competitionId") || "";
   eventItem.date = form.get("date");
@@ -9225,6 +9328,7 @@ function updateEvent(event, eventId) {
   eventItem.notes = form.get("notes");
   eventItem.playerIds = nextPlayers;
   const changedFields = ["title", "type", "teamId", "date", "time", "place", "notes"].filter((key) => before[key] !== eventItem[key]);
+  if (before.teamIds.join("|") !== nextTeamIds.join("|")) changedFields.push("teamIds");
   const newPlayers = nextPlayers.filter((id) => !before.playerIds.includes(id));
   if (changedFields.length) {
     notifyScheduleEvent(eventItem, "Evento modificado", `${eventItem.title} · ${eventItem.date} ${eventItem.time}`);

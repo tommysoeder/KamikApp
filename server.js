@@ -12,7 +12,7 @@ const STATE_FILE = path.join(DATA_DIR, "state.json");
 const BUNDLED_STATE_FILE = path.join(ROOT, "data", "state.json");
 const BACKUP_DIR = path.join(DATA_DIR, "backups");
 const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
-const APP_VERSION = "v159";
+const APP_VERSION = "v160";
 const APP_MODE = String(process.env.APP_MODE || "presentation").toLowerCase();
 const APP_LABEL = process.env.APP_LABEL || (APP_MODE === "beta" ? "Beta privada" : "");
 const SHOW_LOGIN_PROFILES = process.env.SHOW_LOGIN_PROFILES === "1" || (APP_MODE !== "beta" && APP_MODE !== "production");
@@ -281,6 +281,11 @@ function teamIdsForUser(user, state) {
   ];
 }
 
+function itemTeamIds(item) {
+  const ids = [...(item?.teamIds || []), item?.teamId || ""].filter(Boolean);
+  return [...new Set(ids)];
+}
+
 function canReadAnnouncement(announcement, user, visibleTeamIds) {
   if (!announcement) return false;
   if (announcement.targetType === "all") return true;
@@ -346,7 +351,10 @@ function sanitizeStateForRead(state, actor) {
   copy.users = copy.users.filter((user) => linkedUserIds.has(user.id));
   copy.teams = (copy.teams || []).filter((team) => visibleTeams.has(team.id));
   copy.players = (copy.players || []).filter((player) => visiblePlayers.has(player.id));
-  copy.events = (copy.events || []).filter((event) => !event.teamId || visibleTeams.has(event.teamId) || (event.playerIds || []).some((id) => visiblePlayers.has(id)));
+  copy.events = (copy.events || []).filter((event) => {
+    const teamIds = itemTeamIds(event);
+    return !teamIds.length || teamIds.some((teamId) => visibleTeams.has(teamId)) || (event.playerIds || []).some((id) => visiblePlayers.has(id));
+  });
   copy.trainings = (copy.trainings || []).filter((training) => !training.teamId || visibleTeams.has(training.teamId) || (training.playerIds || []).some((id) => visiblePlayers.has(id)));
   copy.callups = (copy.callups || []).filter((callup) => !callup.teamId || visibleTeams.has(callup.teamId) || (callup.playerIds || []).some((id) => visiblePlayers.has(id)));
   copy.results = (copy.results || []).filter((result) => visibleTeams.has(result.teamId));
@@ -482,7 +490,8 @@ function changedItems(beforeItems = [], afterItems = []) {
 }
 
 function itemWithinTeams(item, teamIds) {
-  return !item?.teamId || teamIds.includes(item.teamId);
+  const ids = itemTeamIds(item);
+  return !ids.length || ids.every((teamId) => teamIds.includes(teamId));
 }
 
 function playerWithinTeams(player, teamIds) {
@@ -794,7 +803,7 @@ async function handleEventCreate(req, res) {
   }
   if (!isExecutive(actor.user)) {
     const teamIds = staffTeamIds(actor.user, baseState);
-    const outside = incomingItems.some((item) => item.teamId && !teamIds.includes(item.teamId));
+    const outside = incomingItems.some((item) => itemTeamIds(item).some((teamId) => !teamIds.includes(teamId)));
     if (outside) {
       lastEventPatch = { ...lastEventPatch, status: "rejected", error: "No puedes crear eventos fuera de tus equipos" };
       send(res, 403, JSON.stringify({ error: "No puedes crear eventos fuera de tus equipos" }), { "Content-Type": types[".json"] });
