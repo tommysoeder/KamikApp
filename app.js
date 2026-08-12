@@ -1887,6 +1887,43 @@ function notifyAffectedPlayers(playerIds, title, body, eventId = "") {
   });
 }
 
+function usersForScheduleEvent(item) {
+  const recipients = new Map();
+  const add = (user, playerId = "") => {
+    if (user && !user.disabled && !recipients.has(user.id)) recipients.set(user.id, { user, playerId });
+  };
+  if (item.playerIds?.length) {
+    [...new Set(item.playerIds)].forEach((playerId) => usersForPlayer(playerId).forEach((user) => add(user, playerId)));
+    return [...recipients.values()];
+  }
+  if (item.teamId) {
+    state.players
+      .filter((player) => (player.teams || []).includes(item.teamId))
+      .forEach((player) => usersForPlayer(player.id).forEach((user) => add(user, player.id)));
+    const team = getTeam(item.teamId);
+    add(state.users.find((user) => user.id === team?.coachId));
+    add(state.users.find((user) => user.id === team?.delegateId));
+    return [...recipients.values()];
+  }
+  state.users.forEach((user) => add(user));
+  return [...recipients.values()];
+}
+
+function notifyScheduleEvent(item, title, body) {
+  usersForScheduleEvent(item).forEach(({ user, playerId }) => {
+    addNotification({
+      id: uid("notice"),
+      userId: user.id,
+      playerId,
+      eventId: item.id,
+      title,
+      body,
+      createdAt: iso(0),
+      read: false,
+    });
+  });
+}
+
 function notifyTeam(teamId, title, body, documentId = "") {
   const playerIds = state.players.filter((player) => player.teams.includes(teamId)).map((player) => player.id);
   const recipients = new Map();
@@ -9025,7 +9062,7 @@ async function createEvent(event) {
     state.events.push(eventItem);
     patchedEvents = [eventItem];
     state.lastCreatedEventIds = [eventItem.id, ...(state.lastCreatedEventIds || []).filter((id) => id !== eventItem.id)].slice(0, 5);
-    if (playerIds.length) notifyAffectedPlayers(playerIds, "Nuevo evento en tu calendario", `${eventItem.title} · ${eventItem.date} ${eventItem.time}`, eventItem.id);
+    notifyScheduleEvent(eventItem, "Nuevo evento en tu calendario", `${eventItem.title} · ${eventItem.date} ${eventItem.time}`);
     state.toast = "Evento guardado en el calendario";
     appendAudit("crear evento", "event", eventItem.title);
   }
@@ -9103,7 +9140,7 @@ function duplicateEvent(event, eventId) {
     playerIds: form.getAll("playerIds"),
   };
   state.events.push(eventItem);
-  notifyAffectedPlayers(eventItem.playerIds || [], "Nuevo evento en tu calendario", `${eventItem.title} · ${eventItem.date} ${eventItem.time}`, eventItem.id);
+  notifyScheduleEvent(eventItem, "Nuevo evento en tu calendario", `${eventItem.title} · ${eventItem.date} ${eventItem.time}`);
   state.calendarCursor = `${eventItem.date.slice(0, 7)}-01`;
   state.toast = "Evento duplicado";
   appendAudit("duplicar evento", "event", eventItem.title);
@@ -9182,7 +9219,7 @@ function updateEvent(event, eventId) {
   const changedFields = ["title", "type", "teamId", "date", "time", "place", "notes"].filter((key) => before[key] !== eventItem[key]);
   const newPlayers = nextPlayers.filter((id) => !before.playerIds.includes(id));
   if (changedFields.length) {
-    notifyAffectedPlayers([...new Set([...before.playerIds, ...nextPlayers])], "Evento modificado", `${eventItem.title} · ${eventItem.date} ${eventItem.time}`, eventItem.id);
+    notifyScheduleEvent(eventItem, "Evento modificado", `${eventItem.title} · ${eventItem.date} ${eventItem.time}`);
   }
   if (newPlayers.length) {
     notifyAffectedPlayers(newPlayers, "Nueva convocatoria", `Te han incluido en ${eventItem.title}.`, eventItem.id);
@@ -9212,7 +9249,7 @@ function deleteEvent(eventId) {
   if (!eventItem || !confirm("Borrar este evento?")) return;
   state.events = state.events.filter((item) => item.id !== eventId);
   if (eventItem.sourceCallupId) state.callups = state.callups.filter((item) => item.id !== eventItem.sourceCallupId);
-  notifyAffectedPlayers(eventItem.playerIds || [], "Evento cancelado", eventItem.title || "", eventId);
+  notifyScheduleEvent(eventItem, "Evento cancelado", eventItem.title || "");
   state.toast = "Evento borrado";
   appendAudit("borrar evento", "event", eventItem.title || eventId);
   save("manageEvents");

@@ -651,16 +651,18 @@ const allClubEventSmoke = vm.runInContext(
       playerIds: []
     };
     state.events.push(eventItem);
+    notifyScheduleEvent(eventItem, "Nuevo evento en tu calendario", eventItem.title);
     state.session = { userId: "u-player", email: "leo@club.test", activeRole: "player" };
     const visible = scheduleItems().some((item) => item.id === eventItem.id);
+    const notified = visibleNotifications().some((notice) => notice.eventId === eventItem.id);
     state.session = { userId: "u-director", email: "direccion@club.test", activeRole: "director" };
-    return String(visible);
+    return [visible, notified].join("|");
   })()`,
   context,
   { filename: "smoke-all-club-event.js" }
 );
 
-if (allClubEventSmoke !== "true") {
+if (allClubEventSmoke !== "true|true") {
   throw new Error(`All-club event visibility failed: ${allClubEventSmoke}`);
 }
 
