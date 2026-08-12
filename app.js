@@ -5072,7 +5072,6 @@ function renderClubEvents() {
             <input class="month-input" type="month" value="${state.calendarCursor.slice(0, 7)}" onchange="setCalendarMonth(this.value)" />
             <button class="btn icon-only calendar-arrow" type="button" onclick="moveMonth(1)" aria-label="Mes siguiente">&gt;</button>
             ${canCreateEvent() ? `<button class="btn primary" type="button" onclick="openEventModal('event')">${t("newEvent")}</button>` : ""}
-            ${isExecutive(currentUser()) ? `<button class="btn ghost" type="button" onclick="testEventCreate()">Probar guardado</button>` : ""}
           </div>
         </div>
         <div class="grid three management-stats">
@@ -6493,6 +6492,7 @@ function renderDiagnostics() {
           <div><h2>${t("diagnostics")}</h2><p>Estado tecnico, sincronizacion, backups y herramientas de temporada.</p></div>
           <div class="actions inline-actions">
             <button class="btn" type="button" onclick="exportBetaReport()">Exportar informe beta</button>
+            ${isExecutive(currentUser()) ? `<button class="btn ghost" type="button" onclick="testEventCreate()">Probar guardado de evento</button>` : ""}
             <button class="btn primary" type="button" onclick="loadDiagnostics()">${diagnostics ? "Actualizar" : "Cargar"}</button>
           </div>
         </div>
