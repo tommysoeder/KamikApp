@@ -386,6 +386,23 @@ if (feedbackSystemUnreadSmoke !== "1|0") {
   throw new Error(`Feedback system unread smoke failed: ${feedbackSystemUnreadSmoke}`);
 }
 
+const feedbackReassignSmoke = vm.runInContext(
+  `(() => {
+    const thread = state.threads.find((item) => item.betaFeedback && item.subject.includes("Smoke feedback"));
+    state.session = { userId: "u-director", email: "direccion@club.test", activeRole: "director" };
+    const beforeMessages = thread.messages.length;
+    reassignFeedback(thread.id, "u-coach");
+    const last = thread.messages[thread.messages.length - 1];
+    return [thread.assignedToId, Boolean(thread.feedbackAssignedAt), last?.from, last?.text.includes("Responsable del feedback"), thread.messages.length === beforeMessages + 1].join("|");
+  })()`,
+  context,
+  { filename: "smoke-feedback-reassign.js" }
+);
+
+if (feedbackReassignSmoke !== "u-coach|true|system|true|true") {
+  throw new Error(`Feedback reassign smoke failed: ${feedbackReassignSmoke}`);
+}
+
 const backupSmoke = vm.runInContext(
   "JSON.stringify(backupSummary(persistentState()))",
   context,

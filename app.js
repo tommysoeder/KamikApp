@@ -3544,22 +3544,41 @@ function setBetaFeedbackFilter(key, value) {
 function renderBetaFeedbackItem(thread) {
   const last = thread.messages?.[thread.messages.length - 1];
   const status = thread.feedbackStatus || "open";
-  const closed = status === "closed";
   const severity = thread.feedbackSeverity || "normal";
   const attention = feedbackAttentionReason(thread);
+  const assignedName = employeeName(thread.assignedToId) || "Sin responsable";
   return `
     <article class="item beta-feedback-item ${attention ? "attention" : ""}">
       <div class="item-row">
-        <div><strong>${escapeHtml(thread.subject)}</strong><span class="meta">${feedbackTypeLabel(thread.feedbackType)} - ${feedbackSeverityLabel(severity)} - ${escapeHtml(last?.at || "")}${attention ? ` - ${escapeHtml(attention)}` : ""}</span></div>
+        <div><strong>${escapeHtml(thread.subject)}</strong><span class="meta">${feedbackTypeLabel(thread.feedbackType)} - ${feedbackSeverityLabel(severity)} - ${escapeHtml(last?.at || "")} - ${escapeHtml(assignedName)}${attention ? ` - ${escapeHtml(attention)}` : ""}</span></div>
         <span class="pill ${feedbackStatusPillClass(status, severity)}">${feedbackStatusLabel(status)}</span>
       </div>
       <p class="clamped-text">${escapeHtml(last?.text || "")}</p>
       <div class="actions inline-actions">
         <button class="btn" type="button" onclick="openThreadFromManagement('${thread.id}')">Abrir</button>
+        ${feedbackAssigneeControl(thread)}
         ${feedbackStatusButtons(thread)}
       </div>
     </article>
   `;
+}
+
+function feedbackAssigneeControl(thread) {
+  if (!isExecutive(currentUser())) return "";
+  return `
+    <label class="feedback-assignee-control">
+      <span>Responsable</span>
+      <select onchange="reassignFeedback('${thread.id}', this.value)">
+        ${feedbackAssigneeOptions(thread.assignedToId)}
+      </select>
+    </label>
+  `;
+}
+
+function feedbackAssigneeOptions(selectedId) {
+  return employees()
+    .map((user) => `<option value="${user.id}" ${user.id === selectedId ? "selected" : ""}>${escapeHtml(user.name)}</option>`)
+    .join("");
 }
 
 function feedbackStatusPillClass(status, severity) {
@@ -3598,6 +3617,27 @@ function setFeedbackStatus(threadId, status) {
   });
   state.toast = `Feedback: ${feedbackStatusLabel(status)}`;
   appendAudit("cambiar estado feedback beta", "thread", `${thread.subject} -> ${feedbackStatusLabel(status)}`);
+  save("messageClub");
+  render();
+}
+
+function reassignFeedback(threadId, userId) {
+  if (!isExecutive(currentUser())) return;
+  const thread = state.threads.find((item) => item.id === threadId);
+  if (!thread?.betaFeedback) return;
+  const nextUser = employees().find((user) => user.id === userId);
+  if (!nextUser || thread.assignedToId === nextUser.id) return;
+  const before = employeeName(thread.assignedToId) || "Sin responsable";
+  thread.assignedToId = nextUser.id;
+  thread.feedbackAssignedAt = new Date().toISOString();
+  thread.messages ||= [];
+  thread.messages.push({
+    from: "system",
+    text: `Responsable del feedback: ${before} -> ${nextUser.name}`,
+    at: currentTime(),
+  });
+  state.toast = `Feedback asignado a ${nextUser.name}`;
+  appendAudit("reasignar feedback beta", "thread", `${thread.subject} -> ${nextUser.name}`);
   save("messageClub");
   render();
 }
@@ -7714,7 +7754,7 @@ function exportBetaAccessCsv() {
 function exportBetaFeedbackCsv() {
   if (!canExportData()) return;
   const lines = [
-    ["estado", "impacto", "atencion", "tipo", "asunto", "creado", "ultimo_mensaje", "participantes", "asignado_a", "texto"],
+    ["estado", "impacto", "atencion", "tipo", "asunto", "creado", "ultimo_mensaje", "participantes", "asignado_a", "asignado_en", "texto"],
     ...betaFeedbackThreads().map((thread) => {
       const last = thread.messages?.[thread.messages.length - 1] || {};
       const participants = (thread.participantUserIds || []).map((id) => state.users.find((user) => user.id === id)?.name || id).join("|");
@@ -7728,6 +7768,7 @@ function exportBetaFeedbackCsv() {
         last.at || "",
         participants,
         state.users.find((user) => user.id === thread.assignedToId)?.name || "",
+        thread.feedbackAssignedAt || "",
         String(last.text || "").replace(/\s+/g, " ").trim(),
       ];
     }),
@@ -7778,7 +7819,7 @@ function exportBetaReport() {
     ...(quality.issues || []).slice(0, 30).map((issue) => `- ${String(issue.level || "").toUpperCase()} | ${issue.area || ""} | ${issue.title || ""} | ${issue.detail || ""}`),
     "",
     "Feedback beta",
-    ...feedback.slice(0, 30).map((thread) => `- ${feedbackStatusLabel(thread.feedbackStatus).toUpperCase()} | ${feedbackSeverityLabel(thread.feedbackSeverity)} | ${feedbackAttentionReason(thread) || "sin atencion"} | ${feedbackTypeLabel(thread.feedbackType)} | ${thread.subject}`),
+    ...feedback.slice(0, 30).map((thread) => `- ${feedbackStatusLabel(thread.feedbackStatus).toUpperCase()} | ${feedbackSeverityLabel(thread.feedbackSeverity)} | ${feedbackAttentionReason(thread) || "sin atencion"} | ${employeeName(thread.assignedToId) || "sin responsable"} | ${feedbackTypeLabel(thread.feedbackType)} | ${thread.subject}`),
     "",
     "Accesos beta",
     ...accessRows.map((row) => `- ${row.ready === "si" ? "LISTO" : "REVISAR"} | ${row.name} | ${row.email} | invitado:${row.invited} | accesos:${row.loginCount} | aviso:${row.acceptedBetaAt ? "si" : "no"} | ${row.notes}`),
