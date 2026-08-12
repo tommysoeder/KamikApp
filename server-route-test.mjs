@@ -193,6 +193,7 @@ try {
     events: [
       ...afterEventCreate.events,
       { id: "ev-player-affected", type: "event", title: "Jugador afectado", date: "2026-08-13", time: "13:00", teamId: "team-2", playerIds: ["p-1"] },
+      { id: "ev-all-club", type: "event", title: "Todo el club", date: "2026-08-14", time: "18:00", teamId: "", playerIds: [] },
     ],
   };
   await fs.writeFile(path.join(dataDir, "state.json"), JSON.stringify(crossTeamAffectedState, null, 2));
@@ -200,7 +201,7 @@ try {
     headers: { Authorization: `Bearer ${playerLogin.body.token}`, "X-Kamik-Role": "player" },
   });
   const playerEventIds = (playerState.body.events || []).map((event) => event.id);
-  if (!playerState.response.ok || !playerEventIds.includes("ev-create") || !playerEventIds.includes("ev-player-affected")) {
+  if (!playerState.response.ok || !playerEventIds.includes("ev-create") || !playerEventIds.includes("ev-player-affected") || !playerEventIds.includes("ev-all-club")) {
     throw new Error(`Player filtered state did not include visible events: ${playerEventIds.join(",")}`);
   }
 

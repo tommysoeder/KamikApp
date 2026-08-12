@@ -634,6 +634,36 @@ if (playerSyncPreserveSmoke !== "true|true|true") {
   throw new Error(`Player sync preserve smoke failed: ${playerSyncPreserveSmoke}`);
 }
 
+const allClubEventSmoke = vm.runInContext(
+  `(() => {
+    const date = toLocalDateKey(new Date(Date.now() + 432000000));
+    const eventItem = {
+      id: "ev-all-club-smoke",
+      type: "event",
+      title: "Evento para todo el club",
+      teamId: "",
+      seasonId: seasonIdForDate(date),
+      competitionId: "",
+      date,
+      time: "19:00",
+      place: "Pista club",
+      notes: "",
+      playerIds: []
+    };
+    state.events.push(eventItem);
+    state.session = { userId: "u-player", email: "leo@club.test", activeRole: "player" };
+    const visible = scheduleItems().some((item) => item.id === eventItem.id);
+    state.session = { userId: "u-director", email: "direccion@club.test", activeRole: "director" };
+    return String(visible);
+  })()`,
+  context,
+  { filename: "smoke-all-club-event.js" }
+);
+
+if (allClubEventSmoke !== "true") {
+  throw new Error(`All-club event visibility failed: ${allClubEventSmoke}`);
+}
+
 vm.runInContext(
   `location = { protocol: "http:", origin: "http://127.0.0.1:4173" };
    fetch = async (path, options = {}) => {
