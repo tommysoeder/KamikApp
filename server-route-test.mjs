@@ -63,12 +63,13 @@ function testState() {
     users: [
       { id: "u-director", name: "Direccion", roles: ["director"], email: "direccion@test.local", password: "demo1234", children: [] },
       { id: "u-coach", name: "Coach", roles: ["coach"], email: "coach@test.local", password: "demo1234", children: [] },
+      { id: "u-player", name: "Player", roles: ["player"], email: "player@test.local", password: "demo1234", children: [] },
     ],
     teams: [
       { id: "team-1", name: "Senior Oro", category: "Senior", coachId: "u-coach", delegateId: "" },
       { id: "team-2", name: "Infantil A", category: "Infantil", coachId: "", delegateId: "" },
     ],
-    players: [{ id: "p-1", name: "Player", teams: ["team-1"], guardians: [] }],
+    players: [{ id: "p-1", name: "Player", teams: ["team-1"], guardians: [], userId: "u-player" }],
     events: [],
     trainings: [],
     callups: [],
@@ -180,6 +181,28 @@ try {
   if (!eventCreateRoute.response.ok || eventCreateRoute.body.event?.id !== "ev-create") throw new Error(`Event create rejected director write: ${eventCreateRoute.response.status} ${JSON.stringify(eventCreateRoute.body)}`);
   const afterEventCreate = JSON.parse(await fs.readFile(path.join(dataDir, "state.json"), "utf8"));
   if (!afterEventCreate.events.some((event) => event.id === "ev-create")) throw new Error("Event create route did not persist the new event");
+
+  const playerLogin = await request(baseUrl, "/api/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: "player@test.local", password: "demo1234", userId: "u-player" }),
+  });
+  if (!playerLogin.response.ok || !playerLogin.body.token) throw new Error("Player login failed");
+  const crossTeamAffectedState = {
+    ...afterEventCreate,
+    events: [
+      ...afterEventCreate.events,
+      { id: "ev-player-affected", type: "event", title: "Jugador afectado", date: "2026-08-13", time: "13:00", teamId: "team-2", playerIds: ["p-1"] },
+    ],
+  };
+  await fs.writeFile(path.join(dataDir, "state.json"), JSON.stringify(crossTeamAffectedState, null, 2));
+  const playerState = await request(baseUrl, "/api/state", {
+    headers: { Authorization: `Bearer ${playerLogin.body.token}`, "X-Kamik-Role": "player" },
+  });
+  const playerEventIds = (playerState.body.events || []).map((event) => event.id);
+  if (!playerState.response.ok || !playerEventIds.includes("ev-create") || !playerEventIds.includes("ev-player-affected")) {
+    throw new Error(`Player filtered state did not include visible events: ${playerEventIds.join(",")}`);
+  }
 
   await fs.writeFile(path.join(dataDir, "state.json"), JSON.stringify({ ...afterEventCreate, activeView: "results", calendarCursor: "2026-07-01" }, null, 2));
   const cursorState = await request(baseUrl, "/api/state", {

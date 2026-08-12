@@ -156,16 +156,29 @@ if (inviteSmoke !== "true|true|true|si") {
 
 const betaNoticeSmoke = vm.runInContext(
   `(() => {
-    state.session = { userId: "u-director", email: "direccion@club.test", activeRole: "director" };
+    state.session = { userId: "u-player", email: "leo@club.test", activeRole: "player", token: "smoke-token" };
+    location = { protocol: "http:", origin: "http://127.0.0.1:4173" };
+    fetch = async () => ({ ok: true, text: async () => "{}" });
+    let payload = null;
+    const originalSendRemoteState = sendRemoteState;
+    sendRemoteState = async (operation, body) => {
+      payload = { operation, body: JSON.parse(body) };
+      return true;
+    };
     const before = Boolean(currentUser().acceptedBetaAt);
     acceptBetaNotice();
-    return [before, Boolean(currentUser().acceptedBetaAt)].join("|");
+    sendRemoteState = originalSendRemoteState;
+    location = { protocol: "file:", origin: "file://" };
+    fetch = undefined;
+    const result = [before, Boolean(currentUser().acceptedBetaAt), payload.operation, payload.body.users.length, payload.body.users[0].id, Array.isArray(payload.body.events)].join("|");
+    state.session = { userId: "u-director", email: "direccion@club.test", activeRole: "director" };
+    return result;
   })()`,
   context,
   { filename: "smoke-beta-notice.js" }
 );
 
-if (betaNoticeSmoke !== "false|true") {
+if (betaNoticeSmoke !== "false|true|updateSelf|1|u-player|false") {
   throw new Error(`Beta notice smoke failed: ${betaNoticeSmoke}`);
 }
 

@@ -1351,6 +1351,19 @@ function saveRemoteNow(operation = "general") {
   return sendRemoteState(operation, body);
 }
 
+function saveSelfUpdateOnly(user) {
+  saveLocalState();
+  if (remoteSavePaused || typeof fetch === "undefined" || location.protocol === "file:") return Promise.resolve(true);
+  if (typeof clearTimeout === "function") clearTimeout(saveTimer);
+  saveTimer = null;
+  const body = JSON.stringify({
+    users: [user],
+    auditLog: (state.auditLog || []).slice(0, 3),
+  });
+  lastRemoteSnapshot = "";
+  return sendRemoteState("updateSelf", body);
+}
+
 function setSyncStatus(patch = {}) {
   state.syncStatus = { status: "idle", lastSavedAt: "", lastReadAt: "", error: "", ...(state.syncStatus || {}), ...patch };
   try {
@@ -3305,7 +3318,7 @@ function acceptBetaNotice() {
   user.acceptedBetaAt = new Date().toISOString();
   state.toast = "Aviso beta aceptado";
   appendAudit("aceptar aviso beta", "user", user.name);
-  save("updateSelf");
+  saveSelfUpdateOnly(user);
   render();
 }
 
