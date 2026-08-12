@@ -529,13 +529,20 @@ vm.runInContext(
 );
 
 const createdEventVisible = vm.runInContext(
-  "scheduleItems().some((item) => item.title === 'Evento smoke' && item.date === toLocalDateKey(new Date(Date.now() + 86400000)))",
+  `(() => {
+    const date = toLocalDateKey(new Date(Date.now() + 86400000));
+    const inCalendar = scheduleItems().some((item) => item.title === "Evento smoke" && item.date === date);
+    const inClubEvents = monthlyClubEvents().some((item) => item.title === "Evento smoke" && item.date === date);
+    const event = state.events.find((item) => item.title === "Evento smoke" && item.date === date);
+    const notified = state.notifications.some((notice) => notice.eventId === event?.id && notice.userId === "u-player");
+    return [inCalendar, inClubEvents, notified].join("|");
+  })()`,
   context,
   { filename: "smoke-schedule-event.js" }
 );
 
-if (!createdEventVisible) {
-  throw new Error("Created event did not appear in calendar schedule items");
+if (createdEventVisible !== "true|true|true") {
+  throw new Error(`Created event did not propagate correctly: ${createdEventVisible}`);
 }
 
 vm.runInContext(
