@@ -5132,15 +5132,14 @@ function monthlyClubEvents() {
 
 function scheduleItems(options = {}) {
   const includeExpired = Boolean(options.includeExpired);
-  const teams = visibleTeamIds();
   const user = currentUser();
   const events = state.events
     .filter((event) => includeExpired || isWithinVisibleGrace(event))
-    .filter((event) => !event.teamId || staffCanSeeTeam(event.teamId, user) || (teams.includes(event.teamId) && playerCanSeeItem(event, user)))
+    .filter((event) => !event.teamId || staffCanSeeTeam(event.teamId, user) || playerCanSeeItem(event, user))
     .map((event) => ({ ...event, source: "event", color: event.type === "match" ? "blue" : event.type === "tournament" ? "gold" : "green" }));
   const trainings = state.trainings
     .filter((training) => includeExpired || isWithinVisibleGrace(training))
-    .filter((training) => (!training.teamId || teams.includes(training.teamId)) && (staffCanSeeTeam(training.teamId, user) || playerCanSeeItem(training, user)))
+    .filter((training) => !training.teamId || staffCanSeeTeam(training.teamId, user) || playerCanSeeItem(training, user))
     .map((training) => ({
       id: training.id,
       source: "training",
@@ -5158,15 +5157,14 @@ function scheduleItems(options = {}) {
 }
 
 function archivedScheduleItems() {
-  const teams = visibleTeamIds();
   const user = currentUser();
   const events = state.events
     .filter((event) => !isWithinVisibleGrace(event))
-    .filter((event) => !event.teamId || staffCanSeeTeam(event.teamId, user) || (teams.includes(event.teamId) && playerCanSeeItem(event, user)))
+    .filter((event) => !event.teamId || staffCanSeeTeam(event.teamId, user) || playerCanSeeItem(event, user))
     .map((event) => ({ ...event, source: "event", color: event.type === "match" ? "blue" : event.type === "tournament" ? "gold" : "green" }));
   const trainings = state.trainings
     .filter((training) => !isWithinVisibleGrace(training))
-    .filter((training) => (!training.teamId || teams.includes(training.teamId)) && (staffCanSeeTeam(training.teamId, user) || playerCanSeeItem(training, user)))
+    .filter((training) => !training.teamId || staffCanSeeTeam(training.teamId, user) || playerCanSeeItem(training, user))
     .map((training) => ({
       id: training.id,
       source: "training",

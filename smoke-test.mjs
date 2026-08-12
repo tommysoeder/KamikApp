@@ -545,6 +545,39 @@ if (createdEventVisible !== "true|true|true") {
   throw new Error(`Created event did not propagate correctly: ${createdEventVisible}`);
 }
 
+const crossTeamAffectedPlayerSmoke = vm.runInContext(
+  `(() => {
+    const date = toLocalDateKey(new Date(Date.now() + 259200000));
+    const eventItem = {
+      id: "ev-cross-team-smoke",
+      type: "event",
+      title: "Evento cross-team smoke",
+      teamId: "team-1",
+      seasonId: seasonIdForDate(date),
+      competitionId: "",
+      date,
+      time: "12:15",
+      place: "Pista cross-team",
+      notes: "Jugador afectado fuera de su equipo habitual",
+      playerIds: ["p-5"]
+    };
+    state.events.push(eventItem);
+    notifyAffectedPlayers(eventItem.playerIds, "Nuevo evento en tu calendario", eventItem.title, eventItem.id);
+    state.session = { userId: "u-vega", email: "vega@club.test", activeRole: "player" };
+    const visibleInCalendar = scheduleItems().some((item) => item.id === eventItem.id);
+    const visibleInArchive = archivedScheduleItems().some((item) => item.id === eventItem.id);
+    const visibleNotice = visibleNotifications().some((notice) => notice.eventId === eventItem.id);
+    state.session = { userId: "u-director", email: "direccion@club.test", activeRole: "director" };
+    return [visibleInCalendar, visibleInArchive, visibleNotice].join("|");
+  })()`,
+  context,
+  { filename: "smoke-cross-team-affected-player.js" }
+);
+
+if (crossTeamAffectedPlayerSmoke !== "true|false|true") {
+  throw new Error(`Cross-team affected player visibility failed: ${crossTeamAffectedPlayerSmoke}`);
+}
+
 vm.runInContext(
   `location = { protocol: "http:", origin: "http://127.0.0.1:4173" };
    fetch = async (path, options = {}) => {
