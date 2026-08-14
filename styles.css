@@ -979,6 +979,13 @@ textarea {
   background: #f8faf8;
 }
 
+.player-search-input {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #fff;
+}
+
 .player-check {
   background: #fff;
   border: 1px solid transparent;
@@ -1011,7 +1018,7 @@ textarea {
   padding-right: 4px;
 }
 
-.extra-player-option {
+.extra-player-picker .extra-player-option {
   display: none;
 }
 

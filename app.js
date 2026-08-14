@@ -7487,6 +7487,7 @@ function affectedPlayerCheckboxList(teamId, selectedCsv = "") {
   const shouldSelectAll = selected.size === 0;
   return `
     <div class="checkbox-list">
+      <input class="player-search-input" type="search" placeholder="Buscar jugador..." autocomplete="off" oninput="filterAffectedPlayerChecks(this)" />
       <label class="check-row player-check select-all-row">
         <input type="checkbox" onchange="toggleAffectedPlayers(this)" ${shouldSelectAll ? "checked" : ""} />
         <span><strong>Seleccionar todos</strong><em>${players.length} jugadores seleccionables</em></span>
@@ -7494,7 +7495,7 @@ function affectedPlayerCheckboxList(teamId, selectedCsv = "") {
       ${players
         .map(
           (player) => `
-          <label class="check-row player-check">
+          <label class="check-row player-check affected-player-option" data-search="${escapeHtml(normalizeSearchText(`${player.name} ${player.teams.map((id) => getTeam(id)?.name).filter(Boolean).join(" ")}`))}">
             <input class="affected-player-check" name="playerIds" type="checkbox" value="${player.id}" ${shouldSelectAll || selected.has(player.id) ? "checked" : ""} />
             <span><strong>${escapeHtml(player.name)}</strong><em>${player.teams.map((id) => getTeam(id)?.name).filter(Boolean).join(", ")}</em></span>
           </label>
@@ -7503,8 +7504,7 @@ function affectedPlayerCheckboxList(teamId, selectedCsv = "") {
         .join("")}
       <div class="extra-player-picker">
         <label>Jugador extra de otro equipo</label>
-        <input type="search" placeholder="Buscar jugador de todo el club..." autocomplete="off" oninput="filterExtraPlayerChecks(this)" />
-        <p class="meta">Escribe para buscar y marca jugadores fuera del equipo.</p>
+        <p class="meta">Usa el buscador superior para localizar y marcar jugadores fuera del equipo.</p>
         <div class="extra-player-list">
           ${extraPlayers
             .map(
@@ -7522,14 +7522,20 @@ function affectedPlayerCheckboxList(teamId, selectedCsv = "") {
   `;
 }
 
-function filterExtraPlayerChecks(input) {
-  const query = normalizeText(input.value || "");
-  const root = input.closest(".extra-player-picker");
-  root?.querySelectorAll(".extra-player-option").forEach((option) => {
-    const text = normalizeText(option.dataset.search || "");
+function filterAffectedPlayerChecks(input) {
+  const query = normalizeSearchText(input.value || "");
+  const root = input.closest(".checkbox-list");
+  root?.querySelectorAll(".affected-player-option").forEach((option) => {
+    const text = normalizeSearchText(option.dataset.search || "");
     const checked = option.querySelector("input")?.checked;
-    option.style.display = (query && text.includes(query)) || checked ? "" : "none";
+    const isExtra = option.classList.contains("extra-player-option");
+    const matches = !query || text.includes(query);
+    option.style.display = (matches && (!isExtra || query || checked)) || checked ? "" : "none";
   });
+}
+
+function filterExtraPlayerChecks(input) {
+  filterAffectedPlayerChecks(input);
 }
 
 function notifyTrainingBatch(trainings, playerIds) {
