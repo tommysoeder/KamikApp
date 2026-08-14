@@ -652,6 +652,7 @@ const seed = {
   diagnosticAuditTeamId: "",
   betaFeedbackStatusFilter: "active",
   betaFeedbackSeverityFilter: "all",
+  loginLoading: false,
   permissions: {
     coachCanAttendance: true,
     delegateCanAttendance: true,
@@ -2445,10 +2446,13 @@ function canSee(view) {
 
 async function login(event) {
   event.preventDefault();
+  if (state.loginLoading) return;
   const form = new FormData(event.currentTarget);
   const email = String(form.get("email") || "").trim().toLowerCase();
   const password = String(form.get("password") || "");
   const selectedUserId = String(form.get("userId") || "");
+  state.loginLoading = true;
+  render();
   const remoteSession = await loginRemote(email, password, selectedUserId);
   if (remoteSession) {
     const user = state.users.find((item) => item.id === remoteSession.userId);
@@ -2464,6 +2468,7 @@ async function login(event) {
     render();
     return;
   }
+  state.loginLoading = false;
   const user = state.users.find(
     (item) =>
       !item.disabled &&
@@ -2484,16 +2489,21 @@ async function login(event) {
 
 async function loginRemote(email, password, userId) {
   if (typeof fetch === "undefined" || location.protocol === "file:") return null;
+  const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+  const timer = controller ? setTimeout(() => controller.abort(), 8000) : null;
   try {
     const response = await fetch(API_LOGIN_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password, userId }),
+      ...(controller ? { signal: controller.signal } : {}),
     });
     if (!response.ok) return null;
     return await response.json();
   } catch {
     return null;
+  } finally {
+    if (timer) clearTimeout(timer);
   }
 }
 
@@ -2893,7 +2903,7 @@ function renderLogin() {
               </div>`
             : `<input name="userId" type="hidden" value="" />`
         }
-        <button class="btn primary" type="submit">${t("enter")}</button>
+        <button class="btn primary" type="submit" ${state.loginLoading ? "disabled" : ""}>${state.loginLoading ? "Entrando..." : t("enter")}</button>
       </form>
     </section>
   `;
