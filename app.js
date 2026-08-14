@@ -1103,6 +1103,7 @@ function normalize(raw) {
     ...callup,
     seasonId: callup.seasonId || seasonIdForDate(callup.date, next),
     competitionId: callup.competitionId || defaultCompetitionId("league", next),
+    coachId: callup.coachId || (next.teams || []).find((team) => team.id === callup.teamId)?.coachId || "",
     playerIds: callup.playerIds || [],
     responses: callup.responses || Object.fromEntries((callup.playerIds || []).map((id) => [id, "pending"])),
   }));
@@ -1842,6 +1843,7 @@ function syncCallupEvent(targetState, callup) {
   event.time = callup.time;
   event.place = callup.place;
   event.notes = callup.notes;
+  event.coachId = callup.coachId || team?.coachId || "";
   event.playerIds = [...new Set(callup.playerIds || [])];
   return event;
 }
@@ -1902,7 +1904,7 @@ function visibleNotifications(user = currentUser(), limit = 8) {
   const players = visiblePlayerIds(user);
   state.notifications = dedupeNotifications(state.notifications || []);
   const seen = new Set();
-  return (state.notifications || [])
+  const notices = (state.notifications || [])
     .filter((notice) => notice.userId === user.id || (!isExecutive(user) && !hasRole(user, "coach") && !hasRole(user, "delegate") && notice.playerId && players.includes(notice.playerId)))
     .filter((notice) => notificationPreferenceEnabled(notificationType(notice), user))
     .filter((notice) => {
@@ -1910,8 +1912,8 @@ function visibleNotifications(user = currentUser(), limit = 8) {
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
-    })
-    .slice(0, limit);
+    });
+  return Number.isFinite(limit) ? notices.slice(0, limit) : notices;
 }
 
 function unreadNotifications(user = currentUser()) {
@@ -2165,13 +2167,17 @@ function markNotificationRead(notificationId) {
 }
 
 function markNotificationsSeen(predicate, shouldRender = true) {
-  visibleNotifications().forEach((notice) => {
+  visibleNotifications(currentUser(), Infinity).forEach((notice) => {
     if (predicate(notice)) notice.read = true;
   });
   if (shouldRender) {
     save("markRead");
     render();
   }
+}
+
+function markAllNotificationsRead() {
+  markNotificationsSeen(() => true);
 }
 
 function markVisibleAnnouncementsRead(shouldRender = true) {
@@ -2271,11 +2277,14 @@ function visiblePlayerIds(user = currentUser()) {
       .filter((player) => player.userId === user.id || (userNameKey && comparableName(player.name) === userNameKey))
       .forEach((player) => ids.add(player.id));
   }
-  const staffTeamIds = state.teams
+  const staffTeamIds = new Set(state.teams
     .filter((team) => (hasRole(user, "coach") && team.coachId === user.id) || (hasRole(user, "delegate") && team.delegateId === user.id))
-    .map((team) => team.id);
+    .map((team) => team.id));
+  if (hasRole(user, "coach")) {
+    state.callups.filter((callup) => callup.coachId === user.id && callup.teamId).forEach((callup) => staffTeamIds.add(callup.teamId));
+  }
   state.players
-    .filter((player) => player.teams.some((id) => staffTeamIds.includes(id)))
+    .filter((player) => player.teams.some((id) => staffTeamIds.has(id)))
     .forEach((player) => ids.add(player.id));
   return [...ids];
 }
@@ -2292,6 +2301,9 @@ function visibleTeamIds(user = currentUser()) {
   state.teams
     .filter((team) => (hasRole(user, "coach") && team.coachId === user.id) || (hasRole(user, "delegate") && team.delegateId === user.id))
     .forEach((team) => ids.add(team.id));
+  if (hasRole(user, "coach")) {
+    state.callups.filter((callup) => callup.coachId === user.id && callup.teamId).forEach((callup) => ids.add(callup.teamId));
+  }
   return [...ids];
 }
 
@@ -2299,9 +2311,13 @@ function staffTeamIds(user = currentUser()) {
   if (!user) return [];
   if (isExecutive(user)) return state.teams.map((team) => team.id);
   if (hasRole(user, "president") && (canDo("manageEvents", user) || canDo("manageCallup", user) || canDo("manageProfiles", user) || canDo("editTeam", user) || canDo("uploadDocument", user) || canDo("manageResults", user))) return state.teams.map((team) => team.id);
-  return state.teams
+  const ids = new Set(state.teams
     .filter((team) => (hasRole(user, "coach") && team.coachId === user.id) || (hasRole(user, "delegate") && team.delegateId === user.id))
-    .map((team) => team.id);
+    .map((team) => team.id));
+  if (hasRole(user, "coach")) {
+    state.callups.filter((callup) => callup.coachId === user.id && callup.teamId).forEach((callup) => ids.add(callup.teamId));
+  }
+  return [...ids];
 }
 
 function canPublishAnnouncement(user = currentUser()) {
@@ -2351,7 +2367,7 @@ function canManageCallup(callup, user = currentUser()) {
   if (!callup) return false;
   if (isExecutive(user)) return true;
   if (hasRole(user, "president")) return canDo("manageCallup", user);
-  return canDo("manageCallup", user) && hasRole(user, "coach") && getTeam(callup.teamId)?.coachId === user.id;
+  return canDo("manageCallup", user) && hasRole(user, "coach") && (getTeam(callup.teamId)?.coachId === user.id || callup.coachId === user.id);
 }
 
 function canUploadDocument(user = currentUser()) {
@@ -5120,6 +5136,17 @@ function deleteNotification(notificationId) {
   render();
 }
 
+function deleteAllNotifications() {
+  const notices = visibleNotifications(currentUser(), Infinity);
+  if (!notices.length) return;
+  if (!confirm("Borrar todos tus avisos?")) return;
+  const ids = new Set(notices.map((notice) => notice.id));
+  state.notifications = (state.notifications || []).filter((notice) => !ids.has(notice.id));
+  state.toast = `${notices.length} avisos borrados`;
+  save("markRead");
+  render();
+}
+
 function renderNotifications() {
   const notices = visibleNotifications();
   return `
@@ -5127,7 +5154,10 @@ function renderNotifications() {
       <section class="panel">
         <div class="panel-header">
           <div><h2>${t("notifications")}</h2><p>Avisos agrupados por destino y marcados al abrir.</p></div>
-          ${unreadNotifications().length ? `<button class="btn" type="button" onclick="markNotificationsSeen(() => true)">${t("markRead")}</button>` : ""}
+          <div class="actions inline-actions">
+            ${unreadNotifications().length ? `<button class="btn" type="button" onclick="markAllNotificationsRead()">${t("markRead")}</button>` : ""}
+            ${notices.length ? `<button class="btn danger" type="button" onclick="deleteAllNotifications()">Borrar todo</button>` : ""}
+          </div>
         </div>
         <div class="list">${notices.map(renderNotificationItem).join("") || `<div class="empty">Sin avisos.</div>`}</div>
       </section>
@@ -5955,12 +5985,13 @@ function googleCalendarUrl(event) {
 }
 
 function visibleCallups() {
+  const user = currentUser();
   const players = visiblePlayerIds();
   const teams = visibleTeamIds();
   const seen = new Set();
   return state.callups.filter((callup) => {
     if (!isWithinVisibleGrace(callup)) return false;
-    const visible = teams.includes(callup.teamId) || callup.playerIds.some((id) => players.includes(id));
+    const visible = teams.includes(callup.teamId) || callup.coachId === user?.id || callup.playerIds.some((id) => players.includes(id));
     if (!visible) return false;
     const key = callup.id || callup.eventId || `${callup.teamId}-${callup.rival}-${callup.date}-${callup.time}`;
     if (seen.has(key)) return false;
@@ -5970,13 +6001,14 @@ function visibleCallups() {
 }
 
 function archivedCallups() {
+  const user = currentUser();
   const players = visiblePlayerIds();
   const teams = visibleTeamIds();
   const seen = new Set();
   return state.callups
     .filter((callup) => !isWithinVisibleGrace(callup))
     .filter((callup) => {
-      const visible = teams.includes(callup.teamId) || callup.playerIds.some((id) => players.includes(id));
+      const visible = teams.includes(callup.teamId) || callup.coachId === user?.id || callup.playerIds.some((id) => players.includes(id));
       if (!visible) return false;
       const key = callup.id || callup.eventId || `${callup.teamId}-${callup.rival}-${callup.date}-${callup.time}`;
       if (seen.has(key)) return false;
@@ -6053,12 +6085,13 @@ function renderCallupItem(callup) {
   const userPlayers = visiblePlayerIds().filter((id) => callup.playerIds.includes(id));
   const players = callup.playerIds.map(getPlayer).filter(Boolean);
   const manageable = canManageCallup(callup);
+  const coachName = employeeName(callup.coachId || getTeam(callup.teamId)?.coachId);
   return `
     <article class="item clickable-item" onclick="openCallupDetail('${callup.id}')">
       <div class="item-row">
         <div>
           <h3>${getTeam(callup.teamId)?.name || ""} vs ${escapeHtml(callup.rival)}</h3>
-          <div class="meta">${callup.date} · ${callup.time} · ${escapeHtml(callup.place)} · llegada ${callup.arrival}</div>
+          <div class="meta">${callup.date} · ${callup.time} · ${escapeHtml(callup.place)} · llegada ${callup.arrival}${coachName ? ` · ${escapeHtml(coachName)}` : ""}</div>
         </div>
         <span class="pill gold">${escapeHtml(callup.kit)}</span>
       </div>
@@ -6094,10 +6127,11 @@ function openCallupDetail(callupId) {
   const callup = state.callups.find((item) => item.id === callupId);
   if (!callup) return;
   const players = callup.playerIds.map(getPlayer).filter(Boolean);
+  const coachName = employeeName(callup.coachId || getTeam(callup.teamId)?.coachId);
   openModal(
     `${getTeam(callup.teamId)?.name || ""} vs ${escapeHtml(callup.rival)}`,
     `<article class="article-detail">
-      <div class="meta">${callup.date} · ${callup.time} · ${escapeHtml(callup.place)} · llegada ${callup.arrival}</div>
+      <div class="meta">${callup.date} · ${callup.time} · ${escapeHtml(callup.place)} · llegada ${callup.arrival}${coachName ? ` · entrenador ${escapeHtml(coachName)}` : ""}</div>
       <div class="pill-line" style="margin:10px 0">
         <span class="pill gold">${escapeHtml(callup.kit)}</span>
         ${players.map((player) => `<span class="pill ${responseClass(callup.responses[player.id])}">${escapeHtml(player.name)}: ${responseLabel(callup.responses[player.id])}</span>`).join("")}
@@ -6286,6 +6320,19 @@ function employees() {
 
 function teamCoachUsers() {
   return employees().filter((user) => hasRole(user, "coach") || hasRole(user, "director") || hasRole(user, "president"));
+}
+
+function callupCoachOptions(selectedId = "", teamId = "") {
+  const defaultCoachId = getTeam(teamId)?.coachId || "";
+  const selected = selectedId || defaultCoachId;
+  return [`<option value="">Sin asignar</option>`, ...teamCoachUsers().map((user) => `<option value="${user.id}" ${selected === user.id ? "selected" : ""}>${escapeHtml(user.name)}</option>`)].join("");
+}
+
+function setCallupCoachDefault(teamSelect) {
+  const coachSelect = document.querySelector("select[name='coachId']");
+  if (!coachSelect) return;
+  const team = getTeam(teamSelect.value);
+  coachSelect.value = team?.coachId || "";
 }
 
 function teamDelegateUsers() {
@@ -7374,13 +7421,15 @@ function syncEventTeamSelection(source, selectedPlayerCsv = "") {
 }
 
 function openCallupModal() {
-  const teams = isExecutive(currentUser()) ? state.teams : state.teams.filter((team) => team.coachId === currentUser().id);
+  const teams = isExecutive(currentUser()) || hasRole(currentUser(), "president") ? state.teams : state.teams.filter((team) => team.coachId === currentUser().id);
   const competitions = state.competitions.filter((competition) => competition.seasonId === state.activeSeasonId);
+  const initialTeamId = teams[0]?.id || "";
   openModal(
     t("newCallup"),
     `<form class="form" onsubmit="createCallup(event)">
       <div class="form-grid">
-        <div class="form-row"><label>${t("team")}</label><select name="teamId" onchange="renderPlayerOptions(this.value)" required>${teams.map((team) => `<option value="${team.id}">${team.name}</option>`).join("")}</select></div>
+        <div class="form-row"><label>${t("team")}</label><select name="teamId" onchange="renderPlayerOptions(this.value); setCallupCoachDefault(this)" required>${teams.map((team) => `<option value="${team.id}">${team.name}</option>`).join("")}</select></div>
+        <div class="form-row"><label>${t("coach")}</label><select name="coachId">${callupCoachOptions("", initialTeamId)}</select></div>
         <div class="form-row"><label>${t("rival")}</label><input name="rival" required /></div>
         <div class="form-row"><label>${t("competition")}</label><select name="competitionId">${competitions.map((competition) => `<option value="${competition.id}" ${competition.id === state.activeCompetitionId ? "selected" : ""}>${escapeHtml(competition.name)}</option>`).join("")}</select></div>
         <div class="form-row"><label>${t("date")}</label><input name="date" type="date" required /></div>
@@ -7394,18 +7443,19 @@ function openCallupModal() {
       <button class="btn primary" type="submit">${t("publish")}</button>
     </form>`
   );
-  renderPlayerOptions(teams[0]?.id);
+  renderPlayerOptions(initialTeamId);
 }
 
 function openEditCallupModal(callupId) {
   const callup = state.callups.find((item) => item.id === callupId);
   if (!canManageCallup(callup)) return;
-  const teams = isExecutive(currentUser()) ? state.teams : state.teams.filter((team) => team.coachId === currentUser().id);
+  const teams = isExecutive(currentUser()) || hasRole(currentUser(), "president") ? state.teams : state.teams.filter((team) => team.coachId === currentUser().id || (callup.coachId === currentUser().id && team.id === callup.teamId));
   openModal(
     t("newCallup"),
     `<form class="form" onsubmit="updateCallup(event,'${callup.id}')">
       <div class="form-grid">
-        <div class="form-row"><label>${t("team")}</label><select name="teamId" onchange="renderPlayerOptions(this.value,'${callup.playerIds.join(",")}')" required>${teams.map((team) => `<option value="${team.id}" ${callup.teamId === team.id ? "selected" : ""}>${team.name}</option>`).join("")}</select></div>
+        <div class="form-row"><label>${t("team")}</label><select name="teamId" onchange="renderPlayerOptions(this.value,'${callup.playerIds.join(",")}'); setCallupCoachDefault(this)" required>${teams.map((team) => `<option value="${team.id}" ${callup.teamId === team.id ? "selected" : ""}>${team.name}</option>`).join("")}</select></div>
+        <div class="form-row"><label>${t("coach")}</label><select name="coachId">${callupCoachOptions(callup.coachId, callup.teamId)}</select></div>
         <div class="form-row"><label>${t("rival")}</label><input name="rival" value="${escapeHtml(callup.rival)}" required /></div>
         <div class="form-row"><label>${t("date")}</label><input name="date" type="date" value="${callup.date}" required /></div>
         <div class="form-row"><label>${t("time")}</label><input name="time" type="time" value="${callup.time}" required /></div>
@@ -7480,6 +7530,23 @@ function filterExtraPlayerChecks(input) {
     const checked = option.querySelector("input")?.checked;
     option.style.display = (query && text.includes(query)) || checked ? "" : "none";
   });
+}
+
+function notifyTrainingBatch(trainings, playerIds) {
+  if (!trainings?.length || !playerIds?.length) return;
+  if (trainings.length === 1) {
+    const training = trainings[0];
+    notifyAffectedPlayers(playerIds, "Nuevo entreno convocado", `${training.date} ${training.time} · ${training.place}`, training.id);
+    return;
+  }
+  const first = trainings[0];
+  const last = trainings[trainings.length - 1];
+  notifyAffectedPlayers(
+    playerIds,
+    "Nuevos entrenos convocados",
+    `${trainings.length} entrenos de ${getTeam(first.teamId)?.name || t("allClub")} entre ${first.date} y ${last.date}`,
+    first.id
+  );
 }
 
 function toggleAffectedPlayers(source) {
@@ -9347,7 +9414,7 @@ async function createEvent(event) {
     const trainings = dates.map((trainingDate) => trainingFromForm(form, teamId, playerIds, trainingDate));
     state.trainings.push(...trainings);
     patchedTrainings = trainings;
-    if (form.get("notifyPlayers")) trainings.forEach((training) => notifyAffectedPlayers(playerIds, "Nuevo entreno convocado", `${training.date} ${training.time} · ${training.place}`, training.id));
+    if (form.get("notifyPlayers")) notifyTrainingBatch(trainings, playerIds);
     state.toast = trainings.length === 1 ? "Entreno guardado en el calendario" : `${trainings.length} entrenos guardados`;
     appendAudit("crear entreno", "training", `${trainings.length} · ${getTeam(teamId)?.name || t("allClub")}`);
   } else {
@@ -9474,7 +9541,7 @@ function duplicateTraining(event, trainingId) {
   if (!canUseEventTeam(teamId)) return;
   const training = trainingFromForm(form, teamId, form.getAll("playerIds"), form.get("date"));
   state.trainings.push(training);
-  if (form.get("notifyPlayers")) notifyAffectedPlayers(training.playerIds || [], "Nuevo entreno convocado", `${training.date} ${training.time} · ${training.place}`, training.id);
+  if (form.get("notifyPlayers")) notifyTrainingBatch([training], training.playerIds || []);
   state.calendarCursor = `${training.date.slice(0, 7)}-01`;
   state.toast = "Entreno duplicado";
   appendAudit("duplicar entreno", "training", `${getTeam(training.teamId)?.name || t("allClub")} · ${training.date}`);
@@ -9500,7 +9567,7 @@ function repeatTraining(event, trainingId) {
       confirmed: false,
     }));
   state.trainings.push(...trainings);
-  if (form.get("notifyPlayers")) trainings.forEach((training) => notifyAffectedPlayers(training.playerIds || [], "Nuevo entreno convocado", `${training.date} ${training.time} · ${training.place}`, training.id));
+  if (form.get("notifyPlayers")) notifyTrainingBatch(trainings, original.playerIds || []);
   state.toast = trainings.length ? `${trainings.length} entrenos creados` : "No habia nuevas fechas";
   appendAudit("repetir entreno", "training", `${trainings.length} · ${getTeam(original.teamId)?.name || t("allClub")}`);
   saveAndClose("manageEvents");
@@ -9658,13 +9725,14 @@ function createCallup(event) {
   event.preventDefault();
   if (!canCreateCallup()) return;
   const form = new FormData(event.currentTarget);
-  const allowed = isExecutive(currentUser()) ? state.teams.map((team) => team.id) : state.teams.filter((team) => team.coachId === currentUser().id).map((team) => team.id);
+  const allowed = isExecutive(currentUser()) || hasRole(currentUser(), "president") ? state.teams.map((team) => team.id) : state.teams.filter((team) => team.coachId === currentUser().id).map((team) => team.id);
   if (!allowed.includes(form.get("teamId"))) return;
   const playerIds = form.getAll("playerIds");
   if (!playerIds.length) return;
   const callup = {
     id: uid("call"),
     teamId: form.get("teamId"),
+    coachId: form.get("coachId") || getTeam(form.get("teamId"))?.coachId || "",
     seasonId: seasonIdForDate(form.get("date")),
     competitionId: form.get("competitionId") || defaultCompetitionId("league"),
     rival: form.get("rival"),
@@ -9696,6 +9764,7 @@ function updateCallup(event, callupId) {
   const playerIds = form.getAll("playerIds");
   if (!playerIds.length) return;
   callup.teamId = form.get("teamId");
+  callup.coachId = form.get("coachId") || getTeam(callup.teamId)?.coachId || "";
   callup.seasonId = seasonIdForDate(form.get("date"));
   callup.competitionId = form.get("competitionId") || callup.competitionId || defaultCompetitionId("league");
   callup.rival = form.get("rival");

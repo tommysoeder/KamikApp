@@ -12,7 +12,7 @@ const STATE_FILE = path.join(DATA_DIR, "state.json");
 const BUNDLED_STATE_FILE = path.join(ROOT, "data", "state.json");
 const BACKUP_DIR = path.join(DATA_DIR, "backups");
 const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
-const APP_VERSION = "v171";
+const APP_VERSION = "v172";
 const APP_MODE = String(process.env.APP_MODE || "presentation").toLowerCase();
 const APP_LABEL = process.env.APP_LABEL || (APP_MODE === "beta" ? "Beta privada" : "");
 const SHOW_LOGIN_PROFILES = process.env.SHOW_LOGIN_PROFILES === "1" || (APP_MODE !== "beta" && APP_MODE !== "production");
@@ -177,9 +177,13 @@ function staffTeamIds(user, state) {
   if (isExecutive(user)) return (state.teams || []).map((team) => team.id);
   if (hasRole(user, "president")) return (state.teams || []).map((team) => team.id);
   if (hasRole(user, "fees")) return (state.teams || []).map((team) => team.id);
-  return (state.teams || [])
+  const ids = new Set((state.teams || [])
     .filter((team) => (hasRole(user, "coach") && team.coachId === user.id) || (hasRole(user, "delegate") && team.delegateId === user.id))
-    .map((team) => team.id);
+    .map((team) => team.id));
+  if (hasRole(user, "coach")) {
+    (state.callups || []).filter((callup) => callup.coachId === user.id && callup.teamId).forEach((callup) => ids.add(callup.teamId));
+  }
+  return [...ids];
 }
 
 function permissionKey(operation, role) {
@@ -333,6 +337,12 @@ function sanitizeStateForRead(state, actor) {
   const visibleTeamIds = teamIdsForUser(actor.user, state);
   const visiblePlayers = new Set(visiblePlayerIds);
   const visibleTeams = new Set(visibleTeamIds);
+  (state.callups || [])
+    .filter((callup) => callup.coachId === actor.user.id)
+    .forEach((callup) => {
+      if (callup.teamId) visibleTeams.add(callup.teamId);
+      (callup.playerIds || []).forEach((playerId) => visiblePlayers.add(playerId));
+    });
   const staffUserIds = new Set(
     (state.users || [])
       .filter((user) => (user.roles || []).some((role) => ["director", "coach", "delegate", "fees", "president"].includes(role)))
@@ -354,10 +364,10 @@ function sanitizeStateForRead(state, actor) {
   copy.players = (copy.players || []).filter((player) => visiblePlayers.has(player.id));
   copy.events = (copy.events || []).filter((event) => {
     const teamIds = itemTeamIds(event);
-    return !teamIds.length || teamIds.some((teamId) => visibleTeams.has(teamId)) || (event.playerIds || []).some((id) => visiblePlayers.has(id));
+    return event.coachId === actor.user.id || !teamIds.length || teamIds.some((teamId) => visibleTeams.has(teamId)) || (event.playerIds || []).some((id) => visiblePlayers.has(id));
   });
   copy.trainings = (copy.trainings || []).filter((training) => !training.teamId || visibleTeams.has(training.teamId) || (training.playerIds || []).some((id) => visiblePlayers.has(id)));
-  copy.callups = (copy.callups || []).filter((callup) => !callup.teamId || visibleTeams.has(callup.teamId) || (callup.playerIds || []).some((id) => visiblePlayers.has(id)));
+  copy.callups = (copy.callups || []).filter((callup) => callup.coachId === actor.user.id || !callup.teamId || visibleTeams.has(callup.teamId) || (callup.playerIds || []).some((id) => visiblePlayers.has(id)));
   copy.results = (copy.results || []).filter((result) => visibleTeams.has(result.teamId));
   copy.documents = (copy.documents || []).filter((document) => visibleTeams.has(document.teamId));
   copy.documentFolders = (copy.documentFolders || []).filter((folder) => visibleTeams.has(folder.teamId));
@@ -689,6 +699,10 @@ function mergeRoutedState(baseState, incomingState, operation, actor) {
   const merged = JSON.parse(JSON.stringify(baseState));
   operationDomains[operation].forEach((key) => {
     if (!(key in incomingState)) return;
+    if (operation === "markRead" && key === "notifications") {
+      merged[key] = mergeNotificationsForMarkRead(merged[key], incomingState[key], actor);
+      return;
+    }
     if (Array.isArray(incomingState[key]) && Array.isArray(merged[key])) {
       merged[key] = mergeCollection(merged[key], incomingState[key], prunePredicateForKey(key, actor, baseState));
       return;
@@ -729,6 +743,30 @@ function dedupeStateNotifications(items = []) {
     }
   });
   return [...byKey.values()].sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+}
+
+function notificationBelongsToActor(notice, actor) {
+  return Boolean(actor?.user?.id && notice?.userId === actor.user.id);
+}
+
+function mergeNotificationsForMarkRead(baseItems = [], incomingItems = [], actor) {
+  const incomingById = new Map((incomingItems || []).filter((item) => item?.id).map((item) => [item.id, item]));
+  const merged = [];
+  (baseItems || []).forEach((notice) => {
+    const incoming = notice?.id ? incomingById.get(notice.id) : null;
+    if (incoming) {
+      merged.push(incoming);
+      return;
+    }
+    if (notificationBelongsToActor(notice, actor)) return;
+    merged.push(notice);
+  });
+  const baseIds = new Set((baseItems || []).map((notice) => notice?.id).filter(Boolean));
+  (incomingItems || []).forEach((notice) => {
+    if (!notice?.id || baseIds.has(notice.id)) return;
+    if (!notice.userId || notificationBelongsToActor(notice, actor)) merged.push(notice);
+  });
+  return dedupeStateNotifications(merged);
 }
 
 async function handleEventsPatch(req, res) {
