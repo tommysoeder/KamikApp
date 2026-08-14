@@ -2460,8 +2460,8 @@ async function login(event) {
     };
     appendAudit("login", "session", user?.name || email);
     save("session");
+    await refreshRemoteState({ keepToast: true });
     render();
-    refreshRemoteState({ keepToast: true, force: true });
     return;
   }
   const user = state.users.find((item) => !item.disabled && item.id === selectedUserId && item.email.toLowerCase() === email && item.password === password);
