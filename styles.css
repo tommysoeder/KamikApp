@@ -927,6 +927,11 @@ iframe.file-preview-large {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 11px;
+  align-items: start;
+}
+
+.event-form-grid .event-team-row {
+  grid-row: span 3;
 }
 
 label {
@@ -989,6 +994,22 @@ textarea {
 .select-all-row {
   border-color: #d9e2df;
   background: #edf2f1;
+}
+
+.extra-player-picker {
+  display: grid;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+
+.extra-player-list {
+  display: grid;
+  gap: 6px;
+}
+
+.extra-player-option {
+  display: none;
 }
 
 .player-check span,
@@ -1752,6 +1773,26 @@ tr:last-child td {
   align-items: center;
   justify-content: space-between;
   gap: 18px;
+}
+
+.desktop-unread-alert {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  margin: 0 24px 12px;
+  border: 1px solid rgba(4, 87, 95, 0.18);
+  border-radius: 999px;
+  background: #eef7f4;
+  color: #063c41;
+  padding: 8px 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.desktop-unread-alert svg {
+  width: 17px;
+  height: 17px;
 }
 
 .global-search {
@@ -5647,4 +5688,10 @@ body.force-mobile .main {
 
 .quick-signup-teams {
   grid-row: span 2;
+}
+
+@media (max-width: 760px) {
+  .desktop-unread-alert {
+    display: none;
+  }
 }

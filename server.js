@@ -12,7 +12,7 @@ const STATE_FILE = path.join(DATA_DIR, "state.json");
 const BUNDLED_STATE_FILE = path.join(ROOT, "data", "state.json");
 const BACKUP_DIR = path.join(DATA_DIR, "backups");
 const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
-const APP_VERSION = "v161";
+const APP_VERSION = "v162";
 const APP_MODE = String(process.env.APP_MODE || "presentation").toLowerCase();
 const APP_LABEL = process.env.APP_LABEL || (APP_MODE === "beta" ? "Beta privada" : "");
 const SHOW_LOGIN_PROFILES = process.env.SHOW_LOGIN_PROFILES === "1" || (APP_MODE !== "beta" && APP_MODE !== "production");
@@ -322,6 +322,7 @@ function sanitizeStateForRead(state, actor) {
     copy.documentFolders = [];
     copy.announcements = [];
     copy.notifications = [];
+    copy.emailOutbox = [];
     copy.threads = [];
     copy.auditLog = [];
     return copy;
@@ -368,6 +369,7 @@ function sanitizeStateForRead(state, actor) {
       (thread.participantUserIds || []).includes(actor.user.id) ||
       (thread.relatedPlayerIds || []).some((id) => visiblePlayers.has(id))
   );
+  copy.emailOutbox = [];
   copy.auditLog = [];
   return copy;
 }
@@ -644,7 +646,7 @@ const operationDomains = {
   attendance: ["callups", "trainings"],
   editTeam: ["teams", "players"],
   importMembers: ["teams", "players", "users", "auditLog"],
-  manageCallup: ["callups", "events", "notifications", "auditLog", "calendarCursor", "activeView"],
+  manageCallup: ["callups", "events", "notifications", "emailOutbox", "auditLog", "calendarCursor", "activeView"],
   manageEvents: ["events", "trainings", "notifications", "auditLog", "calendarCursor", "activeView"],
   managePermissions: ["permissions", "auditLog"],
   manageProfiles: ["players", "users", "auditLog"],

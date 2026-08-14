@@ -705,6 +705,10 @@ const seed = {
     "Senior Autonomico",
     "Senior Oro",
     "Senior Elite",
+    "Plata Masculino",
+    "Alevin Nacional",
+    "Infantil Nacional",
+    "Juvenil Nacional",
     "Oro Femenino",
     "Elite Femenino",
     "Sub20 Femenino",
@@ -715,6 +719,11 @@ const seed = {
   ],
   competitions: [
     { id: "comp-league-2026", seasonId: "season-2026", name: "Liga 2026/27", type: "league", pointsWin: 3, pointsDraw: 1, pointsLoss: 0, federationUrl: "" },
+    { id: "comp-supercopa-2026", seasonId: "season-2026", name: "Supercopa 2026/27", type: "tournament", pointsWin: 3, pointsDraw: 1, pointsLoss: 0, federationUrl: "" },
+    { id: "comp-plata-masculino-2026", seasonId: "season-2026", name: "Liga Plata Masculino", type: "league", pointsWin: 3, pointsDraw: 1, pointsLoss: 0, federationUrl: "" },
+    { id: "comp-alevin-nacional-2026", seasonId: "season-2026", name: "Alevin Nacional", type: "league", pointsWin: 3, pointsDraw: 1, pointsLoss: 0, federationUrl: "" },
+    { id: "comp-infantil-nacional-2026", seasonId: "season-2026", name: "Infantil Nacional", type: "league", pointsWin: 3, pointsDraw: 1, pointsLoss: 0, federationUrl: "" },
+    { id: "comp-juvenil-nacional-2026", seasonId: "season-2026", name: "Juvenil Nacional", type: "league", pointsWin: 3, pointsDraw: 1, pointsLoss: 0, federationUrl: "" },
     { id: "comp-cup-2026", seasonId: "season-2026", name: "Copa 2026/27", type: "cup", pointsWin: 3, pointsDraw: 1, pointsLoss: 0, federationUrl: "" },
     { id: "comp-friendly-2026", seasonId: "season-2026", name: "Amistosos 2026/27", type: "friendly", pointsWin: 3, pointsDraw: 1, pointsLoss: 0, federationUrl: "" },
   ],
@@ -722,6 +731,10 @@ const seed = {
     { id: "team-1", category: "Infantil", name: "Infantil A", coachId: "u-director", delegateId: "u-delegate" },
     { id: "team-2", category: "Senior Oro", name: "Senior Oro", coachId: "u-coach", delegateId: "" },
     { id: "team-3", category: "Oro Femenino", name: "Oro Femenino", coachId: "", delegateId: "u-delegate" },
+    { id: "team-plata-masculino", category: "Plata Masculino", name: "Plata Masculino", coachId: "", delegateId: "" },
+    { id: "team-alevin-nacional", category: "Alevin Nacional", name: "Alevin Nacional", coachId: "", delegateId: "" },
+    { id: "team-infantil-nacional", category: "Infantil Nacional", name: "Infantil Nacional", coachId: "", delegateId: "" },
+    { id: "team-juvenil-nacional", category: "Juvenil Nacional", name: "Juvenil Nacional", coachId: "", delegateId: "" },
   ],
   users: [
     { id: "u-director", name: "Dirección deportiva", roles: ["director", "coach"], email: "direccion@club.test", password: "demo1234", children: [] },
@@ -1005,6 +1018,7 @@ function normalize(raw) {
   next.calendarCursor ||= new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
   if (versionChanged || next.calendarCursor < monthKey(now)) next.calendarCursor = monthKey(now);
   next.resultsCursor ||= mondayOf(now).toISOString().slice(0, 10);
+  next.categories = [...new Set([...(next.categories || []), ...seed.categories])];
   next.seasons ||= seed.seasons;
   next.competitions ||= seed.competitions;
   seed.seasons.forEach((season) => {
@@ -1051,6 +1065,12 @@ function normalize(raw) {
     if (!next.users.some((user) => user.id === seedUser.id)) next.users.push(structuredCloneSafe(seedUser));
   });
   next.teams ||= seed.teams;
+  if (!next.defaultNationalTeamsAddedV162) {
+    seed.teams.forEach((seedTeam) => {
+      if (!next.teams.some((team) => team.id === seedTeam.id)) next.teams.push(structuredCloneSafe(seedTeam));
+    });
+    next.defaultNationalTeamsAddedV162 = true;
+  }
   next.teams = next.teams.map((team) => ({
     ...team,
     standingsUrl: team.standingsUrl || "",
@@ -1088,9 +1108,6 @@ function normalize(raw) {
   }));
   next.announcements ||= seed.announcements;
   next.results ||= seed.results;
-  seed.results.forEach((seedResult) => {
-    if (!next.results.some((result) => result.id === seedResult.id)) next.results.push(structuredCloneSafe(seedResult));
-  });
   next.results = next.results.map((result) => ({
     ...result,
     seasonId: result.seasonId || seasonIdForDate(result.date, next),
@@ -1120,12 +1137,15 @@ function normalize(raw) {
     folderId: doc.folderId || "",
   }));
   next.notifications ||= [];
+  next.emailOutbox ||= [];
   next.auditLog = (next.auditLog || []).slice(0, 120);
   next.events = (next.events || seed.events).map((event) => ({
     ...event,
     seasonId: event.seasonId || seasonIdForDate(event.date, next),
     competitionId: event.competitionId || (event.type === "match" ? defaultCompetitionId("league", next) : ""),
     playerIds: event.playerIds || [],
+    endDate: event.endDate || "",
+    endTime: event.endTime || "",
   }));
   next.notifications = dedupeNotifications(next.notifications || []);
   normalizeCallupEvents(next);
@@ -1433,7 +1453,7 @@ async function saveEventsPatch(payload) {
     }
     lastRemoteSnapshot = "";
     lastRemoteSaveAt = 0;
-    await refreshRemoteState({ keepToast: true, force: true });
+    await refreshRemoteState({ keepToast: true });
     if (body?.savedEvents?.length) {
       state.events = upsertLocalItems(state.events || [], body.savedEvents);
       state.lastCreatedEventIds = [...body.savedEvents.map((item) => item.id), ...(state.lastCreatedEventIds || [])].filter(Boolean).slice(0, 5);
@@ -1910,6 +1930,30 @@ function notifyAffectedPlayers(playerIds, title, body, eventId = "") {
         body,
         createdAt: iso(0),
         read: false,
+      });
+    });
+  });
+}
+
+function queueEmailForPlayers(playerIds, subject, body, relatedId = "") {
+  state.emailOutbox ||= [];
+  const seen = new Set(state.emailOutbox.map((item) => `${item.to}:${item.subject}:${item.relatedId}`));
+  [...new Set(playerIds || [])].forEach((playerId) => {
+    usersForPlayer(playerId).forEach((user) => {
+      if (!user.email) return;
+      const key = `${user.email}:${subject}:${relatedId}`;
+      if (seen.has(key)) return;
+      seen.add(key);
+      state.emailOutbox.unshift({
+        id: uid("mail"),
+        to: user.email,
+        userId: user.id,
+        playerId,
+        subject,
+        body,
+        relatedId,
+        status: "pending",
+        createdAt: new Date().toISOString(),
       });
     });
   });
@@ -2546,6 +2590,7 @@ function render() {
           ${renderSyncIndicator()}
           ${renderGlobalSearch("topbar")}
         </header>
+        ${renderDesktopUnreadAlert()}
         <section class="content">${renderView()}</section>
       </main>
     </div>
@@ -2574,6 +2619,12 @@ function render() {
     resetScrollAfterRender = false;
     resetPageScroll();
   }
+}
+
+function renderDesktopUnreadAlert() {
+  const count = unreadNotifications().length + unreadAnnouncements().length + unreadMessageCount();
+  if (!count) return "";
+  return `<button class="desktop-unread-alert" type="button" onclick="setView('notifications')">${iconBell()} <strong>${count}</strong><span>pendiente${count === 1 ? "" : "s"} sin leer</span></button>`;
 }
 
 function clearActiveViewBadges() {
@@ -2822,7 +2873,7 @@ function renderLogin() {
         ${state.toast ? `<div class="item notice-item"><strong>${escapeHtml(state.toast)}</strong></div>` : ""}
         <div class="form-row">
           <label>${t("email")}</label>
-          <input id="login-email" name="email" type="email" value="${escapeHtml(defaultUser?.email || "direccion@club.test")}" required />
+          <input id="login-email" name="email" type="email" value="${escapeHtml(defaultUser?.email || "direccion@club.test")}" required autocomplete="username" />
         </div>
         <div class="form-row">
           <label>${t("password")}</label>
@@ -3148,7 +3199,7 @@ function globalSearchResults(query) {
       .map((item) => ({
         group: t("calendar"),
         title: scheduleHoverTitle(item),
-        meta: `${item.date || ""} · ${item.time || ""}${item.place ? ` · ${item.place}` : ""}`,
+        meta: `${scheduleDateTimeLabel(item)}${item.place ? ` · ${item.place}` : ""}`,
         icon: iconCalendar(),
         tone: item.color,
         action: `openScheduleFromSearch('${item.source}','${item.id}')`,
@@ -3372,6 +3423,7 @@ function renderDashboard() {
   const activityItems = visibleActivityItems().slice(0, 8);
   const unread = unreadNotifications();
   const weekItems = weeklyScheduleItems();
+  const dashboardWeekend = dashboardWeekendDate(new Date());
   const weekendResults = currentWeekendResults();
   const statCards = [
     `<article class="card stat clickable-item" onclick="setView('calendar')"><span>${t("calendar")}</span><strong>${weekItems.length}</strong><span>eventos y entrenos esta semana</span></article>`,
@@ -3382,7 +3434,7 @@ function renderDashboard() {
       <div class="panel-header">
         <div>
           <h2>${t("weekendResults")}</h2>
-          <p>${weekendLabel(new Date())}</p>
+          <p>${weekendLabel(dashboardWeekend)}</p>
         </div>
         <span class="scoreboard-mark">${iconScoreboard()}</span>
       </div>
@@ -4050,8 +4102,50 @@ function resultsForWeekend(dateLike, targetState = state) {
   });
 }
 
+function dashboardWeekendDate(dateLike = new Date()) {
+  const date = new Date(dateLike);
+  const day = date.getDay();
+  if (day >= 1 && day <= 3) {
+    date.setDate(date.getDate() - 7);
+  }
+  return date;
+}
+
+function weekendDisplayResults(dateLike) {
+  const actual = resultsForWeekend(dateLike);
+  const day = new Date().getDay();
+  if (day < 4 && day !== 0) return actual;
+  const { saturday, end } = weekendRange(dateLike);
+  const existing = new Set(actual.map((result) => `${result.teamId}:${result.date}:${normalizeText(result.opponent)}`));
+  const fixtures = scheduleItems({ includeExpired: true })
+    .filter((item) => item.type === "match")
+    .filter((item) => {
+      const date = new Date(`${item.date}T00:00:00`);
+      return date >= saturday && date < end;
+    })
+    .map((item) => {
+      const teamName = getTeam(item.teamId)?.name || "";
+      const opponent = opponentFromTitle(item.title, teamName) || item.title || t("rival");
+      return {
+        id: `fixture-${item.source}-${item.id}`,
+        teamId: item.teamId,
+        opponent,
+        date: item.date,
+        place: item.place || "",
+        homeAway: isAwayMatch(item) ? "away" : "home",
+        teamScore: 0,
+        opponentScore: 0,
+        competitionId: item.competitionId || defaultCompetitionId("league"),
+        pending: true,
+        notes: "Sin comenzar",
+      };
+    })
+    .filter((fixture) => !existing.has(`${fixture.teamId}:${fixture.date}:${normalizeText(fixture.opponent)}`));
+  return [...actual, ...fixtures].sort((a, b) => `${a.date}`.localeCompare(`${b.date}`));
+}
+
 function currentWeekendResults() {
-  return resultsForWeekend(new Date());
+  return weekendDisplayResults(dashboardWeekendDate(new Date()));
 }
 
 function resultTeams(result) {
@@ -4079,9 +4173,10 @@ function resultTeams(result) {
 
 function renderResultCard(result) {
   const match = resultTeams(result);
-  const status = match.draw ? "Empate" : match.clubWon ? "Victoria" : "Derrota";
+  const pending = Boolean(result.pending);
+  const status = pending ? "Sin comenzar" : match.draw ? "Empate" : match.clubWon ? "Victoria" : "Derrota";
   return `
-    <article class="result-card item clickable-item" onclick="event.stopPropagation(); openResultDetail('${result.id}')">
+    <article class="result-card item ${pending ? "pending-result" : "clickable-item"}" ${pending ? "" : `onclick="event.stopPropagation(); openResultDetail('${result.id}')"`}>
       <div class="result-date">${result.date}</div>
       <div class="scoreline">
         <span>${escapeHtml(match.home)}</span>
@@ -4089,7 +4184,7 @@ function renderResultCard(result) {
         <span>${escapeHtml(match.away)}</span>
       </div>
       <div class="result-meta">
-        <span class="pill ${match.draw ? "gold" : match.clubWon ? "green" : "red"}">${status}</span>
+        <span class="pill ${pending ? "blue" : match.draw ? "gold" : match.clubWon ? "green" : "red"}">${status}</span>
         <span>${escapeHtml(getCompetition(result.competitionId)?.name || "")}</span>
         <span>${escapeHtml(result.place || "")}</span>
       </div>
@@ -5340,9 +5435,23 @@ function weeklyScheduleItems() {
   const end = new Date(start);
   end.setDate(start.getDate() + 7);
   return scheduleItems().filter((item) => {
-    const date = new Date(`${item.date}T00:00:00`);
-    return date >= start && date < end;
+    const itemStart = new Date(`${item.date}T00:00:00`);
+    const itemEnd = new Date(`${(item.endDate || item.date)}T00:00:00`);
+    return itemStart < end && itemEnd >= start;
   });
+}
+
+function itemOccursOnDate(item, dateKey) {
+  if (!item?.date) return false;
+  return dateKey >= item.date && dateKey <= (item.endDate || item.date);
+}
+
+function scheduleDateTimeLabel(item) {
+  const start = `${item.date}${item.time ? ` · ${item.time}` : ""}`;
+  if (!item.endDate && !item.endTime) return start;
+  const endDate = item.endDate || item.date;
+  const end = `${endDate}${item.endTime ? ` · ${item.endTime}` : ""}`;
+  return `${start} - ${end}`;
 }
 
 function renderScheduleItem(item) {
@@ -5354,7 +5463,7 @@ function renderScheduleItem(item) {
       <div class="item-row">
         <div>
           <h3>${escapeHtml(item.title)}</h3>
-          <div class="meta">${item.date} · ${item.time} · ${escapeHtml(item.place || "")}</div>
+          <div class="meta">${escapeHtml(scheduleDateTimeLabel(item))} · ${escapeHtml(item.place || "")}</div>
         </div>
         <span class="pill ${item.color}">${t(item.type)}</span>
       </div>
@@ -5386,7 +5495,7 @@ function openScheduleDetail(source, id) {
   openModal(
     escapeHtml(title),
     `<article class="article-detail schedule-detail">
-      <div class="meta">${item.date} · ${item.time} · ${escapeHtml(item.place || "")}</div>
+      <div class="meta">${escapeHtml(scheduleDateTimeLabel(item))} · ${escapeHtml(item.place || "")}</div>
       <div class="pill-line" style="margin:10px 0">
         ${teams.length ? teams.map((team) => `<span class="pill">${escapeHtml(team.name)}</span>`).join("") : `<span class="pill">${t("allClub")}</span>`}
         ${players.map((player) => `<span class="pill">${escapeHtml(player.name)}</span>`).join("")}
@@ -5456,7 +5565,7 @@ function renderMonthCalendar() {
     const day = new Date(start);
     day.setDate(start.getDate() + index);
     const date = toLocalDateKey(day);
-    const dayItems = items.filter((item) => item.date === date);
+    const dayItems = items.filter((item) => itemOccursOnDate(item, date));
     const currentMonth = day.getMonth() === cursor.getMonth();
     return `
       <div class="calendar-day ${currentMonth ? "" : "muted-day"} ${dayItems.length ? "has-event" : ""}">
@@ -5824,9 +5933,11 @@ function shortTitle(title, max = 22) {
 
 function googleCalendarUrl(event) {
   const start = `${event.date.replaceAll("-", "")}T${event.time.replace(":", "")}00`;
-  const endDate = new Date(`${event.date}T${event.time}:00`);
-  endDate.setHours(endDate.getHours() + 1);
-  const end = endDate.toISOString().replace(/[-:]/g, "").slice(0, 15);
+  const endDateValue = event.endDate || event.date;
+  const endTimeValue = event.endTime || event.time;
+  const endDate = event.endDate || event.endTime ? new Date(`${endDateValue}T${endTimeValue}:00`) : new Date(`${event.date}T${event.time}:00`);
+  if (!event.endDate && !event.endTime) endDate.setHours(endDate.getHours() + 1);
+  const end = `${toLocalDateKey(endDate).replaceAll("-", "")}T${String(endDate.getHours()).padStart(2, "0")}${String(endDate.getMinutes()).padStart(2, "0")}00`;
   const params = new URLSearchParams({
     action: "TEMPLATE",
     text: event.title,
@@ -7024,23 +7135,26 @@ function openEventModal(defaultType = "match") {
   openModal(
     t("newEvent"),
     `<form class="form" onsubmit="createEventFromForm(this); return false;">
-      <div class="form-grid">
+      <div class="form-grid event-form-grid">
         <div class="form-row"><label>${t("title")}</label><input name="title" placeholder="Solo necesario para partido, torneo o evento" /></div>
         <div class="form-row"><label>${t("type")}</label><select name="type"><option value="match" ${selectedType === "match" ? "selected" : ""}>${t("match")}</option><option value="tournament" ${selectedType === "tournament" ? "selected" : ""}>${t("tournament")}</option><option value="event" ${selectedType === "event" ? "selected" : ""}>${t("event")}</option><option value="training" ${selectedType === "training" ? "selected" : ""}>${t("training")}</option></select></div>
-        <div class="form-row"><label>${t("team")}</label>${eventTeamCheckboxList(teams, initialTeamId ? [initialTeamId] : [], isExecutive(currentUser()))}</div>
+        <div class="form-row event-team-row"><label>${t("team")}</label>${eventTeamCheckboxList(teams, initialTeamId ? [initialTeamId] : [], isExecutive(currentUser()))}</div>
         <div class="form-row"><label>${t("competition")}</label><select name="competitionId"><option value="">Sin competición</option>${competitions.map((competition) => `<option value="${competition.id}" ${competition.id === state.activeCompetitionId ? "selected" : ""}>${escapeHtml(competition.name)}</option>`).join("")}</select></div>
         <div class="form-row"><label>${t("place")}</label><input name="place" required /></div>
-        <div class="form-row"><label>${t("date")}</label><input name="date" type="date" required /></div>
-        <div class="form-row"><label>${t("time")}</label><input name="time" type="time" required /></div>
+        <div class="form-row"><label>Inicio</label><input name="date" type="date" required /></div>
+        <div class="form-row"><label>Hora inicio</label><input name="time" type="time" required /></div>
+        <div class="form-row"><label>Fin (opcional)</label><input name="endDate" type="date" /></div>
+        <div class="form-row"><label>Hora fin (opcional)</label><input name="endTime" type="time" /></div>
       </div>
       <div class="form-row"><label>${t("affectedPlayers")}</label><div id="event-player-options"></div></div>
       <div class="form-row recurrent-training-fields">
         <label>${t("repeatTraining")}</label>
         <div class="recurrence-box">
-          <input name="weeks" type="number" min="1" max="20" value="1" />
+          <input name="weeks" type="number" min="1" max="60" value="1" />
           <span>${t("weeks")}</span>
           <div class="weekday-list">${weekdayCheckboxes([new Date().getDay() || 7])}</div>
         </div>
+        <label class="check-row"><input name="notifyPlayers" type="checkbox" /> <span>Avisar a jugadores de este entreno</span></label>
       </div>
       <div class="form-row"><label>${t("notes")}</label><textarea name="notes"></textarea></div>
       <button class="btn primary" type="submit">${t("save")}</button>
@@ -7058,14 +7172,16 @@ function openEditEventModal(eventId) {
   openModal(
     t("editEvent"),
     `<form class="form" onsubmit="updateEvent(event,'${eventItem.id}')">
-      <div class="form-grid">
+      <div class="form-grid event-form-grid">
         <div class="form-row"><label>${t("title")}</label><input name="title" value="${escapeHtml(eventItem.title)}" required /></div>
         <div class="form-row"><label>${t("type")}</label><select name="type"><option value="match" ${eventItem.type === "match" ? "selected" : ""}>${t("match")}</option><option value="tournament" ${eventItem.type === "tournament" ? "selected" : ""}>${t("tournament")}</option><option value="event" ${eventItem.type === "event" ? "selected" : ""}>${t("event")}</option></select></div>
-        <div class="form-row"><label>${t("team")}</label>${eventTeamCheckboxList(teams, selectedTeamIds, isExecutive(currentUser()), (eventItem.playerIds || []).join(","))}</div>
+        <div class="form-row event-team-row"><label>${t("team")}</label>${eventTeamCheckboxList(teams, selectedTeamIds, isExecutive(currentUser()), (eventItem.playerIds || []).join(","))}</div>
         <div class="form-row"><label>${t("competition")}</label><select name="competitionId"><option value="">Sin competición</option>${competitions.map((competition) => `<option value="${competition.id}" ${eventItem.competitionId === competition.id ? "selected" : ""}>${escapeHtml(competition.name)}</option>`).join("")}</select></div>
         <div class="form-row"><label>${t("place")}</label><input name="place" value="${escapeHtml(eventItem.place || "")}" required /></div>
-        <div class="form-row"><label>${t("date")}</label><input name="date" type="date" value="${eventItem.date}" required /></div>
-        <div class="form-row"><label>${t("time")}</label><input name="time" type="time" value="${eventItem.time}" required /></div>
+        <div class="form-row"><label>Inicio</label><input name="date" type="date" value="${eventItem.date}" required /></div>
+        <div class="form-row"><label>Hora inicio</label><input name="time" type="time" value="${eventItem.time}" required /></div>
+        <div class="form-row"><label>Fin (opcional)</label><input name="endDate" type="date" value="${eventItem.endDate || ""}" /></div>
+        <div class="form-row"><label>Hora fin (opcional)</label><input name="endTime" type="time" value="${eventItem.endTime || ""}" /></div>
       </div>
       <div class="form-row"><label>${t("affectedPlayers")}</label><div id="event-player-options"></div></div>
       <div class="form-row"><label>${t("notes")}</label><textarea name="notes">${escapeHtml(eventItem.notes || "")}</textarea></div>
@@ -7090,6 +7206,7 @@ function openEditTrainingModal(trainingId) {
         <div class="form-row"><label>${t("time")}</label><input name="time" type="time" value="${training.time}" required /></div>
       </div>
       <div class="form-row"><label>${t("affectedPlayers")}</label><div id="event-player-options"></div></div>
+      <label class="check-row"><input name="notifyPlayers" type="checkbox" /> <span>Avisar a jugadores del cambio</span></label>
       <div class="form-row"><label>${t("notes")}</label><textarea name="notes">${escapeHtml(training.notes || "")}</textarea></div>
       <button class="btn primary" type="submit">${t("save")}</button>
     </form>`
@@ -7136,6 +7253,7 @@ function openDuplicateTrainingModal(trainingId) {
         <div class="form-row"><label>${t("time")}</label><input name="time" type="time" value="${training.time}" required /></div>
       </div>
       <div class="form-row"><label>${t("affectedPlayers")}</label><div id="event-player-options"></div></div>
+      <label class="check-row"><input name="notifyPlayers" type="checkbox" /> <span>Avisar a jugadores del cambio</span></label>
       <div class="form-row"><label>${t("notes")}</label><textarea name="notes">${escapeHtml(training.notes || "")}</textarea></div>
       <button class="btn primary" type="submit">${t("save")}</button>
     </form>`
@@ -7152,9 +7270,10 @@ function openRepeatTrainingModal(trainingId) {
     `<form class="form" onsubmit="repeatTraining(event,'${training.id}')">
       <div class="form-grid">
         <div class="form-row"><label>${t("date")}</label><input name="date" type="date" value="${training.date}" required /></div>
-        <div class="form-row"><label>${t("weeks")}</label><input name="weeks" type="number" min="1" max="20" value="4" required /></div>
+        <div class="form-row"><label>${t("weeks")}</label><input name="weeks" type="number" min="1" max="60" value="4" required /></div>
       </div>
       <div class="form-row"><label>${t("weekdays")}</label><div class="weekday-list">${weekdayCheckboxes([selectedDay])}</div></div>
+      <label class="check-row"><input name="notifyPlayers" type="checkbox" /> <span>Avisar a jugadores de estos entrenos</span></label>
       <button class="btn primary" type="submit">${t("save")}</button>
     </form>`
   );
@@ -7283,6 +7402,8 @@ function affectedPlayerCheckboxList(teamId, selectedCsv = "") {
   const selected = new Set(String(selectedCsv || "").split(",").filter(Boolean));
   const teamIds = [...new Set(String(teamId || "").split(",").filter(Boolean))];
   const players = teamIds.length ? state.players.filter((player) => (player.teams || []).some((id) => teamIds.includes(id))) : [];
+  const playerIds = new Set(players.map((player) => player.id));
+  const extraPlayers = state.players.filter((player) => !playerIds.has(player.id));
   if (!players.length) return `<div class="empty">Selecciona uno o varios equipos para cargar jugadores.</div>`;
   const shouldSelectAll = selected.size === 0;
   return `
@@ -7301,8 +7422,33 @@ function affectedPlayerCheckboxList(teamId, selectedCsv = "") {
         `
         )
         .join("")}
+      <div class="extra-player-picker">
+        <label>Jugador extra de otro equipo</label>
+        <input type="search" placeholder="Buscar jugador de todo el club..." autocomplete="off" oninput="filterExtraPlayerChecks(this)" />
+        <div class="extra-player-list">
+          ${extraPlayers
+            .map(
+              (player) => `
+              <label class="check-row player-check extra-player-option" data-search="${escapeHtml(`${player.name} ${player.teams.map((id) => getTeam(id)?.name).filter(Boolean).join(" ")}`.toLowerCase())}">
+                <input class="affected-player-check" name="playerIds" type="checkbox" value="${player.id}" ${selected.has(player.id) ? "checked" : ""} />
+                <span><strong>${escapeHtml(player.name)}</strong><em>${player.teams.map((id) => getTeam(id)?.name).filter(Boolean).join(", ") || "Sin equipo"}</em></span>
+              </label>
+            `
+            )
+            .join("")}
+        </div>
+      </div>
     </div>
   `;
+}
+
+function filterExtraPlayerChecks(input) {
+  const query = normalizeText(input.value || "");
+  const root = input.closest(".extra-player-picker");
+  root?.querySelectorAll(".extra-player-option").forEach((option) => {
+    const text = normalizeText(option.dataset.search || "");
+    option.style.display = query && text.includes(query) ? "" : "none";
+  });
 }
 
 function toggleAffectedPlayers(source) {
@@ -7596,9 +7742,9 @@ function openQuickPlayerModal() {
         <div class="form-row"><label>${t("player")}</label><input name="playerName" required /></div>
         <div class="form-row"><label>Edad</label><input name="age" type="number" min="1" max="99" /></div>
         <div class="form-row quick-signup-teams"><label>${t("team")}</label><select name="teamIds" multiple size="5">${state.teams.map((team) => `<option value="${team.id}">${escapeHtml(team.name)}</option>`).join("")}</select></div>
-        <div class="form-row"><label>${t("email")} jugador</label><input name="playerEmail" type="email" /></div>
+        <div class="form-row"><label>${t("email")} jugador</label><input name="playerEmail" type="email" autocomplete="off" /></div>
         <div class="form-row"><label>${t("family")}</label><input name="guardianName" /></div>
-        <div class="form-row"><label>${t("email")} familiar</label><input name="guardianEmail" type="email" /></div>
+        <div class="form-row"><label>${t("email")} familiar</label><input name="guardianEmail" type="email" autocomplete="off" /></div>
         <div class="form-row"><label>Teléfono</label><input name="phone" /></div>
       </div>
       <div class="form-row"><label>${t("notes")}</label><textarea name="notes"></textarea></div>
@@ -7648,9 +7794,9 @@ function userFormFields(user = {}) {
   return `
     <div class="form-grid">
       <div class="form-row"><label>${t("title")}</label><input name="name" value="${escapeHtml(user.name || "")}" required /></div>
-      <div class="form-row"><label>${t("email")}</label><input name="email" type="email" value="${escapeHtml(user.email || "")}" required /></div>
+      <div class="form-row"><label>${t("email")}</label><input name="email" type="email" value="${escapeHtml(user.email || "")}" required autocomplete="off" /></div>
       <div class="form-row"><label>Teléfono</label><input name="phone" type="tel" value="${escapeHtml(user.phone || "")}" /></div>
-      <div class="form-row"><label>${t("password")}</label><input name="password" type="text" value="${user.id ? "" : "demo1234"}" ${user.id ? `placeholder="Dejar en blanco para mantener"` : "required"} /></div>
+      <div class="form-row"><label>${t("password")}</label><input name="password" type="text" value="${user.id ? "" : "demo1234"}" ${user.id ? `placeholder="Dejar en blanco para mantener"` : "required"} /><span class="meta">Mínimo 8 caracteres, con letra y número.</span></div>
       <div class="form-row"><label>${t("linkedPlayer")}</label><select name="playerId"><option value="">Sin jugador</option>${state.players.map((player) => `<option value="${player.id}" ${user.playerId === player.id ? "selected" : ""}>${escapeHtml(player.name)}</option>`).join("")}</select></div>
     </div>
     <div class="form-row"><label>${t("roles")}</label>${roleCheckboxList(user.roles || ["player"])}</div>
@@ -7666,9 +7812,9 @@ function openMyAccountModal() {
     `<form class="form" onsubmit="updateMyAccount(event)">
       <div class="form-grid">
         <div class="form-row"><label>${t("title")}</label><input name="name" value="${escapeHtml(user.name || "")}" required /></div>
-        <div class="form-row"><label>${t("email")}</label><input name="email" type="email" value="${escapeHtml(user.email || "")}" required /></div>
+        <div class="form-row"><label>${t("email")}</label><input name="email" type="email" value="${escapeHtml(user.email || "")}" required autocomplete="off" /></div>
         <div class="form-row"><label>Teléfono</label><input name="phone" type="tel" value="${escapeHtml(user.phone || "")}" /></div>
-        <div class="form-row"><label>${t("password")}</label><input name="password" type="password" placeholder="Dejar en blanco para mantener" autocomplete="new-password" /></div>
+        <div class="form-row"><label>${t("password")}</label><input name="password" type="password" placeholder="Dejar en blanco para mantener" autocomplete="new-password" /><span class="meta">Mínimo 8 caracteres, con letra y número.</span></div>
       </div>
       <button class="btn primary" type="submit">${t("save")}</button>
     </form>`
@@ -7783,6 +7929,13 @@ function userFromForm(form, id = uid("user"), existing = {}) {
   };
 }
 
+function passwordPolicyError(password) {
+  if (!password) return "";
+  if (String(password).length < 8) return "La contraseña debe tener al menos 8 caracteres.";
+  if (!/[a-záéíóúñ]/i.test(password) || !/\d/.test(password)) return "La contraseña debe incluir al menos una letra y un número.";
+  return "";
+}
+
 function validateUserForm(user, existingId = "") {
   if (!canManageUsers()) return false;
   if (!user.roles.length) {
@@ -7794,6 +7947,13 @@ function validateUserForm(user, existingId = "") {
   const duplicate = state.users.some((item) => item.id !== existingId && item.email.toLowerCase() === user.email.toLowerCase());
   if (duplicate) {
     state.toast = "Ese email ya esta en uso";
+    closeModal();
+    render();
+    return false;
+  }
+  const passwordError = passwordPolicyError(user.password);
+  if (passwordError) {
+    state.toast = passwordError;
     closeModal();
     render();
     return false;
@@ -8851,6 +9011,13 @@ function updateMyAccount(event) {
   user.email = email;
   user.phone = String(form.get("phone") || "").trim();
   const password = String(form.get("password") || "");
+  const passwordError = passwordPolicyError(password);
+  if (passwordError) {
+    state.toast = passwordError;
+    closeModal();
+    render();
+    return;
+  }
   if (password) user.password = password;
   state.session.email = user.email;
   state.toast = "Perfil actualizado";
@@ -9149,7 +9316,7 @@ async function createEvent(event) {
     const trainings = dates.map((trainingDate) => trainingFromForm(form, teamId, playerIds, trainingDate));
     state.trainings.push(...trainings);
     patchedTrainings = trainings;
-    trainings.forEach((training) => notifyAffectedPlayers(playerIds, "Nuevo entreno convocado", `${training.date} ${training.time} · ${training.place}`, training.id));
+    if (form.get("notifyPlayers")) trainings.forEach((training) => notifyAffectedPlayers(playerIds, "Nuevo entreno convocado", `${training.date} ${training.time} · ${training.place}`, training.id));
     state.toast = trainings.length === 1 ? "Entreno guardado en el calendario" : `${trainings.length} entrenos guardados`;
     appendAudit("crear entreno", "training", `${trainings.length} · ${getTeam(teamId)?.name || t("allClub")}`);
   } else {
@@ -9166,6 +9333,8 @@ async function createEvent(event) {
     competitionId: form.get("competitionId") || "",
     date,
     time: form.get("time"),
+    endDate: form.get("endDate") || "",
+    endTime: form.get("endTime") || "",
     place: form.get("place"),
     notes: form.get("notes"),
     playerIds,
@@ -9208,11 +9377,14 @@ function trainingFromForm(form, teamId, playerIds, date) {
     playerIds,
     date,
     time: form.get("time"),
+    endDate: form.get("endDate") || "",
+    endTime: form.get("endTime") || "",
     place: form.get("place"),
     notes: form.get("notes"),
     absences: {},
     confirmed: false,
     attendance: {},
+    notifyPlayers: Boolean(form.get("notifyPlayers")),
   };
 }
 
@@ -9269,7 +9441,7 @@ function duplicateTraining(event, trainingId) {
   if (!canUseEventTeam(teamId)) return;
   const training = trainingFromForm(form, teamId, form.getAll("playerIds"), form.get("date"));
   state.trainings.push(training);
-  notifyAffectedPlayers(training.playerIds || [], "Nuevo entreno convocado", `${training.date} ${training.time} · ${training.place}`, training.id);
+  if (form.get("notifyPlayers")) notifyAffectedPlayers(training.playerIds || [], "Nuevo entreno convocado", `${training.date} ${training.time} · ${training.place}`, training.id);
   state.calendarCursor = `${training.date.slice(0, 7)}-01`;
   state.toast = "Entreno duplicado";
   appendAudit("duplicar entreno", "training", `${getTeam(training.teamId)?.name || t("allClub")} · ${training.date}`);
@@ -9295,7 +9467,7 @@ function repeatTraining(event, trainingId) {
       confirmed: false,
     }));
   state.trainings.push(...trainings);
-  trainings.forEach((training) => notifyAffectedPlayers(training.playerIds || [], "Nuevo entreno convocado", `${training.date} ${training.time} · ${training.place}`, training.id));
+  if (form.get("notifyPlayers")) trainings.forEach((training) => notifyAffectedPlayers(training.playerIds || [], "Nuevo entreno convocado", `${training.date} ${training.time} · ${training.place}`, training.id));
   state.toast = trainings.length ? `${trainings.length} entrenos creados` : "No habia nuevas fechas";
   appendAudit("repetir entreno", "training", `${trainings.length} · ${getTeam(original.teamId)?.name || t("allClub")}`);
   saveAndClose("manageEvents");
@@ -9316,6 +9488,8 @@ function updateEvent(event, eventId) {
     teamIds: itemTeamIds(eventItem),
     date: eventItem.date,
     time: eventItem.time,
+    endDate: eventItem.endDate || "",
+    endTime: eventItem.endTime || "",
     place: eventItem.place,
     notes: eventItem.notes,
     playerIds: eventItem.playerIds || [],
@@ -9329,10 +9503,12 @@ function updateEvent(event, eventId) {
   eventItem.competitionId = form.get("competitionId") || "";
   eventItem.date = form.get("date");
   eventItem.time = form.get("time");
+  eventItem.endDate = form.get("endDate") || "";
+  eventItem.endTime = form.get("endTime") || "";
   eventItem.place = form.get("place");
   eventItem.notes = form.get("notes");
   eventItem.playerIds = nextPlayers;
-  const changedFields = ["title", "type", "teamId", "date", "time", "place", "notes"].filter((key) => before[key] !== eventItem[key]);
+  const changedFields = ["title", "type", "teamId", "date", "time", "endDate", "endTime", "place", "notes"].filter((key) => before[key] !== eventItem[key]);
   if (before.teamIds.join("|") !== nextTeamIds.join("|")) changedFields.push("teamIds");
   const newPlayers = nextPlayers.filter((id) => !before.playerIds.includes(id));
   if (changedFields.length) {
@@ -9388,7 +9564,7 @@ function updateTraining(event, trainingId) {
   training.place = form.get("place");
   training.notes = form.get("notes");
   training.playerIds = nextPlayers;
-  notifyAffectedPlayers([...new Set([...beforePlayers, ...nextPlayers])], "Entreno modificado", `${training.date} ${training.time} · ${training.place}`, training.id);
+  if (form.get("notifyPlayers")) notifyAffectedPlayers([...new Set([...beforePlayers, ...nextPlayers])], "Entreno modificado", `${training.date} ${training.time} · ${training.place}`, training.id);
   state.toast = "Entreno actualizado";
   appendAudit("editar entreno", "training", `${getTeam(training.teamId)?.name || t("allClub")} · ${training.date}`);
   saveAndClose("manageEvents");
@@ -9432,6 +9608,7 @@ function createCallup(event) {
   state.callups.push(callup);
   const eventItem = syncCallupEvent(state, callup);
   notifyAffectedPlayers(playerIds, "Nueva convocatoria publicada", `${eventItem.title} · ${eventItem.date} ${eventItem.time}`, eventItem.id);
+  queueEmailForPlayers(playerIds, `Convocatoria: ${eventItem.title}`, `${eventItem.title}\n${eventItem.date} ${eventItem.time}\n${eventItem.place || ""}\n${callup.notes || ""}`, eventItem.id);
   state.calendarCursor = `${callup.date.slice(0, 7)}-01`;
   goView("calendar");
   appendAudit("crear convocatoria", "callup", eventItem.title);
@@ -9460,6 +9637,7 @@ function updateCallup(event, callupId) {
   callup.responses = Object.fromEntries(playerIds.map((id) => [id, callup.responses?.[id] || "pending"]));
   const eventItem = syncCallupEvent(state, callup);
   notifyAffectedPlayers([...new Set([...beforePlayers, ...playerIds])], "Convocatoria modificada", `${eventItem.title} · ${eventItem.date} ${eventItem.time}`, eventItem.id);
+  queueEmailForPlayers(playerIds, `Convocatoria actualizada: ${eventItem.title}`, `${eventItem.title}\n${eventItem.date} ${eventItem.time}\n${eventItem.place || ""}\n${callup.notes || ""}`, eventItem.id);
   state.toast = "Convocatoria actualizada";
   appendAudit("editar convocatoria", "callup", eventItem.title);
   saveAndClose("manageCallup");
