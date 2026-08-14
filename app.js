@@ -7496,7 +7496,7 @@ function affectedPlayerCheckboxList(teamId, selectedCsv = "") {
         .map(
           (player) => `
           <label class="check-row player-check affected-player-option" data-search="${escapeHtml(normalizeSearchText(`${player.name} ${player.teams.map((id) => getTeam(id)?.name).filter(Boolean).join(" ")}`))}">
-            <input class="affected-player-check" name="playerIds" type="checkbox" value="${player.id}" ${shouldSelectAll || selected.has(player.id) ? "checked" : ""} />
+            <input class="affected-player-check" name="playerIds" type="checkbox" value="${player.id}" ${shouldSelectAll || selected.has(player.id) ? "checked" : ""} onchange="refreshAffectedPlayerSearch(this)" />
             <span><strong>${escapeHtml(player.name)}</strong><em>${player.teams.map((id) => getTeam(id)?.name).filter(Boolean).join(", ")}</em></span>
           </label>
         `
@@ -7510,7 +7510,7 @@ function affectedPlayerCheckboxList(teamId, selectedCsv = "") {
             .map(
               (player) => `
               <label class="check-row player-check extra-player-option" data-search="${escapeHtml(normalizeSearchText(`${player.name} ${player.teams.map((id) => getTeam(id)?.name).filter(Boolean).join(" ")}`))}">
-                <input class="affected-player-check" name="playerIds" type="checkbox" value="${player.id}" ${selected.has(player.id) ? "checked" : ""} />
+                <input class="affected-player-check" name="playerIds" type="checkbox" value="${player.id}" ${selected.has(player.id) ? "checked" : ""} onchange="refreshAffectedPlayerSearch(this)" />
                 <span><strong>${escapeHtml(player.name)}</strong><em>${player.teams.map((id) => getTeam(id)?.name).filter(Boolean).join(", ") || "Sin equipo"}</em></span>
               </label>
             `
@@ -7530,12 +7530,19 @@ function filterAffectedPlayerChecks(input) {
     const checked = option.querySelector("input")?.checked;
     const isExtra = option.classList.contains("extra-player-option");
     const matches = !query || text.includes(query);
-    option.style.display = (matches && (!isExtra || query || checked)) || checked ? "" : "none";
+    const visible = (matches && (!isExtra || query || checked)) || checked;
+    option.style.display = visible ? "flex" : "none";
   });
 }
 
 function filterExtraPlayerChecks(input) {
   filterAffectedPlayerChecks(input);
+}
+
+function refreshAffectedPlayerSearch(source) {
+  const root = source.closest(".checkbox-list");
+  const search = root?.querySelector(".player-search-input");
+  if (search) filterAffectedPlayerChecks(search);
 }
 
 function notifyTrainingBatch(trainings, playerIds) {
@@ -7557,7 +7564,7 @@ function notifyTrainingBatch(trainings, playerIds) {
 
 function toggleAffectedPlayers(source) {
   const root = source.closest(".checkbox-list");
-  root?.querySelectorAll(".affected-player-check").forEach((input) => {
+  root?.querySelectorAll(".affected-player-option:not(.extra-player-option) .affected-player-check").forEach((input) => {
     input.checked = source.checked;
   });
 }
