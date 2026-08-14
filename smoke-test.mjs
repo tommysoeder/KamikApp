@@ -94,7 +94,20 @@ vm.runInContext("openEventModal();", context, { filename: "smoke-open-event-moda
 if (modalElement.innerHTML.includes('name="title" required')) {
   throw new Error("Training creation can be blocked by required title");
 }
+if (!modalElement.innerHTML.includes("<select name=\"weekdays\"")) {
+  throw new Error("Training recurrence weekday selector did not render");
+}
 modalElement.innerHTML = "";
+
+const recurrenceSmoke = vm.runInContext(
+  `recurrenceDates("2026-08-17", 1, ["3"]).join("|")`,
+  context,
+  { filename: "smoke-recurrence-dates.js" }
+);
+
+if (recurrenceSmoke !== "2026-08-19") {
+  throw new Error(`Training recurrence did not honor selected weekday: ${recurrenceSmoke}`);
+}
 
 context.FormData = class FakeFormData {
   constructor(form) {

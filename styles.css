@@ -3443,6 +3443,11 @@ body::-webkit-scrollbar-thumb,
   width: 90px;
 }
 
+.recurrence-sentence select {
+  width: auto;
+  min-width: 132px;
+}
+
 .weekday-list {
   display: flex;
   gap: 7px;

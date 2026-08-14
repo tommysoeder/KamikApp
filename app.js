@@ -5479,6 +5479,7 @@ function renderScheduleItem(item) {
         ${item.source === "event" && manageable ? `<button class="btn" type="button" onclick="event.stopPropagation(); openEditEventModal('${item.id}')">${t("editEvent")}</button>` : ""}
         ${item.source === "event" && manageable ? `<button class="btn danger" type="button" onclick="event.stopPropagation(); deleteEvent('${item.id}')">${t("delete")}</button>` : ""}
         ${item.source === "training" && manageable ? `<button class="btn" type="button" onclick="event.stopPropagation(); openEditTrainingModal('${item.id}')">${t("edit")}</button>` : ""}
+        ${item.source === "training" && manageable ? `<button class="btn danger" type="button" onclick="event.stopPropagation(); deleteTrainingSeries('${item.id}')">Borrar serie</button>` : ""}
         ${item.source === "training" && manageable ? `<button class="btn danger" type="button" onclick="event.stopPropagation(); deleteTraining('${item.id}')">${t("delete")}</button>` : ""}
       </div>
       <p class="meta">${escapeHtml(item.notes || "")}</p>
@@ -5511,7 +5512,7 @@ function openScheduleDetail(source, id) {
           ? `<div class="actions inline-actions">
               ${
                 source === "training"
-                  ? `<button class="btn" type="button" onclick="openEditTrainingModal('${item.id}')">${t("edit")}</button><button class="btn" type="button" onclick="openDuplicateTrainingModal('${item.id}')">${t("duplicate")}</button><button class="btn" type="button" onclick="openRepeatTrainingModal('${item.id}')">${t("repeatTraining")}</button><button class="btn danger" type="button" onclick="deleteTraining('${item.id}')">${t("delete")}</button>`
+                  ? `<button class="btn" type="button" onclick="openEditTrainingModal('${item.id}')">${t("edit")}</button><button class="btn" type="button" onclick="openDuplicateTrainingModal('${item.id}')">${t("duplicate")}</button><button class="btn" type="button" onclick="openRepeatTrainingModal('${item.id}')">${t("repeatTraining")}</button><button class="btn danger" type="button" onclick="deleteTrainingSeries('${item.id}')">Borrar serie</button><button class="btn danger" type="button" onclick="deleteTraining('${item.id}')">${t("delete")}</button>`
                   : `<button class="btn" type="button" onclick="openEditEventModal('${item.id}')">${t("edit")}</button><button class="btn" type="button" onclick="openDuplicateEventModal('${item.id}')">${t("duplicate")}</button><button class="btn danger" type="button" onclick="deleteEvent('${item.id}')">${t("delete")}</button>`
               }
             </div>`
@@ -7153,11 +7154,13 @@ function openEventModal(defaultType = "match") {
       </div>
       <div class="form-row"><label>${t("affectedPlayers")}</label><div id="event-player-options"></div></div>
       <div class="form-row recurrent-training-fields">
-        <label>${t("repeatTraining")}</label>
-        <div class="recurrence-box">
+        <label>Repetir si es entreno</label>
+        <div class="recurrence-box recurrence-sentence">
+          <span>Todos los</span>
+          <select name="weekdays">${weekdayOptions(new Date().getDay() || 7)}</select>
+          <span>a esa hora durante</span>
           <input name="weeks" type="number" min="1" max="60" value="1" />
           <span>${t("weeks")}</span>
-          <div class="weekday-list">${weekdayCheckboxes([new Date().getDay() || 7])}</div>
         </div>
         <label class="check-row"><input name="notifyPlayers" type="checkbox" /> <span>Avisar a jugadores de este entreno</span></label>
       </div>
@@ -7274,14 +7277,35 @@ function openRepeatTrainingModal(trainingId) {
     t("repeatTraining"),
     `<form class="form" onsubmit="repeatTraining(event,'${training.id}')">
       <div class="form-grid">
-        <div class="form-row"><label>${t("date")}</label><input name="date" type="date" value="${training.date}" required /></div>
-        <div class="form-row"><label>${t("weeks")}</label><input name="weeks" type="number" min="1" max="60" value="4" required /></div>
+        <div class="form-row"><label>A partir de</label><input name="date" type="date" value="${training.date}" required /></div>
+        <div class="form-row"><label>Hora</label><input value="${training.time}" disabled /></div>
       </div>
-      <div class="form-row"><label>${t("weekdays")}</label><div class="weekday-list">${weekdayCheckboxes([selectedDay])}</div></div>
+      <div class="form-row">
+        <label>Repetir todos los</label>
+        <div class="recurrence-box recurrence-sentence">
+          <select name="weekdays">${weekdayOptions(selectedDay)}</select>
+          <span>a esa hora durante</span>
+          <input name="weeks" type="number" min="1" max="60" value="12" required />
+          <span>${t("weeks")}</span>
+        </div>
+      </div>
       <label class="check-row"><input name="notifyPlayers" type="checkbox" /> <span>Avisar a jugadores de estos entrenos</span></label>
       <button class="btn primary" type="submit">${t("save")}</button>
     </form>`
   );
+}
+
+function weekdayOptions(selectedDay = 1) {
+  const days = [
+    [1, "lunes"],
+    [2, "martes"],
+    [3, "miércoles"],
+    [4, "jueves"],
+    [5, "viernes"],
+    [6, "sábado"],
+    [7, "domingo"],
+  ];
+  return days.map(([value, label]) => `<option value="${value}" ${Number(selectedDay) === value ? "selected" : ""}>${label}</option>`).join("");
 }
 
 function weekdayCheckboxes(selectedDays = []) {
@@ -9554,7 +9578,7 @@ function deleteEvent(eventId) {
   notifyScheduleEvent(eventItem, "Evento cancelado", eventItem.title || "");
   state.toast = "Evento borrado";
   appendAudit("borrar evento", "event", eventItem.title || eventId);
-  save("manageEvents");
+  save(eventItem.sourceCallupId ? "manageCallup" : "manageEvents");
   render();
 }
 
@@ -9589,6 +9613,45 @@ function deleteTraining(trainingId) {
   appendAudit("borrar entreno", "training", `${getTeam(training.teamId)?.name || t("allClub")} · ${training.date}`);
   save("manageEvents");
   render();
+}
+
+function deleteTrainingSeries(trainingId) {
+  const training = state.trainings.find((item) => item.id === trainingId);
+  if (!training || !canManageScheduleItem(training)) return;
+  const season = getSeason(training.seasonId || seasonIdForDate(training.date));
+  const day = new Date(`${training.date}T00:00:00`).getDay() || 7;
+  const inSameSeason = (item) => {
+    if (!season) return true;
+    return item.date >= season.startsAt && item.date <= season.endsAt;
+  };
+  const matches = state.trainings.filter((item) => {
+    const itemDay = new Date(`${item.date}T00:00:00`).getDay() || 7;
+    return item.teamId === training.teamId && item.time === training.time && itemDay === day && inSameSeason(item) && canManageScheduleItem(item);
+  });
+  if (!matches.length) return;
+  const teamLabel = getTeam(training.teamId)?.name || t("allClub");
+  const dayLabel = weekdayName(day);
+  if (!confirm(`Borrar ${matches.length} entreno${matches.length === 1 ? "" : "s"} de ${teamLabel}, todos los ${dayLabel} a las ${training.time}?`)) return;
+  const removedIds = new Set(matches.map((item) => item.id));
+  state.trainings = state.trainings.filter((item) => !removedIds.has(item.id));
+  matches.forEach((item) => notifyAffectedPlayers(item.playerIds || [], "Entreno cancelado", `${item.date} ${item.time} · ${item.place}`, item.id));
+  state.toast = `${matches.length} entreno${matches.length === 1 ? "" : "s"} borrado${matches.length === 1 ? "" : "s"}`;
+  appendAudit("borrar serie entrenos", "training", `${matches.length} · ${teamLabel} · ${dayLabel} ${training.time}`);
+  save("manageEvents");
+  closeModal();
+  render();
+}
+
+function weekdayName(day) {
+  return {
+    1: "lunes",
+    2: "martes",
+    3: "miércoles",
+    4: "jueves",
+    5: "viernes",
+    6: "sábado",
+    7: "domingo",
+  }[Number(day)] || "día seleccionado";
 }
 
 function createCallup(event) {
