@@ -2559,7 +2559,6 @@ function render() {
   const app = document.querySelector("#app");
   if (!state.session) {
     app.innerHTML = renderLogin();
-    document.querySelector("#login-form").addEventListener("submit", login);
     return;
   }
 
@@ -2568,7 +2567,6 @@ function render() {
     state.session = null;
     save();
     app.innerHTML = renderLogin();
-    document.querySelector("#login-form").addEventListener("submit", login);
     return;
   }
   if (!canSee(state.activeView)) state.activeView = "dashboard";
@@ -2871,7 +2869,7 @@ function renderLogin() {
   const defaultUser = loginUsers[0] || state.users[0];
   return `
     <section class="login">
-      <form class="login-panel form" id="login-form" autocomplete="off">
+      <form class="login-panel form" id="login-form" autocomplete="off" onsubmit="login(event)">
         <img class="login-logo" src="assets/kamikazes-logo.png" alt="Kamikazes" />
         ${renderBetaBanner("login")}
         <h1>${t("loginTitle")}</h1>
