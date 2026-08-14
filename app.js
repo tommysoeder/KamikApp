@@ -3273,6 +3273,10 @@ function normalizeSearchText(value) {
     .replace(/[\u0300-\u036f]/g, "");
 }
 
+function normalizeText(value) {
+  return normalizeSearchText(value);
+}
+
 function openProfileFromSearch(playerId) {
   closeGlobalSearch();
   goView("profiles");
