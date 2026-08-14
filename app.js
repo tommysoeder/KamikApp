@@ -2463,19 +2463,21 @@ function canSee(view) {
 async function login(event) {
   event.preventDefault();
   const form = new FormData(event.currentTarget);
-  const email = String(form.get("email") || "").trim().toLowerCase();
-  const password = String(form.get("password") || "");
+  const email = normalizeLoginEmail(form.get("email"));
+  const password = normalizeLoginPassword(form.get("password"));
   const rawSelectedUserId = String(form.get("userId") || "");
   const selectedUser = state.users.find((item) => item.id === rawSelectedUserId);
-  const selectedUserId = selectedUser && String(selectedUser.email || "").trim().toLowerCase() === email ? rawSelectedUserId : "";
+  const selectedUserId = selectedUser && normalizeLoginEmail(selectedUser.email) === email ? rawSelectedUserId : "";
   const remoteSession = await loginRemote(email, password, selectedUserId);
-  if (remoteSession) {
-    const user = state.users.find((item) => item.id === remoteSession.userId);
+  if (remoteSession?.ok) {
+    const sessionPayload = remoteSession.data;
+    if (!sessionPayload) return;
+    const user = state.users.find((item) => item.id === sessionPayload.userId) || sessionPayload.user;
     state.session = {
-      userId: remoteSession.userId,
-      email: remoteSession.email || email,
-      activeRole: remoteSession.activeRole || user?.roles?.[0] || "parent",
-      token: remoteSession.token,
+      userId: sessionPayload.userId,
+      email: sessionPayload.email || email,
+      activeRole: sessionPayload.activeRole || user?.roles?.[0] || "parent",
+      token: sessionPayload.token,
     };
     appendAudit("login", "session", user?.name || email);
     save("session");
@@ -2483,7 +2485,12 @@ async function login(event) {
     render();
     return;
   }
-  const user = state.users.find((item) => !item.disabled && item.id === selectedUserId && item.email.toLowerCase() === email && item.password === password);
+  if (remoteSession && !remoteSession.ok && remoteSession.status !== 0) {
+    state.toast = remoteSession.error || t("invalidLogin");
+    render();
+    return;
+  }
+  const user = state.users.find((item) => !item.disabled && (!selectedUserId || item.id === selectedUserId) && normalizeLoginEmail(item.email) === email && normalizeLoginPassword(item.password) === password);
   if (!user) {
     state.toast = t("invalidLogin");
     render();
@@ -2495,6 +2502,14 @@ async function login(event) {
   render();
 }
 
+function normalizeLoginEmail(value) {
+  return String(value || "").replace(/[\u200B-\u200D\uFEFF]/g, "").trim().toLowerCase();
+}
+
+function normalizeLoginPassword(value) {
+  return String(value || "").replace(/[\u200B-\u200D\uFEFF]/g, "").trim();
+}
+
 async function loginRemote(email, password, userId) {
   if (typeof fetch === "undefined" || location.protocol === "file:") return null;
   try {
@@ -2503,10 +2518,11 @@ async function loginRemote(email, password, userId) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password, userId }),
     });
-    if (!response.ok) return null;
-    return await response.json();
+    const data = await response.json().catch(() => null);
+    if (!response.ok) return { ok: false, status: response.status, error: data?.error || t("invalidLogin") };
+    return { ok: true, data };
   } catch {
-    return null;
+    return { ok: false, status: 0, error: "No se pudo conectar con el servidor" };
   }
 }
 
@@ -2892,11 +2908,11 @@ function renderLogin() {
         ${state.toast ? `<div class="item notice-item"><strong>${escapeHtml(state.toast)}</strong></div>` : ""}
         <div class="form-row">
           <label>${t("email")}</label>
-          <input id="login-email" name="email" type="email" value="${escapeHtml(defaultUser?.email || "direccion@club.test")}" required autocomplete="username" />
+          <input id="login-email" name="email" type="email" value="${escapeHtml(defaultUser?.email || "direccion@club.test")}" required autocomplete="username" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" />
         </div>
         <div class="form-row">
           <label>${t("password")}</label>
-          <input name="password" type="password" value="${IS_PRESENTATION_DEMO ? "demo1234" : ""}" required autocomplete="current-password" />
+          <input name="password" type="password" value="${IS_PRESENTATION_DEMO ? "demo1234" : ""}" required autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false" />
         </div>
         ${
           SHOW_LOGIN_PROFILES

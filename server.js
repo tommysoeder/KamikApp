@@ -12,7 +12,7 @@ const STATE_FILE = path.join(DATA_DIR, "state.json");
 const BUNDLED_STATE_FILE = path.join(ROOT, "data", "state.json");
 const BACKUP_DIR = path.join(DATA_DIR, "backups");
 const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
-const APP_VERSION = "v175";
+const APP_VERSION = "v176";
 const APP_MODE = String(process.env.APP_MODE || "presentation").toLowerCase();
 const APP_LABEL = process.env.APP_LABEL || (APP_MODE === "beta" ? "Beta privada" : "");
 const SHOW_LOGIN_PROFILES = process.env.SHOW_LOGIN_PROFILES === "1" || (APP_MODE !== "beta" && APP_MODE !== "production");
@@ -239,16 +239,21 @@ function publicUser(user) {
 }
 
 function hashPassword(password, salt = crypto.randomBytes(16).toString("hex")) {
-  const passwordHash = crypto.pbkdf2Sync(String(password || ""), salt, 120000, 32, "sha256").toString("hex");
+  const passwordHash = crypto.pbkdf2Sync(normalizeLoginPassword(password), salt, 120000, 32, "sha256").toString("hex");
   return { passwordHash, passwordSalt: salt };
 }
 
+function normalizeLoginPassword(password) {
+  return String(password || "").replace(/[\u200B-\u200D\uFEFF]/g, "").trim();
+}
+
 function verifyPassword(user, password) {
+  const normalizedPassword = normalizeLoginPassword(password);
   if (user.passwordHash && user.passwordSalt) {
-    const { passwordHash } = hashPassword(password, user.passwordSalt);
+    const { passwordHash } = hashPassword(normalizedPassword, user.passwordSalt);
     return crypto.timingSafeEqual(Buffer.from(passwordHash, "hex"), Buffer.from(user.passwordHash, "hex"));
   }
-  return String(user.password || "") === String(password || "");
+  return normalizeLoginPassword(user.password) === normalizedPassword;
 }
 
 function playerIdsForUser(user, state) {
@@ -405,8 +410,8 @@ function preserveHiddenPasswords(beforeState, afterState) {
 function loginUser(payload) {
   const state = stateForLogin();
   if (!state) return { error: "No saved state yet", status: 404 };
-  const email = String(payload.email || "").trim().toLowerCase();
-  const password = String(payload.password || "");
+  const email = String(payload.email || "").replace(/[\u200B-\u200D\uFEFF]/g, "").trim().toLowerCase();
+  const password = normalizeLoginPassword(payload.password);
   const requestedUserId = String(payload.userId || "");
   const matches = (state.users || []).filter((item) => {
     if (item.disabled) return false;
