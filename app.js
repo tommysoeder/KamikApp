@@ -1010,6 +1010,7 @@ function normalize(raw) {
   next.permissions.feesCanRestoreData ??= false;
   next.permissions.feesCanUndoBulk ??= false;
   next.mobileMenuOpen ??= false;
+  next.loginLoading = false;
   next.toast ||= "";
   if (/operaci[oó]n no permitida|no se pudo conectar|sin conexi[oó]n|servidor local/i.test(next.toast)) next.toast = "";
   const versionChanged = next.appVersion && next.appVersion !== APP_VERSION;
@@ -2447,14 +2448,16 @@ function canSee(view) {
 async function login(event) {
   event.preventDefault();
   if (state.loginLoading) return;
+  const loginForm = event.currentTarget;
   const form = new FormData(event.currentTarget);
   const email = String(form.get("email") || "").trim().toLowerCase();
   const password = String(form.get("password") || "");
   const selectedUserId = String(form.get("userId") || "");
   state.loginLoading = true;
-  render();
+  setLoginLoading(loginForm, true);
   const remoteSession = await loginRemote(email, password, selectedUserId);
   if (remoteSession) {
+    if (remoteSession.user) state.users = upsertLocalItems(state.users, [remoteSession.user]);
     const user = state.users.find((item) => item.id === remoteSession.userId);
     state.session = {
       userId: remoteSession.userId,
@@ -2462,13 +2465,15 @@ async function login(event) {
       activeRole: remoteSession.activeRole || user?.roles?.[0] || "parent",
       token: remoteSession.token,
     };
+    state.loginLoading = false;
     appendAudit("login", "session", user?.name || email);
     save("session");
-    await refreshRemoteState({ keepToast: true });
     render();
+    refreshRemoteState({ keepToast: true, force: true });
     return;
   }
   state.loginLoading = false;
+  setLoginLoading(loginForm, false);
   const user = state.users.find(
     (item) =>
       !item.disabled &&
@@ -2482,9 +2487,17 @@ async function login(event) {
     return;
   }
   state.session = { userId: user.id, email: form.get("email") || user.email, activeRole: user.roles[0] };
+  state.loginLoading = false;
   appendAudit("login", "session", user.name);
   save();
   render();
+}
+
+function setLoginLoading(form, loading) {
+  const button = form?.querySelector?.('button[type="submit"]');
+  if (!button) return;
+  button.disabled = loading;
+  button.textContent = loading ? "Entrando..." : t("enter");
 }
 
 async function loginRemote(email, password, userId) {

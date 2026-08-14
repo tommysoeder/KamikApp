@@ -1,14 +1,14 @@
 {
   "name": "KamikApp",
   "short_name": "KamikApp",
-  "start_url": "index.html?v=163",
+  "start_url": "index.html?v=164",
   "display": "standalone",
   "background_color": "#f6f4ef",
   "theme_color": "#1d4d4f",
   "description": "Comunicacion, calendario, convocatorias, documentos y asistencia para Kamikazes.",
   "icons": [
     {
-      "src": "assets/favicon.svg?v=163",
+      "src": "assets/favicon.svg?v=164",
       "sizes": "64x64",
       "type": "image/svg+xml",
       "purpose": "any maskable"
