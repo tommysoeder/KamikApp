@@ -652,7 +652,6 @@ const seed = {
   diagnosticAuditTeamId: "",
   betaFeedbackStatusFilter: "active",
   betaFeedbackSeverityFilter: "all",
-  loginLoading: false,
   permissions: {
     coachCanAttendance: true,
     delegateCanAttendance: true,
@@ -1010,7 +1009,6 @@ function normalize(raw) {
   next.permissions.feesCanRestoreData ??= false;
   next.permissions.feesCanUndoBulk ??= false;
   next.mobileMenuOpen ??= false;
-  next.loginLoading = false;
   next.toast ||= "";
   if (/operaci[oó]n no permitida|no se pudo conectar|sin conexi[oó]n|servidor local/i.test(next.toast)) next.toast = "";
   const versionChanged = next.appVersion && next.appVersion !== APP_VERSION;
@@ -2447,100 +2445,49 @@ function canSee(view) {
 
 async function login(event) {
   event.preventDefault();
-  if (state.loginLoading) return;
-  const loginForm = event.currentTarget;
   const form = new FormData(event.currentTarget);
   const email = String(form.get("email") || "").trim().toLowerCase();
   const password = String(form.get("password") || "");
   const selectedUserId = String(form.get("userId") || "");
-  state.loginLoading = true;
-  state.toast = "";
-  setLoginLoading(loginForm, true);
-  const remoteLogin = await loginRemote(email, password, selectedUserId);
-  if (remoteLogin?.session) {
-    if (remoteLogin.session.user) state.users = upsertLocalItems(state.users, [remoteLogin.session.user]);
-    const user = state.users.find((item) => item.id === remoteLogin.session.userId);
+  const remoteSession = await loginRemote(email, password, selectedUserId);
+  if (remoteSession) {
+    const user = state.users.find((item) => item.id === remoteSession.userId);
     state.session = {
-      userId: remoteLogin.session.userId,
-      email: remoteLogin.session.email || email,
-      activeRole: remoteLogin.session.activeRole || user?.roles?.[0] || "parent",
-      token: remoteLogin.session.token,
+      userId: remoteSession.userId,
+      email: remoteSession.email || email,
+      activeRole: remoteSession.activeRole || user?.roles?.[0] || "parent",
+      token: remoteSession.token,
     };
-    state.loginLoading = false;
     appendAudit("login", "session", user?.name || email);
     save("session");
-    render();
-    refreshRemoteState({ keepToast: true, force: true });
-    return;
-  }
-  state.loginLoading = false;
-  setLoginLoading(loginForm, false);
-  if (remoteLogin?.error && !remoteLogin.canFallback) {
-    state.toast = remoteLogin.error;
+    await refreshRemoteState({ keepToast: true });
     render();
     return;
   }
-  const user = state.users.find(
-    (item) =>
-      !item.disabled &&
-      (!selectedUserId || item.id === selectedUserId) &&
-      String(item.email || "").toLowerCase() === email &&
-      item.password === password
-  );
+  const user = state.users.find((item) => !item.disabled && item.id === selectedUserId && item.email.toLowerCase() === email && item.password === password);
   if (!user) {
     state.toast = t("invalidLogin");
     render();
     return;
   }
   state.session = { userId: user.id, email: form.get("email") || user.email, activeRole: user.roles[0] };
-  state.loginLoading = false;
   appendAudit("login", "session", user.name);
   save();
   render();
 }
 
-function setLoginLoading(form, loading) {
-  const button = form?.querySelector?.('button[type="submit"]');
-  if (!button) return;
-  button.disabled = loading;
-  button.textContent = loading ? "Entrando..." : t("enter");
-}
-
 async function loginRemote(email, password, userId) {
-  if (typeof fetch === "undefined" || location.protocol === "file:") return { session: null, canFallback: true };
-  const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
-  let timer = null;
-  const timeout = new Promise((resolve) => {
-    timer = setTimeout(() => {
-      controller?.abort?.();
-      resolve({ session: null, error: "El servidor no responde al login. Espera unos segundos y recarga.", canFallback: false });
-    }, 8000);
-  });
+  if (typeof fetch === "undefined" || location.protocol === "file:") return null;
   try {
-    return await Promise.race([
-      fetch(API_LOGIN_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, userId }),
-        cache: "no-store",
-        ...(controller ? { signal: controller.signal } : {}),
-      }).then(async (response) => {
-        const text = await response.text();
-        let body = {};
-        try {
-          body = text ? JSON.parse(text) : {};
-        } catch {
-          return { session: null, error: "El servidor ha devuelto una respuesta no valida al login.", canFallback: false };
-        }
-        if (!response.ok) return { session: null, error: body.error || t("invalidLogin"), canFallback: response.status !== 401 };
-        return { session: body, canFallback: false };
-      }),
-      timeout,
-    ]);
+    const response = await fetch(API_LOGIN_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, userId }),
+    });
+    if (!response.ok) return null;
+    return await response.json();
   } catch {
-    return { session: null, error: "No se ha podido conectar con el servidor de login.", canFallback: false };
-  } finally {
-    if (timer) clearTimeout(timer);
+    return null;
   }
 }
 
@@ -2606,6 +2553,7 @@ function render() {
   const app = document.querySelector("#app");
   if (!state.session) {
     app.innerHTML = renderLogin();
+    document.querySelector("#login-form").addEventListener("submit", login);
     return;
   }
 
@@ -2614,6 +2562,7 @@ function render() {
     state.session = null;
     save();
     app.innerHTML = renderLogin();
+    document.querySelector("#login-form").addEventListener("submit", login);
     return;
   }
   if (!canSee(state.activeView)) state.activeView = "dashboard";
@@ -2916,7 +2865,7 @@ function renderLogin() {
   const defaultUser = loginUsers[0] || state.users[0];
   return `
     <section class="login">
-      <form class="login-panel form" id="login-form" autocomplete="off" onsubmit="login(event)">
+      <form class="login-panel form" id="login-form">
         <img class="login-logo" src="assets/kamikazes-logo.png" alt="Kamikazes" />
         ${renderBetaBanner("login")}
         <h1>${t("loginTitle")}</h1>
@@ -2924,11 +2873,11 @@ function renderLogin() {
         ${state.toast ? `<div class="item notice-item"><strong>${escapeHtml(state.toast)}</strong></div>` : ""}
         <div class="form-row">
           <label>${t("email")}</label>
-          <input id="login-email" name="email" type="email" value="${escapeHtml(defaultUser?.email || "direccion@club.test")}" required autocomplete="off" autocapitalize="none" spellcheck="false" />
+          <input id="login-email" name="email" type="email" value="${escapeHtml(defaultUser?.email || "direccion@club.test")}" required autocomplete="username" />
         </div>
         <div class="form-row">
           <label>${t("password")}</label>
-          <input name="password" type="password" value="${IS_PRESENTATION_DEMO ? "demo1234" : ""}" required autocomplete="off" />
+          <input name="password" type="password" value="${IS_PRESENTATION_DEMO ? "demo1234" : ""}" required autocomplete="current-password" />
         </div>
         ${
           SHOW_LOGIN_PROFILES
@@ -2940,8 +2889,7 @@ function renderLogin() {
               </div>`
             : `<input name="userId" type="hidden" value="" />`
         }
-        <button class="btn primary" type="submit" ${state.loginLoading ? "disabled" : ""}>${state.loginLoading ? "Entrando..." : t("enter")}</button>
-        <div class="login-version">App ${escapeHtml(APP_VERSION)} · Servidor ${escapeHtml(state.serverVersion || APP_VERSION)}</div>
+        <button class="btn primary" type="submit">${t("enter")}</button>
       </form>
     </section>
   `;
