@@ -35,9 +35,9 @@ const API_EVENTS_PATCH_URL = "/api/events/patch";
 const API_EVENTS_CREATE_URL = "/api/events/create";
 const APP_CONFIG = typeof window !== "undefined" ? window.__KAMIK_CONFIG || {} : {};
 const APP_VERSION = APP_CONFIG.version || "local";
-const APP_MODE = String(APP_CONFIG.mode || "presentation").toLowerCase();
+const APP_MODE = String(APP_CONFIG.mode || "beta").toLowerCase();
 const IS_PRESENTATION_DEMO = APP_CONFIG.presentationDemo !== false && APP_MODE !== "beta" && APP_MODE !== "production";
-const SHOW_LOGIN_PROFILES = APP_CONFIG.showLoginProfiles !== false;
+const SHOW_LOGIN_PROFILES = APP_CONFIG.showLoginProfiles === true;
 
 const roleKeys = ["president", "director", "coach", "delegate", "fees", "parent", "player"];
 
@@ -46,7 +46,7 @@ const copy = {
     appName: "KamikApp",
     subtitle: "Kamikazes · canal oficial",
     role: "Rol activo",
-    profile: "Perfil de prueba",
+    profile: "Perfil",
     dashboard: "Inicio",
     management: "Gestión",
     history: "Histórico",
@@ -128,7 +128,7 @@ const copy = {
     parent: "Padre/madre",
     player: "Jugador",
     loginTitle: "Acceso privado del club",
-    loginText: "Prototipo con email y contraseña. Elige un perfil demo para entrar.",
+    loginText: "Accede con el email y la contraseña de tu cuenta.",
     email: "Email",
     password: "Contraseña",
     enter: "Entrar",
@@ -417,7 +417,7 @@ const copy = {
     parent: "Parent",
     player: "Player",
     loginTitle: "Private club access",
-    loginText: "Email and password prototype. Pick a demo profile to enter.",
+    loginText: "Sign in with your account email and password.",
     email: "Email",
     password: "Password",
     enter: "Enter",
