@@ -12,7 +12,7 @@ const STATE_FILE = path.join(DATA_DIR, "state.json");
 const BUNDLED_STATE_FILE = path.join(ROOT, "data", "state.json");
 const BACKUP_DIR = path.join(DATA_DIR, "backups");
 const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
-const APP_VERSION = "v174";
+const APP_VERSION = "v175";
 const APP_MODE = String(process.env.APP_MODE || "presentation").toLowerCase();
 const APP_LABEL = process.env.APP_LABEL || (APP_MODE === "beta" ? "Beta privada" : "");
 const SHOW_LOGIN_PROFILES = process.env.SHOW_LOGIN_PROFILES === "1" || (APP_MODE !== "beta" && APP_MODE !== "production");
@@ -408,11 +408,11 @@ function loginUser(payload) {
   const email = String(payload.email || "").trim().toLowerCase();
   const password = String(payload.password || "");
   const requestedUserId = String(payload.userId || "");
-  const user = (state.users || []).find((item) => {
+  const matches = (state.users || []).filter((item) => {
     if (item.disabled) return false;
-    if (requestedUserId && item.id !== requestedUserId) return false;
     return String(item.email || "").toLowerCase() === email && verifyPassword(item, password);
   });
+  const user = matches.find((item) => item.id === requestedUserId) || matches[0];
   if (!user) return { error: "Invalid login", status: 401 };
   const loginAt = new Date().toISOString();
   user.lastLoginAt = loginAt;

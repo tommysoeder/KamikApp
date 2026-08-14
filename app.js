@@ -2465,7 +2465,9 @@ async function login(event) {
   const form = new FormData(event.currentTarget);
   const email = String(form.get("email") || "").trim().toLowerCase();
   const password = String(form.get("password") || "");
-  const selectedUserId = String(form.get("userId") || "");
+  const rawSelectedUserId = String(form.get("userId") || "");
+  const selectedUser = state.users.find((item) => item.id === rawSelectedUserId);
+  const selectedUserId = selectedUser && String(selectedUser.email || "").trim().toLowerCase() === email ? rawSelectedUserId : "";
   const remoteSession = await loginRemote(email, password, selectedUserId);
   if (remoteSession) {
     const user = state.users.find((item) => item.id === remoteSession.userId);
