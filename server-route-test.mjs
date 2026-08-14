@@ -182,6 +182,26 @@ try {
   const afterEventCreate = JSON.parse(await fs.readFile(path.join(dataDir, "state.json"), "utf8"));
   if (!afterEventCreate.events.some((event) => event.id === "ev-create")) throw new Error("Event create route did not persist the new event");
 
+  const multiEventCreateRoute = await request(baseUrl, "/api/events/create", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${login.body.token}`, "X-Kamik-Role": "director" },
+    body: JSON.stringify({
+      events: [
+        { id: "ev-create-multi-1", type: "event", title: "Multi 1", date: "2026-08-19", time: "12:00", teamId: "team-1", playerIds: [] },
+        { id: "ev-create-multi-2", type: "event", title: "Multi 2", date: "2026-08-20", time: "12:00", teamId: "team-1", playerIds: [] },
+      ],
+      notifications: [],
+      auditLog: [],
+      calendarCursor: "2026-08-01",
+      activeView: "clubEvents",
+    }),
+  });
+  if (!multiEventCreateRoute.response.ok || multiEventCreateRoute.body.events?.length !== 2) throw new Error(`Multi-event create rejected director write: ${multiEventCreateRoute.response.status} ${JSON.stringify(multiEventCreateRoute.body)}`);
+  const afterMultiEventCreate = JSON.parse(await fs.readFile(path.join(dataDir, "state.json"), "utf8"));
+  if (!afterMultiEventCreate.events.some((event) => event.id === "ev-create-multi-1") || !afterMultiEventCreate.events.some((event) => event.id === "ev-create-multi-2")) {
+    throw new Error("Event create route did not persist multiple events");
+  }
+
   const playerLogin = await request(baseUrl, "/api/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

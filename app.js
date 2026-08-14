@@ -1480,6 +1480,7 @@ async function saveCreatedEvent(payload) {
       showRemoteSaveError(`guardar evento: ${body?.error || "No se pudo guardar el evento"}`, { renderToast: true });
       return false;
     }
+    if (body?.events?.length) state.events = upsertLocalItems(state.events || [], body.events);
     if (body?.event) state.events = upsertLocalItems(state.events || [], [body.event]);
     if (body?.training) state.trainings = upsertLocalItems(state.trainings || [], [body.training]);
     if (body?.lastEventPatch) state.lastEventPatch = body.lastEventPatch;
@@ -7407,7 +7408,7 @@ function affectedPlayerCheckboxList(teamId, selectedCsv = "") {
   const teamIds = [...new Set(String(teamId || "").split(",").filter(Boolean))];
   const players = teamIds.length ? state.players.filter((player) => (player.teams || []).some((id) => teamIds.includes(id))) : [];
   const playerIds = new Set(players.map((player) => player.id));
-  const extraPlayers = state.players.filter((player) => !playerIds.has(player.id));
+  const extraPlayers = state.players.filter((player) => !playerIds.has(player.id) || selected.has(player.id));
   if (!players.length) return `<div class="empty">Selecciona uno o varios equipos para cargar jugadores.</div>`;
   const shouldSelectAll = selected.size === 0;
   return `
@@ -7429,11 +7430,12 @@ function affectedPlayerCheckboxList(teamId, selectedCsv = "") {
       <div class="extra-player-picker">
         <label>Jugador extra de otro equipo</label>
         <input type="search" placeholder="Buscar jugador de todo el club..." autocomplete="off" oninput="filterExtraPlayerChecks(this)" />
+        <p class="meta">Escribe para buscar y marca jugadores fuera del equipo.</p>
         <div class="extra-player-list">
           ${extraPlayers
             .map(
               (player) => `
-              <label class="check-row player-check extra-player-option" data-search="${escapeHtml(`${player.name} ${player.teams.map((id) => getTeam(id)?.name).filter(Boolean).join(" ")}`.toLowerCase())}">
+              <label class="check-row player-check extra-player-option" data-search="${escapeHtml(normalizeSearchText(`${player.name} ${player.teams.map((id) => getTeam(id)?.name).filter(Boolean).join(" ")}`))}">
                 <input class="affected-player-check" name="playerIds" type="checkbox" value="${player.id}" ${selected.has(player.id) ? "checked" : ""} />
                 <span><strong>${escapeHtml(player.name)}</strong><em>${player.teams.map((id) => getTeam(id)?.name).filter(Boolean).join(", ") || "Sin equipo"}</em></span>
               </label>
@@ -7451,7 +7453,8 @@ function filterExtraPlayerChecks(input) {
   const root = input.closest(".extra-player-picker");
   root?.querySelectorAll(".extra-player-option").forEach((option) => {
     const text = normalizeText(option.dataset.search || "");
-    option.style.display = query && text.includes(query) ? "" : "none";
+    const checked = option.querySelector("input")?.checked;
+    option.style.display = (query && text.includes(query)) || checked ? "" : "none";
   });
 }
 
@@ -9327,33 +9330,34 @@ async function createEvent(event) {
     const teamLabel = teamIds.length > 2 ? `${teamIds.length} equipos` : teamIds.map((id) => getTeam(id)?.name).filter(Boolean).join(" + ");
     const fallbackTitle = `${t(type)} ${teamLabel || t("allClub")}`.trim();
     const title = String(form.get("title") || fallbackTitle).trim();
-    const eventItem = {
-    id: uid("ev"),
-    type,
-    title,
-    teamId,
-    teamIds,
-    seasonId: seasonIdForDate(date),
-    competitionId: form.get("competitionId") || "",
-    date,
-    time: form.get("time"),
-    endDate: form.get("endDate") || "",
-    endTime: form.get("endTime") || "",
-    place: form.get("place"),
-    notes: form.get("notes"),
-    playerIds,
-    };
-    state.events.push(eventItem);
-    patchedEvents = [eventItem];
-    state.lastCreatedEventIds = [eventItem.id, ...(state.lastCreatedEventIds || []).filter((id) => id !== eventItem.id)].slice(0, 5);
-    notifyScheduleEvent(eventItem, "Nuevo evento en tu calendario", `${eventItem.title} · ${eventItem.date} ${eventItem.time}`);
-    state.toast = "Evento guardado en el calendario";
-    appendAudit("crear evento", "event", eventItem.title);
+    const dates = recurrenceDates(date, Number(form.get("weeks") || 1), form.getAll("weekdays"));
+    patchedEvents = dates.map((eventDate) => ({
+      id: uid("ev"),
+      type,
+      title,
+      teamId,
+      teamIds,
+      seasonId: seasonIdForDate(eventDate),
+      competitionId: form.get("competitionId") || "",
+      date: eventDate,
+      time: form.get("time"),
+      endDate: form.get("endDate") || "",
+      endTime: form.get("endTime") || "",
+      place: form.get("place"),
+      notes: form.get("notes"),
+      playerIds,
+    }));
+    state.events.push(...patchedEvents);
+    state.lastCreatedEventIds = [...patchedEvents.map((item) => item.id), ...(state.lastCreatedEventIds || [])].filter(Boolean).slice(0, 5);
+    patchedEvents.forEach((eventItem) => notifyScheduleEvent(eventItem, "Nuevo evento en tu calendario", `${eventItem.title} · ${eventItem.date} ${eventItem.time}`));
+    state.toast = patchedEvents.length === 1 ? "Evento guardado en el calendario" : `${patchedEvents.length} eventos guardados`;
+    appendAudit("crear evento", "event", patchedEvents.length === 1 ? patchedEvents[0].title : `${patchedEvents.length} · ${title}`);
   }
   if (date) state.calendarCursor = `${date.slice(0, 7)}-01`;
   goView(type === "event" ? "clubEvents" : "calendar");
   const saved = await saveCreatedEvent({
     event: patchedEvents[0] || null,
+    events: patchedEvents,
     training: patchedTrainings[0] || null,
     trainings: patchedTrainings,
     notifications: (state.notifications || []).filter((notice) => {
@@ -9394,10 +9398,11 @@ function trainingFromForm(form, teamId, playerIds, date) {
 
 function recurrenceDates(startDate, weeks = 1, weekdays = []) {
   const selected = weekdays.map(Number).filter(Boolean);
-  if (!selected.length || weeks <= 1) return [startDate];
+  if (!selected.length) return [startDate];
   const start = new Date(`${startDate}T00:00:00`);
+  const weekCount = Math.max(1, Number(weeks || 1));
   const end = new Date(start);
-  end.setDate(start.getDate() + weeks * 7 - 1);
+  end.setDate(start.getDate() + weekCount * 7 - 1);
   const dates = [];
   for (const cursor = new Date(start); cursor <= end; cursor.setDate(cursor.getDate() + 1)) {
     const day = cursor.getDay() || 7;

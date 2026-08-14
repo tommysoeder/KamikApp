@@ -12,7 +12,7 @@ const STATE_FILE = path.join(DATA_DIR, "state.json");
 const BUNDLED_STATE_FILE = path.join(ROOT, "data", "state.json");
 const BACKUP_DIR = path.join(DATA_DIR, "backups");
 const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
-const APP_VERSION = "v169";
+const APP_VERSION = "v170";
 const APP_MODE = String(process.env.APP_MODE || "presentation").toLowerCase();
 const APP_LABEL = process.env.APP_LABEL || (APP_MODE === "beta" ? "Beta privada" : "");
 const SHOW_LOGIN_PROFILES = process.env.SHOW_LOGIN_PROFILES === "1" || (APP_MODE !== "beta" && APP_MODE !== "production");
@@ -781,15 +781,16 @@ async function handleEventCreate(req, res) {
   const baseState = ensureSavedState();
   const actor = actorFromRequest(req, baseState);
   const body = JSON.parse((await readBody(req)) || "{}");
-  const event = body.event || null;
+  const events = [...(body.events || []), ...(body.event ? [body.event] : [])].filter((item) => item?.id);
+  const event = events[0] || null;
   const trainings = [...(body.trainings || []), ...(body.training ? [body.training] : [])].filter((item) => item?.id);
-  const incomingItems = [event, ...trainings].filter(Boolean);
+  const incomingItems = [...events, ...trainings].filter(Boolean);
   lastEventPatch = {
     at: new Date().toISOString(),
     userId: actor.userId || "",
     role: actor.role || "",
     authenticated: Boolean(actor.authenticated),
-    incomingEvents: event ? 1 : 0,
+    incomingEvents: events.length,
     incomingTrainings: trainings.length,
     status: "received",
   };
@@ -813,7 +814,7 @@ async function handleEventCreate(req, res) {
     }
   }
   const nextState = JSON.parse(JSON.stringify(baseState || {}));
-  if (event?.id) nextState.events = upsertById(nextState.events, [event]);
+  if (events.length) nextState.events = upsertById(nextState.events, events);
   if (trainings.length) nextState.trainings = upsertById(nextState.trainings, trainings);
   nextState.notifications = dedupeStateNotifications(upsertById(nextState.notifications, body.notifications || []));
   nextState.auditLog = upsertById(body.auditLog || [], nextState.auditLog).slice(0, 120);
@@ -822,7 +823,7 @@ async function handleEventCreate(req, res) {
   normalizeServerCalendarCursor(nextState);
   writeStateAtomically(JSON.stringify(nextState));
   lastEventPatch = { ...lastEventPatch, status: "saved", events: nextState.events.length, trainings: nextState.trainings.length, stateFileExists: fs.existsSync(STATE_FILE) };
-  send(res, 200, JSON.stringify({ ok: true, event, trainings, training: trainings[0] || null, lastEventPatch }), { "Content-Type": types[".json"] });
+  send(res, 200, JSON.stringify({ ok: true, event, events, trainings, training: trainings[0] || null, lastEventPatch }), { "Content-Type": types[".json"] });
   return true;
 }
 

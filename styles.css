@@ -1006,10 +1006,18 @@ textarea {
 .extra-player-list {
   display: grid;
   gap: 6px;
+  max-height: 230px;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
 .extra-player-option {
   display: none;
+}
+
+.extra-player-picker .meta {
+  margin: -2px 0 0;
+  font-size: 0.78rem;
 }
 
 .player-check span,
@@ -1778,21 +1786,27 @@ tr:last-child td {
 .desktop-unread-alert {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   width: fit-content;
-  margin: 0 24px 12px;
+  margin: 10px 0 14px auto;
   border: 1px solid rgba(4, 87, 95, 0.18);
   border-radius: 999px;
-  background: #eef7f4;
+  background: rgba(238, 247, 244, 0.92);
   color: #063c41;
-  padding: 8px 12px;
+  padding: 6px 10px;
+  box-shadow: 0 8px 20px rgba(17, 45, 48, 0.08);
+  font-size: 0.78rem;
   font-weight: 800;
   cursor: pointer;
 }
 
 .desktop-unread-alert svg {
-  width: 17px;
-  height: 17px;
+  width: 14px;
+  height: 14px;
+}
+
+.desktop-unread-alert span {
+  font-weight: 760;
 }
 
 .global-search {

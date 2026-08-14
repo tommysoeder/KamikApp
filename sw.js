@@ -1,4 +1,4 @@
-const CACHE_NAME = "kamikapp-v169";
+const CACHE_NAME = "kamikapp-v170";
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
