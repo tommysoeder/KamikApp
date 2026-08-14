@@ -1306,6 +1306,13 @@ tr:last-child td {
   color: var(--muted);
 }
 
+.login-version {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 0.76rem;
+  text-align: center;
+}
+
 .calendar-layout {
   align-items: start;
 }

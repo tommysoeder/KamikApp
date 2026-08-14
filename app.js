@@ -2454,16 +2454,17 @@ async function login(event) {
   const password = String(form.get("password") || "");
   const selectedUserId = String(form.get("userId") || "");
   state.loginLoading = true;
+  state.toast = "";
   setLoginLoading(loginForm, true);
-  const remoteSession = await loginRemote(email, password, selectedUserId);
-  if (remoteSession) {
-    if (remoteSession.user) state.users = upsertLocalItems(state.users, [remoteSession.user]);
-    const user = state.users.find((item) => item.id === remoteSession.userId);
+  const remoteLogin = await loginRemote(email, password, selectedUserId);
+  if (remoteLogin?.session) {
+    if (remoteLogin.session.user) state.users = upsertLocalItems(state.users, [remoteLogin.session.user]);
+    const user = state.users.find((item) => item.id === remoteLogin.session.userId);
     state.session = {
-      userId: remoteSession.userId,
-      email: remoteSession.email || email,
-      activeRole: remoteSession.activeRole || user?.roles?.[0] || "parent",
-      token: remoteSession.token,
+      userId: remoteLogin.session.userId,
+      email: remoteLogin.session.email || email,
+      activeRole: remoteLogin.session.activeRole || user?.roles?.[0] || "parent",
+      token: remoteLogin.session.token,
     };
     state.loginLoading = false;
     appendAudit("login", "session", user?.name || email);
@@ -2474,6 +2475,11 @@ async function login(event) {
   }
   state.loginLoading = false;
   setLoginLoading(loginForm, false);
+  if (remoteLogin?.error && !remoteLogin.canFallback) {
+    state.toast = remoteLogin.error;
+    render();
+    return;
+  }
   const user = state.users.find(
     (item) =>
       !item.disabled &&
@@ -2501,20 +2507,38 @@ function setLoginLoading(form, loading) {
 }
 
 async function loginRemote(email, password, userId) {
-  if (typeof fetch === "undefined" || location.protocol === "file:") return null;
+  if (typeof fetch === "undefined" || location.protocol === "file:") return { session: null, canFallback: true };
   const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
-  const timer = controller ? setTimeout(() => controller.abort(), 8000) : null;
+  let timer = null;
+  const timeout = new Promise((resolve) => {
+    timer = setTimeout(() => {
+      controller?.abort?.();
+      resolve({ session: null, error: "El servidor no responde al login. Espera unos segundos y recarga.", canFallback: false });
+    }, 8000);
+  });
   try {
-    const response = await fetch(API_LOGIN_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password, userId }),
-      ...(controller ? { signal: controller.signal } : {}),
-    });
-    if (!response.ok) return null;
-    return await response.json();
+    return await Promise.race([
+      fetch(API_LOGIN_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, userId }),
+        cache: "no-store",
+        ...(controller ? { signal: controller.signal } : {}),
+      }).then(async (response) => {
+        const text = await response.text();
+        let body = {};
+        try {
+          body = text ? JSON.parse(text) : {};
+        } catch {
+          return { session: null, error: "El servidor ha devuelto una respuesta no valida al login.", canFallback: false };
+        }
+        if (!response.ok) return { session: null, error: body.error || t("invalidLogin"), canFallback: response.status !== 401 };
+        return { session: body, canFallback: false };
+      }),
+      timeout,
+    ]);
   } catch {
-    return null;
+    return { session: null, error: "No se ha podido conectar con el servidor de login.", canFallback: false };
   } finally {
     if (timer) clearTimeout(timer);
   }
@@ -2917,6 +2941,7 @@ function renderLogin() {
             : `<input name="userId" type="hidden" value="" />`
         }
         <button class="btn primary" type="submit" ${state.loginLoading ? "disabled" : ""}>${state.loginLoading ? "Entrando..." : t("enter")}</button>
+        <div class="login-version">App ${escapeHtml(APP_VERSION)} · Servidor ${escapeHtml(state.serverVersion || APP_VERSION)}</div>
       </form>
     </section>
   `;
