@@ -2464,7 +2464,13 @@ async function login(event) {
     render();
     return;
   }
-  const user = state.users.find((item) => !item.disabled && item.id === selectedUserId && item.email.toLowerCase() === email && item.password === password);
+  const user = state.users.find(
+    (item) =>
+      !item.disabled &&
+      (!selectedUserId || item.id === selectedUserId) &&
+      String(item.email || "").toLowerCase() === email &&
+      item.password === password
+  );
   if (!user) {
     state.toast = t("invalidLogin");
     render();
@@ -2865,7 +2871,7 @@ function renderLogin() {
   const defaultUser = loginUsers[0] || state.users[0];
   return `
     <section class="login">
-      <form class="login-panel form" id="login-form">
+      <form class="login-panel form" id="login-form" autocomplete="off">
         <img class="login-logo" src="assets/kamikazes-logo.png" alt="Kamikazes" />
         ${renderBetaBanner("login")}
         <h1>${t("loginTitle")}</h1>
@@ -2873,11 +2879,11 @@ function renderLogin() {
         ${state.toast ? `<div class="item notice-item"><strong>${escapeHtml(state.toast)}</strong></div>` : ""}
         <div class="form-row">
           <label>${t("email")}</label>
-          <input id="login-email" name="email" type="email" value="${escapeHtml(defaultUser?.email || "direccion@club.test")}" required autocomplete="username" />
+          <input id="login-email" name="email" type="email" value="${escapeHtml(defaultUser?.email || "direccion@club.test")}" required autocomplete="off" autocapitalize="none" spellcheck="false" />
         </div>
         <div class="form-row">
           <label>${t("password")}</label>
-          <input name="password" type="password" value="${IS_PRESENTATION_DEMO ? "demo1234" : ""}" required autocomplete="current-password" />
+          <input name="password" type="password" value="${IS_PRESENTATION_DEMO ? "demo1234" : ""}" required autocomplete="off" />
         </div>
         ${
           SHOW_LOGIN_PROFILES
