@@ -2472,16 +2472,23 @@ async function login(event) {
   if (remoteSession?.ok) {
     const sessionPayload = remoteSession.data;
     if (!sessionPayload) return;
-    const user = state.users.find((item) => item.id === sessionPayload.userId) || sessionPayload.user;
-    state.session = {
+    const session = {
       userId: sessionPayload.userId,
       email: sessionPayload.email || email,
-      activeRole: sessionPayload.activeRole || user?.roles?.[0] || "parent",
+      activeRole: sessionPayload.activeRole || sessionPayload.user?.roles?.[0] || "parent",
       token: sessionPayload.token,
     };
+    if (sessionPayload.state) {
+      const remote = normalize(sessionPayload.state);
+      remote.session = session;
+      remote.toast = "";
+      state = remote;
+    } else {
+      state.session = session;
+    }
+    const user = state.users.find((item) => item.id === sessionPayload.userId) || sessionPayload.user;
     appendAudit("login", "session", user?.name || email);
-    save("session");
-    await refreshRemoteState({ keepToast: true });
+    saveLocalState();
     render();
     return;
   }

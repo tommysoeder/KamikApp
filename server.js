@@ -12,7 +12,7 @@ const STATE_FILE = path.join(DATA_DIR, "state.json");
 const BUNDLED_STATE_FILE = path.join(ROOT, "data", "state.json");
 const BACKUP_DIR = path.join(DATA_DIR, "backups");
 const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
-const APP_VERSION = "v177";
+const APP_VERSION = "v178";
 const APP_MODE = String(process.env.APP_MODE || "beta").toLowerCase();
 const APP_LABEL = process.env.APP_LABEL || (APP_MODE === "beta" ? "Beta privada" : "");
 const SHOW_LOGIN_PROFILES = process.env.SHOW_LOGIN_PROFILES === "1";
@@ -415,10 +415,10 @@ function loginUser(payload) {
   const requestedUserId = String(payload.userId || "");
   const matches = (state.users || []).filter((item) => {
     if (item.disabled) return false;
-    return String(item.email || "").toLowerCase() === email && verifyPassword(item, password);
+    return String(item.email || "").replace(/[\u200B-\u200D\uFEFF]/g, "").trim().toLowerCase() === email && verifyPassword(item, password);
   });
   const user = matches.find((item) => item.id === requestedUserId) || matches[0];
-  if (!user) return { error: "Invalid login", status: 401 };
+  if (!user) return { error: "Email o contraseña incorrectos", status: 401 };
   const loginAt = new Date().toISOString();
   user.lastLoginAt = loginAt;
   user.loginCount = Number(user.loginCount || 0) + 1;
@@ -429,12 +429,20 @@ function loginUser(payload) {
   writeStateAtomically(JSON.stringify(state));
   const token = crypto.randomUUID();
   sessions.set(token, { userId: user.id, createdAt: Date.now() });
+  const initialState = sanitizeStateForRead(state, {
+    userId: user.id,
+    role: user.roles?.[0] || "parent",
+    operation: "readState",
+    user,
+    authenticated: true,
+  });
   return {
     token,
     userId: user.id,
     email: user.email,
     activeRole: user.roles?.[0] || "parent",
     user: publicUser(user),
+    state: initialState,
   };
 }
 
