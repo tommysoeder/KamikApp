@@ -5838,6 +5838,239 @@ input[type="file"]::file-selector-button:hover {
   }
 }
 
+/* V191 - lighter typography, XPS-like surfaces and straight action separators */
+body {
+  font-weight: 400 !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+.topbar h1,
+.panel-header h2,
+.panel h3,
+.item h3,
+.item h4,
+.nav button,
+.btn,
+.pill,
+.stat strong,
+.modal label,
+.modal-head h2 {
+  font-weight: 620 !important;
+}
+
+.meta,
+.topbar p,
+.panel-header p,
+.panel p,
+.item p,
+.stat span {
+  font-weight: 390 !important;
+}
+
+.btn,
+.mini-action {
+  position: relative !important;
+}
+
+.actions .btn + .btn,
+.item .btn + .btn,
+.modal .btn + .btn,
+.thread-tools .btn + .btn,
+.panel-header .btn + .btn {
+  border-left: 0 !important;
+  margin-left: 6px !important;
+  padding-left: 15px !important;
+}
+
+.actions .btn + .btn::before,
+.item .btn + .btn::before,
+.modal .btn + .btn::before,
+.thread-tools .btn + .btn::before,
+.panel-header .btn + .btn::before {
+  content: "";
+  position: absolute;
+  left: -4px;
+  top: 7px;
+  bottom: 7px;
+  width: 1px;
+  border-radius: 0;
+  background: rgba(238, 248, 245, 0.24);
+  pointer-events: none;
+}
+
+@media (min-width: 761px) {
+  body:not(.force-mobile) .btn,
+  body:not(.force-mobile) .mini-action,
+  body.force-desktop .btn,
+  body.force-desktop .mini-action {
+    min-height: 28px !important;
+    padding: 3px 7px !important;
+    border-radius: 5px !important;
+    background: transparent !important;
+    border-color: transparent !important;
+    color: rgba(238, 248, 245, 0.86) !important;
+  }
+
+  body:not(.force-mobile) .btn:hover,
+  body:not(.force-mobile) .mini-action:hover,
+  body.force-desktop .btn:hover,
+  body.force-desktop .mini-action:hover {
+    background: rgba(238, 248, 245, 0.085) !important;
+    border-color: transparent !important;
+    color: #ffffff !important;
+    transform: none !important;
+  }
+
+  body:not(.force-mobile) .btn.primary,
+  body.force-desktop .btn.primary {
+    color: #74ded5 !important;
+  }
+
+  body:not(.force-mobile) .btn.danger,
+  body:not(.force-mobile) .mini-action.danger,
+  body.force-desktop .btn.danger,
+  body.force-desktop .mini-action.danger {
+    color: #ffb7b0 !important;
+  }
+}
+
+.login {
+  background:
+    linear-gradient(180deg, rgba(11, 31, 35, 0.78), rgba(17, 47, 53, 0.9)),
+    url("assets/kamikazes-logo.png") center 11% / min(640px, 86vw) auto no-repeat,
+    #112f35 !important;
+  color: #eef8f5 !important;
+}
+
+.login-panel {
+  background: rgba(48, 84, 91, 0.96) !important;
+  color: #eef8f5 !important;
+  border: 1px solid rgba(238, 248, 245, 0.16) !important;
+  box-shadow: 0 28px 80px rgba(3, 14, 17, 0.36) !important;
+}
+
+.login-panel h1,
+.login-panel label {
+  color: #f7fbfa !important;
+}
+
+.login-panel p {
+  color: rgba(238, 248, 245, 0.76) !important;
+}
+
+.login-panel input,
+.login-panel select {
+  background: rgba(205, 222, 218, 0.94) !important;
+  color: #122b30 !important;
+  border-color: rgba(238, 248, 245, 0.18) !important;
+}
+
+.login-panel .btn.primary,
+.login-panel button[type="submit"] {
+  background: #0a827d !important;
+  color: #ffffff !important;
+  border-color: rgba(116, 222, 213, 0.28) !important;
+  min-height: 42px !important;
+}
+
+.login-panel .btn.primary:hover,
+.login-panel button[type="submit"]:hover {
+  background: #0b918b !important;
+}
+
+.login-panel .beta-banner {
+  background: rgba(232, 190, 104, 0.16) !important;
+  color: #f1cc85 !important;
+  border-color: rgba(232, 190, 104, 0.28) !important;
+}
+
+.modal,
+body.force-desktop .modal,
+body.force-mobile .modal {
+  background: #33575e !important;
+  color: #eef8f5 !important;
+}
+
+.modal h2,
+.modal h3,
+.modal h4,
+.modal label,
+.modal .form-row label,
+.modal .check-row,
+.modal .check-row span,
+.modal .weekday-chip span,
+.modal .event-team-option,
+.modal .event-team-option span,
+.modal .recipient-option,
+.modal .recipient-option span,
+.modal .affected-player-row,
+.modal .affected-player-row span,
+body.force-desktop .modal h2,
+body.force-desktop .modal h3,
+body.force-desktop .modal h4,
+body.force-desktop .modal label,
+body.force-desktop .modal .form-row label,
+body.force-desktop .modal .check-row,
+body.force-desktop .modal .check-row span,
+body.force-mobile .modal h2,
+body.force-mobile .modal h3,
+body.force-mobile .modal h4,
+body.force-mobile .modal label,
+body.force-mobile .modal .form-row label,
+body.force-mobile .modal .check-row,
+body.force-mobile .modal .check-row span {
+  color: #f4fbf8 !important;
+}
+
+.modal p,
+.modal span.meta,
+.modal .meta,
+.modal small,
+body.force-desktop .modal p,
+body.force-desktop .modal span.meta,
+body.force-desktop .modal .meta,
+body.force-mobile .modal p,
+body.force-mobile .modal span.meta,
+body.force-mobile .modal .meta {
+  color: rgba(238, 248, 245, 0.76) !important;
+}
+
+.modal input,
+.modal select,
+.modal textarea,
+.modal .player-search-input,
+body.force-desktop .modal input,
+body.force-desktop .modal select,
+body.force-desktop .modal textarea,
+body.force-mobile .modal input,
+body.force-mobile .modal select,
+body.force-mobile .modal textarea {
+  background: rgba(202, 219, 215, 0.96) !important;
+  color: #112b30 !important;
+  border-color: rgba(238, 248, 245, 0.2) !important;
+}
+
+.modal input::placeholder,
+.modal textarea::placeholder {
+  color: rgba(17, 43, 48, 0.55) !important;
+}
+
+.modal .weekday-chip span,
+.modal .event-team-option,
+.modal .affected-player-row,
+.modal .recipient-option {
+  background: rgba(64, 106, 113, 0.78) !important;
+  border-color: rgba(238, 248, 245, 0.12) !important;
+}
+
+.modal .weekday-chip input:checked + span {
+  background: rgba(10, 130, 125, 0.74) !important;
+  color: #ffffff !important;
+}
+
 body.force-mobile .mobile-header {
   position: fixed !important;
   top: 0 !important;
