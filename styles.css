@@ -5838,6 +5838,515 @@ input[type="file"]::file-selector-button:hover {
   }
 }
 
+/* V193 - final app-wide dark surfaces and borderless actions */
+.actions .btn + .btn,
+.item .btn + .btn,
+.modal .btn + .btn,
+.thread-tools .btn + .btn,
+.panel-header .btn + .btn {
+  border-left: 0 !important;
+  margin-left: 8px !important;
+  padding-left: 16px !important;
+}
+
+.actions .btn + .btn::before,
+.item .btn + .btn::before,
+.modal .btn + .btn::before,
+.thread-tools .btn + .btn::before,
+.panel-header .btn + .btn::before {
+  content: "";
+  position: absolute;
+  left: -5px;
+  top: 6px;
+  bottom: 6px;
+  width: 1px;
+  border-radius: 0 !important;
+  background: rgba(229, 244, 240, 0.24);
+}
+
+.btn,
+.mini-action,
+.thread-tools .btn,
+.modal .btn {
+  border: 0 !important;
+  outline: 0;
+  box-shadow: none !important;
+}
+
+.btn:hover,
+.mini-action:hover {
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.pill,
+.status-pill,
+.sync-pill,
+.folder-chip,
+.permission-chip,
+.calendar-event-pill {
+  background: rgba(222, 239, 234, 0.12) !important;
+  color: rgba(243, 250, 248, 0.92) !important;
+  border: 1px solid rgba(232, 246, 242, 0.1) !important;
+  box-shadow: none !important;
+}
+
+.pill.gold,
+.status-pill.gold,
+.permission-chip.team {
+  background: rgba(255, 198, 85, 0.16) !important;
+  color: #ffd88d !important;
+  border-color: rgba(255, 198, 85, 0.16) !important;
+}
+
+.pill.blue,
+.permission-chip.own {
+  background: rgba(88, 183, 255, 0.14) !important;
+  color: #9dd6ff !important;
+  border-color: rgba(88, 183, 255, 0.16) !important;
+}
+
+.pill.green,
+.status-pill.on,
+.sync-pill,
+.permission-chip.always {
+  background: rgba(69, 220, 153, 0.14) !important;
+  color: #9bf0c8 !important;
+  border-color: rgba(69, 220, 153, 0.16) !important;
+}
+
+.pill.red,
+.status-pill.off,
+.permission-chip.no {
+  background: rgba(255, 125, 118, 0.14) !important;
+  color: #ffbcb6 !important;
+  border-color: rgba(255, 125, 118, 0.16) !important;
+}
+
+@media (min-width: 761px) {
+  body:not(.force-mobile) .profile-list-panel,
+  body:not(.force-mobile) .profile-detail,
+  body:not(.force-mobile) .player-profile,
+  body:not(.force-mobile) .profile-section,
+  body:not(.force-mobile) .users-admin,
+  body:not(.force-mobile) .user-card,
+  body:not(.force-mobile) .management-panel,
+  body:not(.force-mobile) .management-card,
+  body:not(.force-mobile) .management-task,
+  body:not(.force-mobile) .beta-followup-item,
+  body:not(.force-mobile) .beta-feedback-item,
+  body:not(.force-mobile) .document-card,
+  body:not(.force-mobile) .match-report-card,
+  body:not(.force-mobile) .federation-team-panel,
+  body:not(.force-mobile) .team-stats-card,
+  body:not(.force-mobile) .official-standings-block,
+  body:not(.force-mobile) .quality-issue,
+  body:not(.force-mobile) .readiness-item,
+  body:not(.force-mobile) .team-readiness-item,
+  body:not(.force-mobile) .beta-test-item,
+  body:not(.force-mobile) .dashboard-announcement-pill,
+  body.force-desktop .profile-list-panel,
+  body.force-desktop .profile-detail,
+  body.force-desktop .player-profile,
+  body.force-desktop .profile-section,
+  body.force-desktop .users-admin,
+  body.force-desktop .user-card,
+  body.force-desktop .management-panel,
+  body.force-desktop .management-card,
+  body.force-desktop .management-task,
+  body.force-desktop .beta-followup-item,
+  body.force-desktop .beta-feedback-item,
+  body.force-desktop .document-card,
+  body.force-desktop .match-report-card,
+  body.force-desktop .federation-team-panel,
+  body.force-desktop .team-stats-card,
+  body.force-desktop .official-standings-block,
+  body.force-desktop .quality-issue,
+  body.force-desktop .readiness-item,
+  body.force-desktop .team-readiness-item,
+  body.force-desktop .beta-test-item,
+  body.force-desktop .dashboard-announcement-pill {
+    background: #355b62 !important;
+    color: #eef8f5 !important;
+    border-color: rgba(232, 246, 242, 0.12) !important;
+    box-shadow: none !important;
+  }
+
+  body:not(.force-mobile) .profile-list-item,
+  body:not(.force-mobile) .profile-stats button,
+  body:not(.force-mobile) .mini-list button,
+  body:not(.force-mobile) .timeline-list button,
+  body:not(.force-mobile) .activity-item,
+  body:not(.force-mobile) .thread-button,
+  body:not(.force-mobile) .thread-list,
+  body:not(.force-mobile) .checkbox-list,
+  body:not(.force-mobile) .recipient-list,
+  body:not(.force-mobile) .recipient-option,
+  body:not(.force-mobile) .folder-chip,
+  body:not(.force-mobile) .table-wrap,
+  body:not(.force-mobile) .permission-matrix table,
+  body:not(.force-mobile) .permission-matrix td,
+  body:not(.force-mobile) .permission-matrix th,
+  body:not(.force-mobile) .public-result-list > div,
+  body.force-desktop .profile-list-item,
+  body.force-desktop .profile-stats button,
+  body.force-desktop .mini-list button,
+  body.force-desktop .timeline-list button,
+  body.force-desktop .activity-item,
+  body.force-desktop .thread-button,
+  body.force-desktop .thread-list,
+  body.force-desktop .checkbox-list,
+  body.force-desktop .recipient-list,
+  body.force-desktop .recipient-option,
+  body.force-desktop .folder-chip,
+  body.force-desktop .table-wrap,
+  body.force-desktop .permission-matrix table,
+  body.force-desktop .permission-matrix td,
+  body.force-desktop .permission-matrix th,
+  body.force-desktop .public-result-list > div {
+    background: #406970 !important;
+    color: #eef8f5 !important;
+    border-color: rgba(232, 246, 242, 0.11) !important;
+  }
+
+  body:not(.force-mobile) .profile-list-item.active,
+  body:not(.force-mobile) .thread-button.active,
+  body:not(.force-mobile) .thread-button:hover,
+  body.force-desktop .profile-list-item.active,
+  body.force-desktop .thread-button.active,
+  body.force-desktop .thread-button:hover {
+    background: #4a777e !important;
+    color: #ffffff !important;
+  }
+
+  body:not(.force-mobile) .bubble.club,
+  body.force-desktop .bubble.club {
+    background: rgba(124, 193, 184, 0.2) !important;
+    color: #f4fbf8 !important;
+  }
+
+  body:not(.force-mobile) .bubble.user,
+  body.force-desktop .bubble.user {
+    background: rgba(255, 198, 85, 0.18) !important;
+    color: #fff3d6 !important;
+  }
+
+  body:not(.force-mobile) .btn,
+  body:not(.force-mobile) .mini-action,
+  body.force-desktop .btn,
+  body.force-desktop .mini-action {
+    background: transparent !important;
+    border-radius: 4px !important;
+    border: 0 !important;
+    color: rgba(239, 249, 246, 0.9) !important;
+  }
+
+  body:not(.force-mobile) .btn:hover,
+  body:not(.force-mobile) .mini-action:hover,
+  body.force-desktop .btn:hover,
+  body.force-desktop .mini-action:hover {
+    background: rgba(239, 249, 246, 0.08) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  body:not(.force-desktop) .profile-list-panel,
+  body:not(.force-desktop) .profile-detail,
+  body:not(.force-desktop) .player-profile,
+  body:not(.force-desktop) .profile-section,
+  body:not(.force-desktop) .user-card,
+  body:not(.force-desktop) .management-card,
+  body:not(.force-desktop) .management-task,
+  body:not(.force-desktop) .document-card,
+  body:not(.force-desktop) .dashboard-announcement-pill,
+  body.force-mobile .profile-list-panel,
+  body.force-mobile .profile-detail,
+  body.force-mobile .player-profile,
+  body.force-mobile .profile-section,
+  body.force-mobile .user-card,
+  body.force-mobile .management-card,
+  body.force-mobile .management-task,
+  body.force-mobile .document-card,
+  body.force-mobile .dashboard-announcement-pill {
+    background: #355b62 !important;
+    color: #eef8f5 !important;
+    border-color: rgba(232, 246, 242, 0.12) !important;
+  }
+
+  body:not(.force-desktop) .profile-list-item,
+  body:not(.force-desktop) .profile-stats button,
+  body:not(.force-desktop) .mini-list button,
+  body:not(.force-desktop) .timeline-list button,
+  body:not(.force-desktop) .checkbox-list,
+  body:not(.force-desktop) .recipient-list,
+  body:not(.force-desktop) .recipient-option,
+  body.force-mobile .profile-list-item,
+  body.force-mobile .profile-stats button,
+  body.force-mobile .mini-list button,
+  body.force-mobile .timeline-list button,
+  body.force-mobile .checkbox-list,
+  body.force-mobile .recipient-list,
+  body.force-mobile .recipient-option {
+    background: #406970 !important;
+    color: #eef8f5 !important;
+    border-color: rgba(232, 246, 242, 0.11) !important;
+  }
+}
+
+/* V192 - extend dark theme to every page and soften old chip surfaces */
+.actions .btn + .btn,
+.item .btn + .btn,
+.modal .btn + .btn,
+.thread-tools .btn + .btn,
+.panel-header .btn + .btn {
+  border-left: 0 !important;
+  margin-left: 8px !important;
+  padding-left: 16px !important;
+}
+
+.actions .btn + .btn::before,
+.item .btn + .btn::before,
+.modal .btn + .btn::before,
+.thread-tools .btn + .btn::before,
+.panel-header .btn + .btn::before {
+  content: "";
+  position: absolute;
+  left: -5px;
+  top: 6px;
+  bottom: 6px;
+  width: 1px;
+  border-radius: 0 !important;
+  background: rgba(229, 244, 240, 0.24);
+}
+
+.btn,
+.mini-action,
+.thread-tools .btn,
+.modal .btn {
+  border: 0 !important;
+  outline: 0;
+}
+
+.btn:hover,
+.mini-action:hover {
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.pill,
+.status-pill,
+.sync-pill,
+.folder-chip,
+.permission-chip,
+.calendar-event-pill {
+  background: rgba(222, 239, 234, 0.12) !important;
+  color: rgba(243, 250, 248, 0.92) !important;
+  border: 1px solid rgba(232, 246, 242, 0.1) !important;
+  box-shadow: none !important;
+}
+
+.pill.gold,
+.status-pill.gold,
+.permission-chip.team {
+  background: rgba(255, 198, 85, 0.16) !important;
+  color: #ffd88d !important;
+  border-color: rgba(255, 198, 85, 0.16) !important;
+}
+
+.pill.blue,
+.permission-chip.own {
+  background: rgba(88, 183, 255, 0.14) !important;
+  color: #9dd6ff !important;
+  border-color: rgba(88, 183, 255, 0.16) !important;
+}
+
+.pill.green,
+.status-pill.on,
+.sync-pill,
+.permission-chip.always {
+  background: rgba(69, 220, 153, 0.14) !important;
+  color: #9bf0c8 !important;
+  border-color: rgba(69, 220, 153, 0.16) !important;
+}
+
+.pill.red,
+.status-pill.off,
+.permission-chip.no {
+  background: rgba(255, 125, 118, 0.14) !important;
+  color: #ffbcb6 !important;
+  border-color: rgba(255, 125, 118, 0.16) !important;
+}
+
+@media (min-width: 761px) {
+  body:not(.force-mobile) .profile-list-panel,
+  body:not(.force-mobile) .profile-detail,
+  body:not(.force-mobile) .player-profile,
+  body:not(.force-mobile) .profile-section,
+  body:not(.force-mobile) .users-admin,
+  body:not(.force-mobile) .user-card,
+  body:not(.force-mobile) .management-panel,
+  body:not(.force-mobile) .management-card,
+  body:not(.force-mobile) .management-task,
+  body:not(.force-mobile) .beta-followup-item,
+  body:not(.force-mobile) .beta-feedback-item,
+  body:not(.force-mobile) .document-card,
+  body:not(.force-mobile) .match-report-card,
+  body:not(.force-mobile) .federation-team-panel,
+  body:not(.force-mobile) .team-stats-card,
+  body:not(.force-mobile) .official-standings-block,
+  body:not(.force-mobile) .quality-issue,
+  body:not(.force-mobile) .readiness-item,
+  body:not(.force-mobile) .team-readiness-item,
+  body:not(.force-mobile) .beta-test-item,
+  body:not(.force-mobile) .dashboard-announcement-pill,
+  body.force-desktop .profile-list-panel,
+  body.force-desktop .profile-detail,
+  body.force-desktop .player-profile,
+  body.force-desktop .profile-section,
+  body.force-desktop .users-admin,
+  body.force-desktop .user-card,
+  body.force-desktop .management-panel,
+  body.force-desktop .management-card,
+  body.force-desktop .management-task,
+  body.force-desktop .beta-followup-item,
+  body.force-desktop .beta-feedback-item,
+  body.force-desktop .document-card,
+  body.force-desktop .match-report-card,
+  body.force-desktop .federation-team-panel,
+  body.force-desktop .team-stats-card,
+  body.force-desktop .official-standings-block,
+  body.force-desktop .quality-issue,
+  body.force-desktop .readiness-item,
+  body.force-desktop .team-readiness-item,
+  body.force-desktop .beta-test-item,
+  body.force-desktop .dashboard-announcement-pill {
+    background: #355b62 !important;
+    color: #eef8f5 !important;
+    border-color: rgba(232, 246, 242, 0.12) !important;
+    box-shadow: none !important;
+  }
+
+  body:not(.force-mobile) .profile-list-item,
+  body:not(.force-mobile) .profile-stats button,
+  body:not(.force-mobile) .mini-list button,
+  body:not(.force-mobile) .timeline-list button,
+  body:not(.force-mobile) .activity-item,
+  body:not(.force-mobile) .thread-button,
+  body:not(.force-mobile) .thread-list,
+  body:not(.force-mobile) .checkbox-list,
+  body:not(.force-mobile) .recipient-list,
+  body:not(.force-mobile) .recipient-option,
+  body:not(.force-mobile) .folder-chip,
+  body:not(.force-mobile) .table-wrap,
+  body:not(.force-mobile) .permission-matrix table,
+  body:not(.force-mobile) .permission-matrix td,
+  body:not(.force-mobile) .permission-matrix th,
+  body:not(.force-mobile) .public-result-list > div,
+  body.force-desktop .profile-list-item,
+  body.force-desktop .profile-stats button,
+  body.force-desktop .mini-list button,
+  body.force-desktop .timeline-list button,
+  body.force-desktop .activity-item,
+  body.force-desktop .thread-button,
+  body.force-desktop .thread-list,
+  body.force-desktop .checkbox-list,
+  body.force-desktop .recipient-list,
+  body.force-desktop .recipient-option,
+  body.force-desktop .folder-chip,
+  body.force-desktop .table-wrap,
+  body.force-desktop .permission-matrix table,
+  body.force-desktop .permission-matrix td,
+  body.force-desktop .permission-matrix th,
+  body.force-desktop .public-result-list > div {
+    background: #406970 !important;
+    color: #eef8f5 !important;
+    border-color: rgba(232, 246, 242, 0.11) !important;
+  }
+
+  body:not(.force-mobile) .profile-list-item.active,
+  body:not(.force-mobile) .thread-button.active,
+  body:not(.force-mobile) .thread-button:hover,
+  body.force-desktop .profile-list-item.active,
+  body.force-desktop .thread-button.active,
+  body.force-desktop .thread-button:hover {
+    background: #4a777e !important;
+    color: #ffffff !important;
+  }
+
+  body:not(.force-mobile) .bubble.club,
+  body.force-desktop .bubble.club {
+    background: rgba(124, 193, 184, 0.2) !important;
+    color: #f4fbf8 !important;
+  }
+
+  body:not(.force-mobile) .bubble.user,
+  body.force-desktop .bubble.user {
+    background: rgba(255, 198, 85, 0.18) !important;
+    color: #fff3d6 !important;
+  }
+
+  body:not(.force-mobile) .btn,
+  body:not(.force-mobile) .mini-action,
+  body.force-desktop .btn,
+  body.force-desktop .mini-action {
+    background: transparent !important;
+    border-radius: 4px !important;
+    border: 0 !important;
+    color: rgba(239, 249, 246, 0.9) !important;
+  }
+
+  body:not(.force-mobile) .btn:hover,
+  body:not(.force-mobile) .mini-action:hover,
+  body.force-desktop .btn:hover,
+  body.force-desktop .mini-action:hover {
+    background: rgba(239, 249, 246, 0.08) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  body:not(.force-desktop) .profile-list-panel,
+  body:not(.force-desktop) .profile-detail,
+  body:not(.force-desktop) .player-profile,
+  body:not(.force-desktop) .profile-section,
+  body:not(.force-desktop) .user-card,
+  body:not(.force-desktop) .management-card,
+  body:not(.force-desktop) .management-task,
+  body:not(.force-desktop) .document-card,
+  body:not(.force-desktop) .dashboard-announcement-pill,
+  body.force-mobile .profile-list-panel,
+  body.force-mobile .profile-detail,
+  body.force-mobile .player-profile,
+  body.force-mobile .profile-section,
+  body.force-mobile .user-card,
+  body.force-mobile .management-card,
+  body.force-mobile .management-task,
+  body.force-mobile .document-card,
+  body.force-mobile .dashboard-announcement-pill {
+    background: #355b62 !important;
+    color: #eef8f5 !important;
+    border-color: rgba(232, 246, 242, 0.12) !important;
+  }
+
+  body:not(.force-desktop) .profile-list-item,
+  body:not(.force-desktop) .profile-stats button,
+  body:not(.force-desktop) .mini-list button,
+  body:not(.force-desktop) .timeline-list button,
+  body:not(.force-desktop) .checkbox-list,
+  body:not(.force-desktop) .recipient-list,
+  body:not(.force-desktop) .recipient-option,
+  body.force-mobile .profile-list-item,
+  body.force-mobile .profile-stats button,
+  body.force-mobile .mini-list button,
+  body.force-mobile .timeline-list button,
+  body.force-mobile .checkbox-list,
+  body.force-mobile .recipient-list,
+  body.force-mobile .recipient-option {
+    background: #406970 !important;
+    color: #eef8f5 !important;
+    border-color: rgba(232, 246, 242, 0.11) !important;
+  }
+}
+
 /* V191 - lighter typography, XPS-like surfaces and straight action separators */
 body {
   font-weight: 400 !important;
@@ -8402,5 +8911,260 @@ body.force-mobile .main {
   body.force-mobile .modal .card {
     background: #406a71 !important;
     color: #eef8f5 !important;
+  }
+}
+
+/* V194 - EOF override: app-wide dark surfaces and borderless actions */
+.actions .btn + .btn,
+.item .btn + .btn,
+.modal .btn + .btn,
+.thread-tools .btn + .btn,
+.panel-header .btn + .btn {
+  border-left: 0 !important;
+  margin-left: 8px !important;
+  padding-left: 16px !important;
+}
+
+.actions .btn + .btn::before,
+.item .btn + .btn::before,
+.modal .btn + .btn::before,
+.thread-tools .btn + .btn::before,
+.panel-header .btn + .btn::before {
+  content: "";
+  position: absolute;
+  left: -5px;
+  top: 6px;
+  bottom: 6px;
+  width: 1px;
+  border-radius: 0 !important;
+  background: rgba(229, 244, 240, 0.24);
+}
+
+.btn,
+.mini-action,
+.thread-tools .btn,
+.modal .btn {
+  border: 0 !important;
+  outline: 0;
+  box-shadow: none !important;
+}
+
+.btn:hover,
+.mini-action:hover {
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.pill,
+.status-pill,
+.sync-pill,
+.folder-chip,
+.permission-chip,
+.calendar-event-pill {
+  background: rgba(222, 239, 234, 0.12) !important;
+  color: rgba(243, 250, 248, 0.92) !important;
+  border: 1px solid rgba(232, 246, 242, 0.1) !important;
+  box-shadow: none !important;
+}
+
+.pill.gold,
+.status-pill.gold,
+.permission-chip.team {
+  background: rgba(255, 198, 85, 0.16) !important;
+  color: #ffd88d !important;
+  border-color: rgba(255, 198, 85, 0.16) !important;
+}
+
+.pill.blue,
+.permission-chip.own {
+  background: rgba(88, 183, 255, 0.14) !important;
+  color: #9dd6ff !important;
+  border-color: rgba(88, 183, 255, 0.16) !important;
+}
+
+.pill.green,
+.status-pill.on,
+.sync-pill,
+.permission-chip.always {
+  background: rgba(69, 220, 153, 0.14) !important;
+  color: #9bf0c8 !important;
+  border-color: rgba(69, 220, 153, 0.16) !important;
+}
+
+.pill.red,
+.status-pill.off,
+.permission-chip.no {
+  background: rgba(255, 125, 118, 0.14) !important;
+  color: #ffbcb6 !important;
+  border-color: rgba(255, 125, 118, 0.16) !important;
+}
+
+@media (min-width: 761px) {
+  body:not(.force-mobile) .profile-list-panel,
+  body:not(.force-mobile) .profile-detail,
+  body:not(.force-mobile) .player-profile,
+  body:not(.force-mobile) .profile-section,
+  body:not(.force-mobile) .users-admin,
+  body:not(.force-mobile) .user-card,
+  body:not(.force-mobile) .management-panel,
+  body:not(.force-mobile) .management-card,
+  body:not(.force-mobile) .management-task,
+  body:not(.force-mobile) .beta-followup-item,
+  body:not(.force-mobile) .beta-feedback-item,
+  body:not(.force-mobile) .document-card,
+  body:not(.force-mobile) .match-report-card,
+  body:not(.force-mobile) .federation-team-panel,
+  body:not(.force-mobile) .team-stats-card,
+  body:not(.force-mobile) .official-standings-block,
+  body:not(.force-mobile) .quality-issue,
+  body:not(.force-mobile) .readiness-item,
+  body:not(.force-mobile) .team-readiness-item,
+  body:not(.force-mobile) .beta-test-item,
+  body:not(.force-mobile) .dashboard-announcement-pill,
+  body.force-desktop .profile-list-panel,
+  body.force-desktop .profile-detail,
+  body.force-desktop .player-profile,
+  body.force-desktop .profile-section,
+  body.force-desktop .users-admin,
+  body.force-desktop .user-card,
+  body.force-desktop .management-panel,
+  body.force-desktop .management-card,
+  body.force-desktop .management-task,
+  body.force-desktop .beta-followup-item,
+  body.force-desktop .beta-feedback-item,
+  body.force-desktop .document-card,
+  body.force-desktop .match-report-card,
+  body.force-desktop .federation-team-panel,
+  body.force-desktop .team-stats-card,
+  body.force-desktop .official-standings-block,
+  body.force-desktop .quality-issue,
+  body.force-desktop .readiness-item,
+  body.force-desktop .team-readiness-item,
+  body.force-desktop .beta-test-item,
+  body.force-desktop .dashboard-announcement-pill {
+    background: #355b62 !important;
+    color: #eef8f5 !important;
+    border-color: rgba(232, 246, 242, 0.12) !important;
+    box-shadow: none !important;
+  }
+
+  body:not(.force-mobile) .profile-list-item,
+  body:not(.force-mobile) .profile-stats button,
+  body:not(.force-mobile) .mini-list button,
+  body:not(.force-mobile) .timeline-list button,
+  body:not(.force-mobile) .activity-item,
+  body:not(.force-mobile) .thread-button,
+  body:not(.force-mobile) .thread-list,
+  body:not(.force-mobile) .checkbox-list,
+  body:not(.force-mobile) .recipient-list,
+  body:not(.force-mobile) .recipient-option,
+  body:not(.force-mobile) .folder-chip,
+  body:not(.force-mobile) .table-wrap,
+  body:not(.force-mobile) .permission-matrix table,
+  body:not(.force-mobile) .permission-matrix td,
+  body:not(.force-mobile) .permission-matrix th,
+  body:not(.force-mobile) .public-result-list > div,
+  body.force-desktop .profile-list-item,
+  body.force-desktop .profile-stats button,
+  body.force-desktop .mini-list button,
+  body.force-desktop .timeline-list button,
+  body.force-desktop .activity-item,
+  body.force-desktop .thread-button,
+  body.force-desktop .thread-list,
+  body.force-desktop .checkbox-list,
+  body.force-desktop .recipient-list,
+  body.force-desktop .recipient-option,
+  body.force-desktop .folder-chip,
+  body.force-desktop .table-wrap,
+  body.force-desktop .permission-matrix table,
+  body.force-desktop .permission-matrix td,
+  body.force-desktop .permission-matrix th,
+  body.force-desktop .public-result-list > div {
+    background: #406970 !important;
+    color: #eef8f5 !important;
+    border-color: rgba(232, 246, 242, 0.11) !important;
+  }
+
+  body:not(.force-mobile) .profile-list-item.active,
+  body:not(.force-mobile) .thread-button.active,
+  body:not(.force-mobile) .thread-button:hover,
+  body.force-desktop .profile-list-item.active,
+  body.force-desktop .thread-button.active,
+  body.force-desktop .thread-button:hover {
+    background: #4a777e !important;
+    color: #ffffff !important;
+  }
+
+  body:not(.force-mobile) .bubble.club,
+  body.force-desktop .bubble.club {
+    background: rgba(124, 193, 184, 0.2) !important;
+    color: #f4fbf8 !important;
+  }
+
+  body:not(.force-mobile) .bubble.user,
+  body.force-desktop .bubble.user {
+    background: rgba(255, 198, 85, 0.18) !important;
+    color: #fff3d6 !important;
+  }
+
+  body:not(.force-mobile) .btn,
+  body:not(.force-mobile) .mini-action,
+  body.force-desktop .btn,
+  body.force-desktop .mini-action {
+    background: transparent !important;
+    border-radius: 4px !important;
+    border: 0 !important;
+    color: rgba(239, 249, 246, 0.9) !important;
+  }
+
+  body:not(.force-mobile) .btn:hover,
+  body:not(.force-mobile) .mini-action:hover,
+  body.force-desktop .btn:hover,
+  body.force-desktop .mini-action:hover {
+    background: rgba(239, 249, 246, 0.08) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  body:not(.force-desktop) .profile-list-panel,
+  body:not(.force-desktop) .profile-detail,
+  body:not(.force-desktop) .player-profile,
+  body:not(.force-desktop) .profile-section,
+  body:not(.force-desktop) .user-card,
+  body:not(.force-desktop) .management-card,
+  body:not(.force-desktop) .management-task,
+  body:not(.force-desktop) .document-card,
+  body:not(.force-desktop) .dashboard-announcement-pill,
+  body.force-mobile .profile-list-panel,
+  body.force-mobile .profile-detail,
+  body.force-mobile .player-profile,
+  body.force-mobile .profile-section,
+  body.force-mobile .user-card,
+  body.force-mobile .management-card,
+  body.force-mobile .management-task,
+  body.force-mobile .document-card,
+  body.force-mobile .dashboard-announcement-pill {
+    background: #355b62 !important;
+    color: #eef8f5 !important;
+    border-color: rgba(232, 246, 242, 0.12) !important;
+  }
+
+  body:not(.force-desktop) .profile-list-item,
+  body:not(.force-desktop) .profile-stats button,
+  body:not(.force-desktop) .mini-list button,
+  body:not(.force-desktop) .timeline-list button,
+  body:not(.force-desktop) .checkbox-list,
+  body:not(.force-desktop) .recipient-list,
+  body:not(.force-desktop) .recipient-option,
+  body.force-mobile .profile-list-item,
+  body.force-mobile .profile-stats button,
+  body.force-mobile .mini-list button,
+  body.force-mobile .timeline-list button,
+  body.force-mobile .checkbox-list,
+  body.force-mobile .recipient-list,
+  body.force-mobile .recipient-option {
+    background: #406970 !important;
+    color: #eef8f5 !important;
+    border-color: rgba(232, 246, 242, 0.11) !important;
   }
 }
