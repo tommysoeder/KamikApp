@@ -5667,6 +5667,177 @@ input[type="file"]::file-selector-button:hover {
   }
 }
 
+/* V189 - dark modals, subtler actions and visible calendar markers */
+.day-dots i {
+  width: 7px !important;
+  height: 7px !important;
+  border-radius: 999px !important;
+  box-shadow: 0 0 0 2px rgba(15, 31, 35, 0.34) !important;
+}
+
+.day-dots i.blue,
+.day-events button.blue::before {
+  background: #58b7ff !important;
+}
+
+.day-dots i.gold,
+.day-events button.gold::before {
+  background: #ffc655 !important;
+}
+
+.day-dots i.green,
+.day-events button.green::before {
+  background: #45dc99 !important;
+}
+
+.day-dots i.red,
+.day-events button.red::before {
+  background: #ff7d76 !important;
+}
+
+.day-dots i.training,
+.day-events button.training::before {
+  background: #8dd3c7 !important;
+}
+
+.actions .btn + .btn,
+.item .btn + .btn,
+.modal .btn + .btn,
+.thread-tools .btn + .btn,
+.panel-header .btn + .btn {
+  margin-left: 4px !important;
+  padding-left: 13px !important;
+  border-left: 1px solid rgba(238, 248, 245, 0.22) !important;
+}
+
+@media (min-width: 761px) {
+  body:not(.force-mobile) .modal-backdrop,
+  body.force-desktop .modal-backdrop {
+    background: rgba(8, 22, 26, 0.66) !important;
+    backdrop-filter: blur(12px) !important;
+  }
+
+  body:not(.force-mobile) .modal,
+  body.force-desktop .modal {
+    background: #33575e !important;
+    color: #eef8f5 !important;
+    border-color: rgba(238, 248, 245, 0.16) !important;
+    box-shadow: 0 24px 70px rgba(2, 12, 15, 0.42) !important;
+  }
+
+  body:not(.force-mobile) .modal-head,
+  body.force-desktop .modal-head {
+    background: rgba(41, 76, 83, 0.96) !important;
+    border-bottom-color: rgba(238, 248, 245, 0.12) !important;
+  }
+
+  body:not(.force-mobile) .modal h2,
+  body:not(.force-mobile) .modal h3,
+  body:not(.force-mobile) .modal h4,
+  body:not(.force-mobile) .modal label,
+  body:not(.force-mobile) .modal .form-row label,
+  body.force-desktop .modal h2,
+  body.force-desktop .modal h3,
+  body.force-desktop .modal h4,
+  body.force-desktop .modal label,
+  body.force-desktop .modal .form-row label {
+    color: #f7fbfa !important;
+  }
+
+  body:not(.force-mobile) .modal p,
+  body:not(.force-mobile) .modal span,
+  body:not(.force-mobile) .modal .meta,
+  body.force-desktop .modal p,
+  body.force-desktop .modal span,
+  body.force-desktop .modal .meta {
+    color: rgba(238, 248, 245, 0.76) !important;
+  }
+
+  body:not(.force-mobile) .modal input,
+  body:not(.force-mobile) .modal select,
+  body:not(.force-mobile) .modal textarea,
+  body.force-desktop .modal input,
+  body.force-desktop .modal select,
+  body.force-desktop .modal textarea {
+    background: #c6d9d5 !important;
+    color: #122b30 !important;
+    border-color: rgba(238, 248, 245, 0.18) !important;
+  }
+
+  body:not(.force-mobile) .modal .item,
+  body:not(.force-mobile) .modal .card,
+  body:not(.force-mobile) .modal .panel,
+  body.force-desktop .modal .item,
+  body.force-desktop .modal .card,
+  body.force-desktop .modal .panel {
+    background: #406a71 !important;
+    color: #eef8f5 !important;
+  }
+
+  body:not(.force-mobile) .btn,
+  body:not(.force-mobile) .mini-action,
+  body.force-desktop .btn,
+  body.force-desktop .mini-action {
+    min-height: 32px !important;
+    padding: 5px 8px !important;
+    border-radius: 7px !important;
+    border-top-color: transparent !important;
+    border-right-color: transparent !important;
+    border-bottom-color: transparent !important;
+    box-shadow: none !important;
+  }
+
+  body:not(.force-mobile) .btn:hover,
+  body:not(.force-mobile) .mini-action:hover,
+  body.force-desktop .btn:hover,
+  body.force-desktop .mini-action:hover {
+    background: rgba(238, 248, 245, 0.1) !important;
+    border-color: rgba(238, 248, 245, 0.12) !important;
+  }
+
+  body:not(.force-mobile) .btn.danger:hover,
+  body:not(.force-mobile) .mini-action.danger:hover,
+  body.force-desktop .btn.danger:hover,
+  body.force-desktop .mini-action.danger:hover {
+    background: rgba(255, 125, 118, 0.12) !important;
+    border-color: rgba(255, 125, 118, 0.18) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  body:not(.force-desktop) .modal,
+  body.force-mobile .modal {
+    background: #33575e !important;
+    color: #eef8f5 !important;
+    border-color: rgba(238, 248, 245, 0.16) !important;
+  }
+
+  body:not(.force-desktop) .modal-head,
+  body.force-mobile .modal-head {
+    background: rgba(41, 76, 83, 0.98) !important;
+    border-bottom-color: rgba(238, 248, 245, 0.12) !important;
+  }
+
+  body:not(.force-desktop) .modal input,
+  body:not(.force-desktop) .modal select,
+  body:not(.force-desktop) .modal textarea,
+  body.force-mobile .modal input,
+  body.force-mobile .modal select,
+  body.force-mobile .modal textarea {
+    background: #c6d9d5 !important;
+    color: #122b30 !important;
+    border-color: rgba(238, 248, 245, 0.18) !important;
+  }
+
+  body:not(.force-desktop) .modal .item,
+  body:not(.force-desktop) .modal .card,
+  body.force-mobile .modal .item,
+  body.force-mobile .modal .card {
+    background: #406a71 !important;
+    color: #eef8f5 !important;
+  }
+}
+
 body.force-mobile .mobile-header {
   position: fixed !important;
   top: 0 !important;
@@ -7802,5 +7973,201 @@ body.force-mobile .main {
   body.force-mobile .btn.danger,
   body.force-mobile .mini-action.danger {
     color: #ffbcb5 !important;
+  }
+}
+
+/* V190 - final visual polish layer for modals, action separators and calendar dots */
+.day-dots i {
+  width: 7px !important;
+  height: 7px !important;
+  border-radius: 999px !important;
+  opacity: 1 !important;
+  box-shadow: 0 0 0 2px rgba(14, 31, 35, 0.42) !important;
+}
+
+.day-dots i.blue,
+.day-events button.blue::before {
+  background: #58b7ff !important;
+}
+
+.day-dots i.gold,
+.day-events button.gold::before {
+  background: #ffc655 !important;
+}
+
+.day-dots i.green,
+.day-events button.green::before {
+  background: #45dc99 !important;
+}
+
+.day-dots i.red,
+.day-events button.red::before {
+  background: #ff7d76 !important;
+}
+
+.day-dots i.training,
+.day-events button.training::before {
+  background: #8dd3c7 !important;
+}
+
+.actions .btn + .btn,
+.item .btn + .btn,
+.modal .btn + .btn,
+.thread-tools .btn + .btn,
+.panel-header .btn + .btn {
+  margin-left: 4px !important;
+  padding-left: 13px !important;
+  border-left: 1px solid rgba(238, 248, 245, 0.22) !important;
+}
+
+.btn,
+.mini-action {
+  box-shadow: none !important;
+}
+
+@media (min-width: 761px) {
+  body:not(.force-mobile) .modal-backdrop,
+  body.force-desktop .modal-backdrop {
+    background: rgba(8, 22, 26, 0.66) !important;
+    backdrop-filter: blur(12px) !important;
+  }
+
+  body:not(.force-mobile) .modal,
+  body.force-desktop .modal {
+    background: #33575e !important;
+    color: #eef8f5 !important;
+    border-color: rgba(238, 248, 245, 0.16) !important;
+    box-shadow: 0 24px 70px rgba(2, 12, 15, 0.42) !important;
+  }
+
+  body:not(.force-mobile) .modal-head,
+  body.force-desktop .modal-head {
+    background: rgba(41, 76, 83, 0.98) !important;
+    border-bottom-color: rgba(238, 248, 245, 0.12) !important;
+  }
+
+  body:not(.force-mobile) .modal h2,
+  body:not(.force-mobile) .modal h3,
+  body:not(.force-mobile) .modal h4,
+  body:not(.force-mobile) .modal label,
+  body:not(.force-mobile) .modal .form-row label,
+  body.force-desktop .modal h2,
+  body.force-desktop .modal h3,
+  body.force-desktop .modal h4,
+  body.force-desktop .modal label,
+  body.force-desktop .modal .form-row label {
+    color: #f7fbfa !important;
+  }
+
+  body:not(.force-mobile) .modal p,
+  body:not(.force-mobile) .modal span,
+  body:not(.force-mobile) .modal .meta,
+  body.force-desktop .modal p,
+  body.force-desktop .modal span,
+  body.force-desktop .modal .meta {
+    color: rgba(238, 248, 245, 0.76) !important;
+  }
+
+  body:not(.force-mobile) .modal input,
+  body:not(.force-mobile) .modal select,
+  body:not(.force-mobile) .modal textarea,
+  body.force-desktop .modal input,
+  body.force-desktop .modal select,
+  body.force-desktop .modal textarea {
+    background: #c6d9d5 !important;
+    color: #122b30 !important;
+    border-color: rgba(238, 248, 245, 0.18) !important;
+  }
+
+  body:not(.force-mobile) .modal .item,
+  body:not(.force-mobile) .modal .card,
+  body:not(.force-mobile) .modal .panel,
+  body.force-desktop .modal .item,
+  body.force-desktop .modal .card,
+  body.force-desktop .modal .panel {
+    background: #406a71 !important;
+    color: #eef8f5 !important;
+  }
+
+  body:not(.force-mobile) .btn,
+  body:not(.force-mobile) .mini-action,
+  body.force-desktop .btn,
+  body.force-desktop .mini-action {
+    min-height: 32px !important;
+    padding: 5px 8px !important;
+    border-radius: 7px !important;
+    background: transparent !important;
+    color: #eaf7f4 !important;
+    border-top-color: transparent !important;
+    border-right-color: transparent !important;
+    border-bottom-color: transparent !important;
+  }
+
+  body:not(.force-mobile) .btn:hover,
+  body:not(.force-mobile) .mini-action:hover,
+  body.force-desktop .btn:hover,
+  body.force-desktop .mini-action:hover {
+    background: rgba(238, 248, 245, 0.1) !important;
+    color: #ffffff !important;
+    border-color: rgba(238, 248, 245, 0.12) !important;
+  }
+
+  body:not(.force-mobile) .btn.primary,
+  body.force-desktop .btn.primary {
+    background: transparent !important;
+    color: #62ddd3 !important;
+    border-color: transparent !important;
+  }
+
+  body:not(.force-mobile) .btn.danger,
+  body:not(.force-mobile) .mini-action.danger,
+  body.force-desktop .btn.danger,
+  body.force-desktop .mini-action.danger {
+    background: transparent !important;
+    color: #ffbbb5 !important;
+    border-color: transparent !important;
+  }
+
+  body:not(.force-mobile) .btn.danger:hover,
+  body:not(.force-mobile) .mini-action.danger:hover,
+  body.force-desktop .btn.danger:hover,
+  body.force-desktop .mini-action.danger:hover {
+    background: rgba(255, 125, 118, 0.12) !important;
+    color: #ffd8d4 !important;
+    border-color: rgba(255, 125, 118, 0.18) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  body:not(.force-desktop) .modal,
+  body.force-mobile .modal {
+    background: #33575e !important;
+    color: #eef8f5 !important;
+    border-color: rgba(238, 248, 245, 0.16) !important;
+  }
+
+  body:not(.force-desktop) .modal-head,
+  body.force-mobile .modal-head {
+    background: rgba(41, 76, 83, 0.98) !important;
+    border-bottom-color: rgba(238, 248, 245, 0.12) !important;
+  }
+
+  body:not(.force-desktop) .modal input,
+  body:not(.force-desktop) .modal select,
+  body:not(.force-desktop) .modal textarea,
+  body.force-mobile .modal input,
+  body.force-mobile .modal select,
+  body.force-mobile .modal textarea {
+    background: #c6d9d5 !important;
+    color: #122b30 !important;
+    border-color: rgba(238, 248, 245, 0.18) !important;
+  }
+
+  body:not(.force-desktop) .modal .item,
+  body:not(.force-desktop) .modal .card,
+  body.force-mobile .modal .item,
+  body.force-mobile .modal .card {
+    background: #406a71 !important;
+    color: #eef8f5 !important;
   }
 }
