@@ -6080,3 +6080,241 @@ body.force-mobile .main {
     min-height: 44px;
   }
 }
+
+/* V180 - darker cards and closer visual language between desktop and mobile */
+@media (min-width: 761px) {
+  body:not(.force-mobile) {
+    background:
+      linear-gradient(180deg, #111d22 0, #0c171a 310px),
+      #eef2ee;
+  }
+
+  body:not(.force-mobile) .main,
+  body.force-desktop .main {
+    background:
+      linear-gradient(180deg, #111d22 0, #0c171a 290px, #eef2ee 291px),
+      #eef2ee;
+    min-height: 100vh;
+  }
+
+  body:not(.force-mobile) .topbar,
+  body.force-desktop .topbar {
+    background: rgba(15, 26, 30, 0.9);
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+    color: #f5fbfb;
+  }
+
+  body:not(.force-mobile) .topbar h1,
+  body.force-desktop .topbar h1 {
+    color: #f7fbfb;
+  }
+
+  body:not(.force-mobile) .topbar p,
+  body.force-desktop .topbar p {
+    color: rgba(245, 251, 251, 0.66);
+  }
+
+  body:not(.force-mobile) .content,
+  body.force-desktop .content {
+    padding-top: 22px;
+  }
+
+  body:not(.force-mobile) .panel,
+  body:not(.force-mobile) .card,
+  body.force-desktop .panel,
+  body.force-desktop .card {
+    background: #f3f7f5;
+    border-color: rgba(14, 60, 61, 0.12);
+    box-shadow: 0 18px 38px rgba(7, 19, 22, 0.1);
+  }
+
+  body:not(.force-mobile) .item,
+  body.force-desktop .item {
+    background: #f8faf8;
+    border-color: rgba(14, 60, 61, 0.1);
+  }
+
+  body:not(.force-mobile) .panel-header h2,
+  body:not(.force-mobile) .panel h3,
+  body.force-desktop .panel-header h2,
+  body.force-desktop .panel h3 {
+    color: #111d22;
+  }
+
+  body:not(.force-mobile) .results-hero,
+  body.force-desktop .results-hero {
+    background: #142328;
+    color: #f6fbfb;
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  body:not(.force-mobile) .calendar-layout .panel,
+  body.force-desktop .calendar-layout .panel {
+    background: #172227;
+    color: #f4f8f8;
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 18px 38px rgba(3, 12, 14, 0.15);
+  }
+
+  body:not(.force-mobile) .calendar-layout .panel-header p,
+  body:not(.force-mobile) .calendar-layout .meta,
+  body:not(.force-mobile) .calendar-layout .month-title,
+  body.force-desktop .calendar-layout .panel-header p,
+  body.force-desktop .calendar-layout .meta,
+  body.force-desktop .calendar-layout .month-title {
+    color: rgba(244, 248, 248, 0.68);
+  }
+
+  body:not(.force-mobile) .calendar-day,
+  body.force-desktop .calendar-day {
+    background: rgba(255, 255, 255, 0.045);
+    border-color: rgba(255, 255, 255, 0.07);
+  }
+
+  body:not(.force-mobile) .calendar-day.has-event,
+  body.force-desktop .calendar-day.has-event {
+    background: rgba(22, 183, 234, 0.08);
+    border-color: rgba(22, 183, 234, 0.18);
+    box-shadow: inset 0 0 0 1px rgba(22, 183, 234, 0.06);
+  }
+
+  body:not(.force-mobile) .calendar-day .day-number,
+  body.force-desktop .calendar-day .day-number {
+    color: #f6fbfb;
+    background: rgba(255, 255, 255, 0.08);
+  }
+}
+
+@media (max-width: 760px) {
+  body:not(.force-desktop) .panel,
+  body:not(.force-desktop) .card,
+  body.force-mobile .panel,
+  body.force-mobile .card {
+    background: #172227;
+    color: #f4f8f8;
+    border-color: rgba(255, 255, 255, 0.075);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.16);
+  }
+
+  body:not(.force-desktop) .item,
+  body.force-mobile .item {
+    background: #1d2a30;
+    color: #f4f8f8;
+    border-color: rgba(255, 255, 255, 0.075);
+  }
+
+  body:not(.force-desktop) .panel-header h2,
+  body:not(.force-desktop) .panel h3,
+  body:not(.force-desktop) .item h3,
+  body:not(.force-desktop) .item h4,
+  body.force-mobile .panel-header h2,
+  body.force-mobile .panel h3,
+  body.force-mobile .item h3,
+  body.force-mobile .item h4 {
+    color: #f7fbfb;
+  }
+
+  body:not(.force-desktop) .panel-header p,
+  body:not(.force-desktop) .panel p.muted,
+  body:not(.force-desktop) .meta,
+  body:not(.force-desktop) .item p,
+  body.force-mobile .panel-header p,
+  body.force-mobile .panel p.muted,
+  body.force-mobile .meta,
+  body.force-mobile .item p {
+    color: rgba(244, 248, 248, 0.66);
+  }
+
+  body:not(.force-desktop) .card.stat span,
+  body.force-mobile .card.stat span {
+    color: rgba(244, 248, 248, 0.62);
+  }
+
+  body:not(.force-desktop) .card.stat strong,
+  body.force-mobile .card.stat strong {
+    color: #f8ffff;
+  }
+
+  body:not(.force-desktop) .empty,
+  body.force-mobile .empty {
+    background: #162126;
+    color: rgba(244, 248, 248, 0.62);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  body:not(.force-desktop) .dashboard-announcements-compact,
+  body:not(.force-desktop) .dashboard-feedback-compact,
+  body:not(.force-desktop) .dashboard-beta-consent,
+  body.force-mobile .dashboard-announcements-compact,
+  body.force-mobile .dashboard-feedback-compact,
+  body.force-mobile .dashboard-beta-consent {
+    background: #172227;
+  }
+
+  body:not(.force-desktop) .dashboard-announcement-pill,
+  body.force-mobile .dashboard-announcement-pill {
+    background: #1d2a30;
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  body:not(.force-desktop) input,
+  body:not(.force-desktop) select,
+  body:not(.force-desktop) textarea,
+  body.force-mobile input,
+  body.force-mobile select,
+  body.force-mobile textarea {
+    background: #101b20;
+    color: #f4f8f8;
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  body:not(.force-desktop) input::placeholder,
+  body.force-mobile input::placeholder,
+  body:not(.force-desktop) textarea::placeholder,
+  body.force-mobile textarea::placeholder {
+    color: rgba(244, 248, 248, 0.42);
+  }
+
+  body:not(.force-desktop) .pill,
+  body.force-mobile .pill {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(244, 248, 248, 0.86);
+  }
+
+  body:not(.force-desktop) .pill.gold,
+  body.force-mobile .pill.gold {
+    background: rgba(200, 138, 45, 0.22);
+    color: #ffe2aa;
+  }
+
+  body:not(.force-desktop) .pill.green,
+  body.force-mobile .pill.green {
+    background: rgba(47, 125, 85, 0.22);
+    color: #c7f1d7;
+  }
+
+  body:not(.force-desktop) .pill.blue,
+  body.force-mobile .pill.blue {
+    background: rgba(51, 95, 155, 0.24);
+    color: #dbeaff;
+  }
+
+  body:not(.force-desktop) .pill.red,
+  body.force-mobile .pill.red {
+    background: rgba(185, 74, 72, 0.22);
+    color: #ffc8c4;
+  }
+
+  body:not(.force-desktop) .modal,
+  body.force-mobile .modal {
+    background: #172227;
+    color: #f4f8f8;
+    border-color: rgba(255, 255, 255, 0.09);
+  }
+
+  body:not(.force-desktop) .modal-head,
+  body.force-mobile .modal-head {
+    background: rgba(23, 34, 39, 0.96);
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+  }
+}
