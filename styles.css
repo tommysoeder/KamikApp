@@ -7365,3 +7365,306 @@ body.force-mobile .main {
     background: #dbe7e3 !important;
   }
 }
+
+/* V186 - desktop uses the same dark canvas hierarchy as mobile */
+@media (min-width: 761px) {
+  html,
+  body:not(.force-mobile),
+  body:not(.force-mobile) .main,
+  body:not(.force-mobile) .content,
+  body.force-desktop .main,
+  body.force-desktop .content {
+    background: #203940 !important;
+    color: #f2f7f5 !important;
+  }
+
+  body:not(.force-mobile) .topbar,
+  body.force-desktop .topbar {
+    background: rgba(39, 69, 75, 0.96) !important;
+    color: #f2f7f5 !important;
+    border-bottom-color: rgba(255, 255, 255, 0.09) !important;
+  }
+
+  body:not(.force-mobile) .topbar h1,
+  body:not(.force-mobile) .topbar p,
+  body.force-desktop .topbar h1,
+  body.force-desktop .topbar p {
+    color: #f2f7f5 !important;
+  }
+
+  body:not(.force-mobile) .panel,
+  body:not(.force-mobile) .card,
+  body.force-desktop .panel,
+  body.force-desktop .card,
+  body:not(.force-mobile) .calendar-layout .panel,
+  body.force-desktop .calendar-layout .panel,
+  body:not(.force-mobile) .results-hero,
+  body.force-desktop .results-hero {
+    background: #35565d !important;
+    color: #f2f7f5 !important;
+    border-color: rgba(255, 255, 255, 0.11) !important;
+    box-shadow: 0 16px 34px rgba(5, 18, 22, 0.18) !important;
+  }
+
+  body:not(.force-mobile) .item,
+  body.force-desktop .item,
+  body:not(.force-mobile) .results-hero .empty,
+  body.force-desktop .results-hero .empty,
+  body:not(.force-mobile) .results-hero .result-card,
+  body.force-desktop .results-hero .result-card,
+  body:not(.force-mobile) .calendar-day,
+  body.force-desktop .calendar-day {
+    background: #41666c !important;
+    color: #f2f7f5 !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+  }
+
+  body:not(.force-mobile) .calendar-day.has-event,
+  body.force-desktop .calendar-day.has-event {
+    background: #4a7076 !important;
+  }
+
+  body:not(.force-mobile) .panel-header h2,
+  body:not(.force-mobile) .panel h3,
+  body:not(.force-mobile) .item h3,
+  body:not(.force-mobile) .item h4,
+  body:not(.force-mobile) .calendar-layout h2,
+  body:not(.force-mobile) .calendar-layout h3,
+  body:not(.force-mobile) .results-hero h2,
+  body:not(.force-mobile) .results-hero h3,
+  body.force-desktop .panel-header h2,
+  body.force-desktop .panel h3,
+  body.force-desktop .item h3,
+  body.force-desktop .item h4,
+  body.force-desktop .calendar-layout h2,
+  body.force-desktop .calendar-layout h3,
+  body.force-desktop .results-hero h2,
+  body.force-desktop .results-hero h3 {
+    color: #f4faf8 !important;
+  }
+
+  body:not(.force-mobile) .panel-header p,
+  body:not(.force-mobile) .panel p.muted,
+  body:not(.force-mobile) .meta,
+  body:not(.force-mobile) .calendar-layout p,
+  body:not(.force-mobile) .calendar-layout .meta,
+  body:not(.force-mobile) .calendar-layout .month-title,
+  body.force-desktop .panel-header p,
+  body.force-desktop .panel p.muted,
+  body.force-desktop .meta,
+  body.force-desktop .calendar-layout p,
+  body.force-desktop .calendar-layout .meta,
+  body.force-desktop .calendar-layout .month-title {
+    color: rgba(244, 250, 248, 0.72) !important;
+  }
+
+  body:not(.force-mobile) input,
+  body:not(.force-mobile) select,
+  body:not(.force-mobile) textarea,
+  body:not(.force-mobile) .topbar-search,
+  body.force-desktop input,
+  body.force-desktop select,
+  body.force-desktop textarea,
+  body.force-desktop .topbar-search {
+    background: #bfd2ce !important;
+    color: #173136 !important;
+    border-color: rgba(255, 255, 255, 0.16) !important;
+  }
+
+  body:not(.force-mobile) .btn,
+  body.force-desktop .btn {
+    background: #bfd2ce !important;
+    color: #173136 !important;
+    border-color: rgba(255, 255, 255, 0.16) !important;
+  }
+
+  body:not(.force-mobile) .btn.primary,
+  body.force-desktop .btn.primary {
+    background: #0f7775 !important;
+    color: #fff !important;
+    border-color: #0f7775 !important;
+  }
+
+  body:not(.force-mobile) .btn.danger,
+  body.force-desktop .btn.danger {
+    background: #f0d5d2 !important;
+    color: #78302d !important;
+    border-color: #d6aaa5 !important;
+  }
+}
+
+/* V187 - remove pale desktop canvas patches; cards stay lighter than the page */
+@media (min-width: 761px) {
+  html,
+  body,
+  body:not(.force-mobile),
+  body:not(.force-mobile) .shell,
+  body:not(.force-mobile) .main,
+  body:not(.force-mobile) .content,
+  body.force-desktop,
+  body.force-desktop .shell,
+  body.force-desktop .main,
+  body.force-desktop .content {
+    background:
+      radial-gradient(circle at 22% 0%, rgba(72, 113, 117, 0.26), transparent 32rem),
+      linear-gradient(180deg, #1d343a 0, #203940 220px, #1b3338 100%) !important;
+    color: #eef6f3 !important;
+  }
+
+  body:not(.force-mobile) .content,
+  body.force-desktop .content {
+    min-height: calc(100vh - 76px);
+  }
+
+  body:not(.force-mobile) .topbar,
+  body.force-desktop .topbar {
+    background: rgba(35, 62, 68, 0.94) !important;
+    color: #eef6f3 !important;
+    border-bottom-color: rgba(255, 255, 255, 0.09) !important;
+  }
+
+  body:not(.force-mobile) .beta-banner,
+  body.force-desktop .beta-banner {
+    background: rgba(231, 199, 137, 0.15) !important;
+    color: #f4d395 !important;
+    border-color: rgba(231, 199, 137, 0.28) !important;
+  }
+
+  body:not(.force-mobile) .band,
+  body.force-desktop .band {
+    background: rgba(53, 86, 93, 0.72) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  body:not(.force-mobile) .panel,
+  body:not(.force-mobile) .card,
+  body:not(.force-mobile) .stat,
+  body.force-desktop .panel,
+  body.force-desktop .card,
+  body.force-desktop .stat {
+    background: #35565d !important;
+    color: #eef6f3 !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+  }
+
+  body:not(.force-mobile) .item,
+  body:not(.force-mobile) .read-item,
+  body:not(.force-mobile) .notice-item,
+  body:not(.force-mobile) .file-card,
+  body:not(.force-mobile) .doc-preview,
+  body:not(.force-mobile) .empty,
+  body.force-desktop .item,
+  body.force-desktop .read-item,
+  body.force-desktop .notice-item,
+  body.force-desktop .file-card,
+  body.force-desktop .doc-preview,
+  body.force-desktop .empty {
+    background: #40656b !important;
+    color: #eef6f3 !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+  }
+
+  body:not(.force-mobile) .calendar-day,
+  body.force-desktop .calendar-day {
+    background: #3a5e65 !important;
+    color: #eef6f3 !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  body:not(.force-mobile) .calendar-day.has-event,
+  body.force-desktop .calendar-day.has-event {
+    background: #477178 !important;
+    border-color: rgba(47, 164, 145, 0.28) !important;
+  }
+
+  body:not(.force-mobile) .calendar-day.muted-day,
+  body.force-desktop .calendar-day.muted-day {
+    background: #314e55 !important;
+    color: rgba(238, 246, 243, 0.46) !important;
+  }
+
+  body:not(.force-mobile) .calendar-day .day-number,
+  body.force-desktop .calendar-day .day-number {
+    background: rgba(238, 246, 243, 0.12) !important;
+    color: #f4faf8 !important;
+  }
+
+  body:not(.force-mobile) .calendar-event-pill,
+  body.force-desktop .calendar-event-pill {
+    background: #d8ece7 !important;
+    color: #0e3437 !important;
+  }
+
+  body:not(.force-mobile) .topbar-search,
+  body.force-desktop .topbar-search {
+    background: rgba(213, 228, 224, 0.16) !important;
+    color: #eef6f3 !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+  }
+
+  body:not(.force-mobile) .topbar-search input,
+  body.force-desktop .topbar-search input {
+    background: transparent !important;
+    color: #eef6f3 !important;
+  }
+
+  body:not(.force-mobile) .topbar-search input::placeholder,
+  body.force-desktop .topbar-search input::placeholder {
+    color: rgba(238, 246, 243, 0.62) !important;
+  }
+
+  body:not(.force-mobile) input,
+  body:not(.force-mobile) select,
+  body:not(.force-mobile) textarea,
+  body.force-desktop input,
+  body.force-desktop select,
+  body.force-desktop textarea {
+    background: #d5e4e0 !important;
+    color: #122b30 !important;
+    border-color: rgba(255, 255, 255, 0.16) !important;
+  }
+
+  body:not(.force-mobile) .panel-header h2,
+  body:not(.force-mobile) .panel h2,
+  body:not(.force-mobile) .panel h3,
+  body:not(.force-mobile) .item h3,
+  body:not(.force-mobile) .item h4,
+  body:not(.force-mobile) .stat strong,
+  body.force-desktop .panel-header h2,
+  body.force-desktop .panel h2,
+  body.force-desktop .panel h3,
+  body.force-desktop .item h3,
+  body.force-desktop .item h4,
+  body.force-desktop .stat strong {
+    color: #f7fbfa !important;
+  }
+
+  body:not(.force-mobile) .panel-header p,
+  body:not(.force-mobile) .panel p,
+  body:not(.force-mobile) .panel p.muted,
+  body:not(.force-mobile) .item p,
+  body:not(.force-mobile) .meta,
+  body:not(.force-mobile) .stat span,
+  body.force-desktop .panel-header p,
+  body.force-desktop .panel p,
+  body.force-desktop .panel p.muted,
+  body.force-desktop .item p,
+  body.force-desktop .meta,
+  body.force-desktop .stat span {
+    color: rgba(238, 246, 243, 0.74) !important;
+  }
+
+  body:not(.force-mobile) .btn,
+  body.force-desktop .btn {
+    background: #d5e4e0 !important;
+    color: #122b30 !important;
+    border-color: rgba(255, 255, 255, 0.16) !important;
+  }
+
+  body:not(.force-mobile) .btn.primary,
+  body.force-desktop .btn.primary {
+    background: #087f7b !important;
+    color: #fff !important;
+    border-color: rgba(16, 178, 166, 0.48) !important;
+  }
+}
