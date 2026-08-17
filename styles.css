@@ -6318,3 +6318,230 @@ body.force-mobile .main {
     border-bottom-color: rgba(255, 255, 255, 0.08);
   }
 }
+
+/* V181 - soften the dark theme: no black fields, no harsh cuts */
+@media (min-width: 761px) {
+  body:not(.force-mobile),
+  body:not(.force-mobile) .main,
+  body.force-desktop .main {
+    background:
+      linear-gradient(180deg, #dfe8e5 0, #eef3f1 360px),
+      #eef3f1;
+  }
+
+  body:not(.force-mobile) .topbar,
+  body.force-desktop .topbar {
+    background: rgba(230, 238, 235, 0.94);
+    border-bottom-color: rgba(16, 51, 55, 0.1);
+    color: #14262a;
+    box-shadow: 0 8px 26px rgba(16, 51, 55, 0.08);
+  }
+
+  body:not(.force-mobile) .topbar h1,
+  body.force-desktop .topbar h1 {
+    color: #102428;
+  }
+
+  body:not(.force-mobile) .topbar p,
+  body.force-desktop .topbar p {
+    color: #5c6c70;
+  }
+
+  body:not(.force-mobile) .panel,
+  body:not(.force-mobile) .card,
+  body.force-desktop .panel,
+  body.force-desktop .card {
+    background: #e8efed;
+    border-color: rgba(16, 51, 55, 0.12);
+    box-shadow: 0 18px 38px rgba(16, 51, 55, 0.08);
+  }
+
+  body:not(.force-mobile) .item,
+  body.force-desktop .item {
+    background: #f1f5f3;
+    border-color: rgba(16, 51, 55, 0.12);
+    color: #12272b;
+  }
+
+  body:not(.force-mobile) .results-hero,
+  body.force-desktop .results-hero {
+    background: #dfe9e6;
+    color: #12272b;
+    border-color: rgba(16, 51, 55, 0.12);
+  }
+
+  body:not(.force-mobile) .results-hero .panel-header h2,
+  body.force-desktop .results-hero .panel-header h2 {
+    color: #102428;
+  }
+
+  body:not(.force-mobile) .results-hero .panel-header p,
+  body.force-desktop .results-hero .panel-header p {
+    color: #5c6c70;
+  }
+
+  body:not(.force-mobile) .calendar-layout .panel,
+  body.force-desktop .calendar-layout .panel {
+    background: #24383d;
+    color: #eef6f4;
+    border-color: rgba(255, 255, 255, 0.09);
+    box-shadow: 0 18px 38px rgba(16, 51, 55, 0.14);
+  }
+
+  body:not(.force-mobile) .calendar-layout .panel-header h2,
+  body:not(.force-mobile) .calendar-layout .panel h3,
+  body.force-desktop .calendar-layout .panel-header h2,
+  body.force-desktop .calendar-layout .panel h3 {
+    color: #eef6f4;
+  }
+
+  body:not(.force-mobile) .calendar-layout .calendar-day,
+  body.force-desktop .calendar-layout .calendar-day {
+    background: rgba(255, 255, 255, 0.055);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  body:not(.force-mobile) .calendar-layout .calendar-day.has-event,
+  body.force-desktop .calendar-layout .calendar-day.has-event {
+    background: rgba(54, 113, 112, 0.24);
+    border-color: rgba(79, 164, 163, 0.25);
+  }
+
+  body:not(.force-mobile) .calendar-layout .day-events button,
+  body.force-desktop .calendar-layout .day-events button {
+    background: rgba(236, 244, 242, 0.92);
+    color: #173034;
+  }
+
+  body:not(.force-mobile) .topbar-search,
+  body.force-desktop .topbar-search {
+    background: #eef3f1;
+    color: #172b30;
+    border-color: rgba(16, 51, 55, 0.18);
+  }
+
+  body:not(.force-mobile) .topbar-search input,
+  body.force-desktop .topbar-search input {
+    color: #172b30;
+  }
+
+  body:not(.force-mobile) .beta-banner,
+  body.force-desktop .beta-banner {
+    background: #edf1e9;
+    color: #725117;
+    border-color: rgba(200, 138, 45, 0.22);
+  }
+}
+
+@media (max-width: 760px) {
+  body:not(.force-desktop),
+  body.force-mobile {
+    background: #142327;
+  }
+
+  .content {
+    background:
+      linear-gradient(180deg, #1c3338 0, #142327 220px),
+      #142327 !important;
+  }
+
+  .mobile-header,
+  body.force-mobile .mobile-header,
+  .mobile-bottom-nav,
+  body.force-mobile .mobile-bottom-nav {
+    background: rgba(28, 51, 56, 0.97) !important;
+  }
+
+  body:not(.force-desktop) .panel,
+  body:not(.force-desktop) .card,
+  body.force-mobile .panel,
+  body.force-mobile .card {
+    background: #263d42;
+    color: #eef6f4;
+    border-color: rgba(255, 255, 255, 0.09);
+    box-shadow: 0 12px 26px rgba(8, 24, 28, 0.16);
+  }
+
+  body:not(.force-desktop) .item,
+  body.force-mobile .item {
+    background: #30494e;
+    color: #eef6f4;
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  body:not(.force-desktop) .calendar-layout .panel,
+  body.force-mobile .calendar-layout .panel {
+    background: #22363b;
+  }
+
+  body:not(.force-desktop) .calendar-day .day-number,
+  body:not(.force-desktop) .calendar-day > span,
+  body.force-mobile .calendar-day .day-number,
+  body.force-mobile .calendar-day > span {
+    color: #f3f7f6;
+  }
+
+  body:not(.force-desktop) input,
+  body:not(.force-desktop) select,
+  body:not(.force-desktop) textarea,
+  body.force-mobile input,
+  body.force-mobile select,
+  body.force-mobile textarea {
+    background: #edf3f1;
+    color: #172b30;
+    border-color: rgba(255, 255, 255, 0.18);
+  }
+
+  body:not(.force-desktop) input::placeholder,
+  body.force-mobile input::placeholder,
+  body:not(.force-desktop) textarea::placeholder,
+  body.force-mobile textarea::placeholder {
+    color: rgba(23, 43, 48, 0.55);
+  }
+
+  body:not(.force-desktop) .btn,
+  body.force-mobile .btn {
+    background: #eef3f1;
+    color: #172b30;
+    border-color: rgba(255, 255, 255, 0.18);
+  }
+
+  body:not(.force-desktop) .btn.primary,
+  body.force-mobile .btn.primary {
+    background: #0e6b68;
+    color: #fff;
+    border-color: #0e6b68;
+  }
+
+  body:not(.force-desktop) .btn.danger,
+  body.force-mobile .btn.danger {
+    background: #fff0ef;
+    color: #923734;
+    border-color: #efc5c2;
+  }
+
+  body:not(.force-desktop) .empty,
+  body.force-mobile .empty {
+    background: #2b4449;
+    color: rgba(238, 246, 244, 0.72);
+  }
+
+  body:not(.force-desktop) .beta-banner,
+  body.force-mobile .beta-banner {
+    background: rgba(237, 241, 233, 0.92);
+    color: #725117;
+  }
+
+  body:not(.force-desktop) .modal,
+  body.force-mobile .modal,
+  body:not(.force-desktop) .modal-head,
+  body.force-mobile .modal-head {
+    background: #263d42;
+  }
+
+  body:not(.force-desktop) .sync-indicator,
+  body.force-mobile .sync-indicator {
+    background: #dce7e4;
+    color: #172b30;
+  }
+}
