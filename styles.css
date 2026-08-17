@@ -7668,3 +7668,139 @@ body.force-mobile .main {
     border-color: rgba(16, 178, 166, 0.48) !important;
   }
 }
+
+/* V188 - modern text-first action buttons */
+.btn,
+.mini-action,
+.drive-tabs button,
+.folder-row > button,
+.tabs button,
+.thread-tools .btn,
+.modal .btn {
+  box-shadow: none !important;
+  transition:
+    background-color 0.16s ease,
+    color 0.16s ease,
+    border-color 0.16s ease,
+    transform 0.16s ease !important;
+}
+
+@media (min-width: 761px) {
+  body:not(.force-mobile) .btn,
+  body:not(.force-mobile) .mini-action,
+  body:not(.force-mobile) .drive-tabs button,
+  body:not(.force-mobile) .folder-row > button,
+  body:not(.force-mobile) .tabs button,
+  body:not(.force-mobile) .thread-tools .btn,
+  body:not(.force-mobile) .modal .btn,
+  body.force-desktop .btn,
+  body.force-desktop .mini-action,
+  body.force-desktop .drive-tabs button,
+  body.force-desktop .folder-row > button,
+  body.force-desktop .tabs button,
+  body.force-desktop .thread-tools .btn,
+  body.force-desktop .modal .btn {
+    background: transparent !important;
+    color: #eaf7f4 !important;
+    border-color: transparent !important;
+  }
+
+  body:not(.force-mobile) .btn:hover,
+  body:not(.force-mobile) .mini-action:hover,
+  body:not(.force-mobile) .drive-tabs button:hover,
+  body:not(.force-mobile) .folder-row > button:hover,
+  body:not(.force-mobile) .tabs button:hover,
+  body:not(.force-mobile) .thread-tools .btn:hover,
+  body:not(.force-mobile) .modal .btn:hover,
+  body.force-desktop .btn:hover,
+  body.force-desktop .mini-action:hover,
+  body.force-desktop .drive-tabs button:hover,
+  body.force-desktop .folder-row > button:hover,
+  body.force-desktop .tabs button:hover,
+  body.force-desktop .thread-tools .btn:hover,
+  body.force-desktop .modal .btn:hover {
+    background: rgba(234, 247, 244, 0.13) !important;
+    color: #ffffff !important;
+    border-color: rgba(234, 247, 244, 0.14) !important;
+    transform: translateY(-1px);
+  }
+
+  body:not(.force-mobile) .btn.primary,
+  body.force-desktop .btn.primary {
+    background: transparent !important;
+    color: #62ddd3 !important;
+    border-color: transparent !important;
+  }
+
+  body:not(.force-mobile) .btn.primary:hover,
+  body.force-desktop .btn.primary:hover {
+    background: rgba(8, 127, 123, 0.28) !important;
+    color: #ffffff !important;
+    border-color: rgba(98, 221, 211, 0.24) !important;
+  }
+
+  body:not(.force-mobile) .btn.danger,
+  body:not(.force-mobile) .mini-action.danger,
+  body.force-desktop .btn.danger,
+  body.force-desktop .mini-action.danger {
+    background: transparent !important;
+    color: #ffbbb5 !important;
+    border-color: transparent !important;
+  }
+
+  body:not(.force-mobile) .btn.danger:hover,
+  body:not(.force-mobile) .mini-action.danger:hover,
+  body.force-desktop .btn.danger:hover,
+  body.force-desktop .mini-action.danger:hover {
+    background: rgba(255, 187, 181, 0.14) !important;
+    color: #ffd8d4 !important;
+    border-color: rgba(255, 187, 181, 0.2) !important;
+  }
+
+  body:not(.force-mobile) .item .btn,
+  body.force-desktop .item .btn {
+    padding-inline: 8px !important;
+  }
+}
+
+@media (max-width: 760px) {
+  body:not(.force-desktop) .btn,
+  body:not(.force-desktop) .mini-action,
+  body:not(.force-desktop) .drive-tabs button,
+  body:not(.force-desktop) .folder-row > button,
+  body:not(.force-desktop) .tabs button,
+  body.force-mobile .btn,
+  body.force-mobile .mini-action,
+  body.force-mobile .drive-tabs button,
+  body.force-mobile .folder-row > button,
+  body.force-mobile .tabs button {
+    background: transparent !important;
+    color: #eef8f5 !important;
+    border-color: transparent !important;
+  }
+
+  body:not(.force-desktop) .btn:active,
+  body:not(.force-desktop) .mini-action:active,
+  body:not(.force-desktop) .drive-tabs button:active,
+  body:not(.force-desktop) .folder-row > button:active,
+  body:not(.force-desktop) .tabs button:active,
+  body.force-mobile .btn:active,
+  body.force-mobile .mini-action:active,
+  body.force-mobile .drive-tabs button:active,
+  body.force-mobile .folder-row > button:active,
+  body.force-mobile .tabs button:active {
+    background: rgba(238, 248, 245, 0.14) !important;
+  }
+
+  body:not(.force-desktop) .btn.primary,
+  body.force-mobile .btn.primary {
+    color: #6fe4da !important;
+  }
+
+  body:not(.force-desktop) .btn.danger,
+  body:not(.force-desktop) .mini-action.danger,
+  body.force-mobile .btn.danger,
+  body.force-mobile .mini-action.danger {
+    color: #ffbcb5 !important;
+  }
+}
