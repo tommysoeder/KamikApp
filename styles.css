@@ -6545,3 +6545,322 @@ body.force-mobile .main {
     color: #172b30;
   }
 }
+
+/* V182 - coherent soft-dark theme */
+@media (min-width: 761px) {
+  body:not(.force-mobile),
+  body:not(.force-mobile) .main,
+  body.force-desktop .main {
+    background:
+      linear-gradient(180deg, #cbdad6 0, #e5ece9 340px),
+      #e5ece9;
+    color: #18292d;
+  }
+
+  body:not(.force-mobile) .topbar,
+  body.force-desktop .topbar {
+    background: rgba(218, 229, 225, 0.96);
+    color: #18292d;
+    border-bottom-color: rgba(24, 61, 65, 0.12);
+  }
+
+  body:not(.force-mobile) .panel,
+  body:not(.force-mobile) .card,
+  body.force-desktop .panel,
+  body.force-desktop .card {
+    background: #dbe6e2;
+    color: #18292d;
+    border-color: rgba(24, 61, 65, 0.13);
+    box-shadow: 0 16px 34px rgba(24, 61, 65, 0.08);
+  }
+
+  body:not(.force-mobile) .item,
+  body.force-desktop .item {
+    background: #e8efec;
+    color: #18292d;
+    border-color: rgba(24, 61, 65, 0.14);
+  }
+
+  body:not(.force-mobile) input,
+  body:not(.force-mobile) select,
+  body:not(.force-mobile) textarea,
+  body.force-desktop input,
+  body.force-desktop select,
+  body.force-desktop textarea {
+    background: #edf3f0;
+    color: #18292d;
+    border-color: rgba(24, 61, 65, 0.18);
+  }
+
+  body:not(.force-mobile) .btn,
+  body.force-desktop .btn {
+    background: #edf3f0;
+    color: #18292d;
+    border-color: rgba(24, 61, 65, 0.16);
+  }
+
+  body:not(.force-mobile) .btn.primary,
+  body.force-desktop .btn.primary {
+    background: #0f6a68;
+    color: #ffffff;
+    border-color: #0f6a68;
+  }
+
+  body:not(.force-mobile) .btn.danger,
+  body.force-desktop .btn.danger {
+    background: #f3d9d6;
+    color: #7d2d2a;
+    border-color: #d7aaa5;
+  }
+
+  body:not(.force-mobile) .results-hero,
+  body.force-desktop .results-hero {
+    background: #2f494e;
+    color: #f2f7f5;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  body:not(.force-mobile) .results-hero h2,
+  body:not(.force-mobile) .results-hero h3,
+  body:not(.force-mobile) .results-hero p,
+  body:not(.force-mobile) .results-hero .meta,
+  body.force-desktop .results-hero h2,
+  body.force-desktop .results-hero h3,
+  body.force-desktop .results-hero p,
+  body.force-desktop .results-hero .meta {
+    color: #f2f7f5;
+  }
+
+  body:not(.force-mobile) .results-hero .empty,
+  body.force-desktop .results-hero .empty {
+    background: #3a555b;
+    color: rgba(242, 247, 245, 0.82);
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  body:not(.force-mobile) .results-hero .result-card,
+  body.force-desktop .results-hero .result-card {
+    background: #3a555b;
+    color: #f2f7f5;
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  body:not(.force-mobile) .calendar-layout .panel,
+  body.force-desktop .calendar-layout .panel {
+    background: #2f494e;
+    color: #f2f7f5;
+    border-color: rgba(255, 255, 255, 0.09);
+  }
+
+  body:not(.force-mobile) .calendar-layout h2,
+  body:not(.force-mobile) .calendar-layout h3,
+  body:not(.force-mobile) .calendar-layout .month-title,
+  body:not(.force-mobile) .calendar-layout .meta,
+  body:not(.force-mobile) .calendar-layout p,
+  body.force-desktop .calendar-layout h2,
+  body.force-desktop .calendar-layout h3,
+  body.force-desktop .calendar-layout .month-title,
+  body.force-desktop .calendar-layout .meta,
+  body.force-desktop .calendar-layout p {
+    color: #f2f7f5;
+  }
+
+  body:not(.force-mobile) .calendar-weekdays,
+  body.force-desktop .calendar-weekdays {
+    color: rgba(242, 247, 245, 0.62);
+  }
+
+  body:not(.force-mobile) .calendar-day,
+  body.force-desktop .calendar-day {
+    background: #38545a;
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  body:not(.force-mobile) .calendar-day.has-event,
+  body.force-desktop .calendar-day.has-event {
+    background: #416166;
+    border-color: rgba(122, 194, 188, 0.28);
+  }
+
+  body:not(.force-mobile) .calendar-day .day-number,
+  body.force-desktop .calendar-day .day-number {
+    color: #f2f7f5;
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  body:not(.force-mobile) .calendar-layout .day-events button,
+  body.force-desktop .calendar-layout .day-events button {
+    background: #dfe9e6;
+    color: #183136;
+  }
+
+  body:not(.force-mobile) .topbar-search,
+  body.force-desktop .topbar-search {
+    background: #dfe9e6;
+    color: #18292d;
+  }
+
+  body:not(.force-mobile) .empty,
+  body.force-desktop .empty {
+    background: #dfe9e6;
+    color: #5c6c70;
+  }
+}
+
+@media (max-width: 760px) {
+  body:not(.force-desktop),
+  body.force-mobile {
+    background: #1d3338;
+    color: #f2f7f5;
+  }
+
+  .content {
+    background:
+      linear-gradient(180deg, #27454b 0, #1d3338 230px),
+      #1d3338 !important;
+  }
+
+  .mobile-header,
+  body.force-mobile .mobile-header,
+  .mobile-bottom-nav,
+  body.force-mobile .mobile-bottom-nav {
+    background: rgba(39, 69, 75, 0.98) !important;
+  }
+
+  body:not(.force-desktop) .panel,
+  body:not(.force-desktop) .card,
+  body.force-mobile .panel,
+  body.force-mobile .card {
+    background: #314f55;
+    color: #f2f7f5;
+    border-color: rgba(255, 255, 255, 0.11);
+  }
+
+  body:not(.force-desktop) .item,
+  body.force-mobile .item,
+  body:not(.force-desktop) .player-check,
+  body:not(.force-desktop) .recipient-option,
+  body.force-mobile .player-check,
+  body.force-mobile .recipient-option {
+    background: #3a5960;
+    color: #f2f7f5;
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  body:not(.force-desktop) .modal,
+  body.force-mobile .modal {
+    background: #314f55;
+    color: #f2f7f5;
+  }
+
+  body:not(.force-desktop) .modal-head,
+  body.force-mobile .modal-head {
+    background: rgba(49, 79, 85, 0.98);
+    color: #f2f7f5;
+  }
+
+  body:not(.force-desktop) .modal h2,
+  body:not(.force-desktop) .modal h3,
+  body:not(.force-desktop) .modal h4,
+  body:not(.force-desktop) .modal label,
+  body:not(.force-desktop) .modal .form-row label,
+  body.force-mobile .modal h2,
+  body.force-mobile .modal h3,
+  body.force-mobile .modal h4,
+  body.force-mobile .modal label,
+  body.force-mobile .modal .form-row label {
+    color: #f2f7f5;
+  }
+
+  body:not(.force-desktop) .panel-header h2,
+  body:not(.force-desktop) .panel h3,
+  body:not(.force-desktop) .item h3,
+  body:not(.force-desktop) .item h4,
+  body:not(.force-desktop) strong,
+  body.force-mobile .panel-header h2,
+  body.force-mobile .panel h3,
+  body.force-mobile .item h3,
+  body.force-mobile .item h4,
+  body.force-mobile strong {
+    color: #f2f7f5;
+  }
+
+  body:not(.force-desktop) .meta,
+  body:not(.force-desktop) .panel-header p,
+  body:not(.force-desktop) .panel p.muted,
+  body:not(.force-desktop) .item p,
+  body:not(.force-desktop) .player-check em,
+  body.force-mobile .meta,
+  body.force-mobile .panel-header p,
+  body.force-mobile .panel p.muted,
+  body.force-mobile .item p,
+  body.force-mobile .player-check em {
+    color: rgba(242, 247, 245, 0.72);
+  }
+
+  body:not(.force-desktop) input,
+  body:not(.force-desktop) select,
+  body:not(.force-desktop) textarea,
+  body.force-mobile input,
+  body.force-mobile select,
+  body.force-mobile textarea {
+    background: #dfe9e6;
+    color: #183136;
+    border-color: rgba(255, 255, 255, 0.18);
+  }
+
+  body:not(.force-desktop) .checkbox-list,
+  body:not(.force-desktop) .recipient-list,
+  body.force-mobile .checkbox-list,
+  body.force-mobile .recipient-list {
+    background: #2c484e;
+    border-color: rgba(255, 255, 255, 0.11);
+  }
+
+  body:not(.force-desktop) .btn,
+  body.force-mobile .btn {
+    background: #dfe9e6;
+    color: #183136;
+    border-color: rgba(255, 255, 255, 0.16);
+  }
+
+  body:not(.force-desktop) .btn.primary,
+  body.force-mobile .btn.primary {
+    background: #0f6a68;
+    color: #ffffff;
+    border-color: #0f6a68;
+  }
+
+  body:not(.force-desktop) .btn.danger,
+  body.force-mobile .btn.danger {
+    background: #f0d5d2;
+    color: #78302d;
+    border-color: #d6aaa5;
+  }
+
+  body:not(.force-desktop) .calendar-layout .panel,
+  body.force-mobile .calendar-layout .panel {
+    background: #2f4c52;
+  }
+
+  body:not(.force-desktop) .results-hero,
+  body.force-mobile .results-hero {
+    background: #2f4c52;
+    color: #f2f7f5;
+  }
+
+  body:not(.force-desktop) .results-hero h2,
+  body:not(.force-desktop) .results-hero h3,
+  body:not(.force-desktop) .results-hero p,
+  body.force-mobile .results-hero h2,
+  body.force-mobile .results-hero h3,
+  body.force-mobile .results-hero p {
+    color: #f2f7f5;
+  }
+
+  body:not(.force-desktop) .empty,
+  body.force-mobile .empty {
+    background: #37565d;
+    color: rgba(242, 247, 245, 0.78);
+  }
+}
