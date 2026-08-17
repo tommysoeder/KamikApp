@@ -7319,3 +7319,49 @@ body.force-mobile .main {
     color: #173136 !important;
   }
 }
+
+/* V185 - desktop canvas darker than cards, matching mobile hierarchy */
+@media (min-width: 761px) {
+  body:not(.force-mobile),
+  body:not(.force-mobile) .main,
+  body.force-desktop .main {
+    background: #b7cbc7 !important;
+    color: #13292d !important;
+  }
+
+  body:not(.force-mobile) .content,
+  body.force-desktop .content {
+    background: transparent !important;
+  }
+
+  body:not(.force-mobile) .topbar,
+  body.force-desktop .topbar {
+    background: rgba(187, 205, 201, 0.96) !important;
+    border-bottom-color: rgba(24, 61, 65, 0.16) !important;
+  }
+
+  body:not(.force-mobile) .panel,
+  body:not(.force-mobile) .card,
+  body.force-desktop .panel,
+  body.force-desktop .card {
+    background: #d4e2de !important;
+    border-color: rgba(24, 61, 65, 0.15) !important;
+  }
+
+  body:not(.force-mobile) .item,
+  body.force-desktop .item {
+    background: #e1ebe7 !important;
+    border-color: rgba(24, 61, 65, 0.16) !important;
+  }
+
+  body:not(.force-mobile) .topbar-search,
+  body.force-desktop .topbar-search,
+  body:not(.force-mobile) input,
+  body:not(.force-mobile) select,
+  body:not(.force-mobile) textarea,
+  body.force-desktop input,
+  body.force-desktop select,
+  body.force-desktop textarea {
+    background: #dbe7e3 !important;
+  }
+}
