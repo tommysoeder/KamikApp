@@ -7116,3 +7116,206 @@ body.force-mobile .main {
     color: #78302d !important;
   }
 }
+
+/* V184 - reduce pale contrast and prioritize calendar on mobile */
+@media (min-width: 761px) {
+  body:not(.force-mobile),
+  body:not(.force-mobile) .main,
+  body.force-desktop .main {
+    background: #d2dfdb !important;
+  }
+
+  body:not(.force-mobile) .topbar,
+  body.force-desktop .topbar {
+    background: rgba(204, 220, 216, 0.96) !important;
+  }
+
+  body:not(.force-mobile) .panel,
+  body:not(.force-mobile) .card,
+  body.force-desktop .panel,
+  body.force-desktop .card {
+    background: #c9dad6 !important;
+    color: #13292d !important;
+    border-color: rgba(24, 61, 65, 0.16) !important;
+  }
+
+  body:not(.force-mobile) .item,
+  body.force-desktop .item {
+    background: #d7e4e0 !important;
+    color: #13292d !important;
+    border-color: rgba(24, 61, 65, 0.16) !important;
+  }
+
+  body:not(.force-mobile) .topbar-search,
+  body.force-desktop .topbar-search,
+  body:not(.force-mobile) input,
+  body:not(.force-mobile) select,
+  body:not(.force-mobile) textarea,
+  body.force-desktop input,
+  body.force-desktop select,
+  body.force-desktop textarea {
+    background: #dbe6e3 !important;
+    color: #13292d !important;
+    border-color: rgba(24, 61, 65, 0.18) !important;
+  }
+
+  body:not(.force-mobile) .btn,
+  body.force-desktop .btn {
+    background: #dbe6e3 !important;
+    color: #13292d !important;
+    border-color: rgba(24, 61, 65, 0.18) !important;
+  }
+
+  body:not(.force-mobile) .btn.primary,
+  body.force-desktop .btn.primary {
+    background: #0f716f !important;
+    color: #fff !important;
+    border-color: #0f716f !important;
+  }
+
+  body:not(.force-mobile) .btn.danger,
+  body.force-desktop .btn.danger {
+    background: #e8cbc7 !important;
+    color: #74302d !important;
+    border-color: #cfa29d !important;
+  }
+
+  body:not(.force-mobile) .dashboard-announcement-pill,
+  body.force-desktop .dashboard-announcement-pill,
+  body:not(.force-mobile) .empty,
+  body.force-desktop .empty {
+    background: #d7e4e0 !important;
+    color: #53676b !important;
+    border-color: rgba(24, 61, 65, 0.15) !important;
+  }
+
+  body:not(.force-mobile) .results-hero,
+  body.force-desktop .results-hero,
+  body:not(.force-mobile) .calendar-layout .panel,
+  body.force-desktop .calendar-layout .panel {
+    background: #3f6268 !important;
+    color: #f6fbfa !important;
+  }
+
+  body:not(.force-mobile) .results-hero .empty,
+  body.force-desktop .results-hero .empty,
+  body:not(.force-mobile) .results-hero .result-card,
+  body.force-desktop .results-hero .result-card {
+    background: #4a7076 !important;
+    color: #f6fbfa !important;
+    border-color: rgba(255, 255, 255, 0.14) !important;
+  }
+
+  body:not(.force-mobile) .calendar-day,
+  body.force-desktop .calendar-day {
+    background: #4a7076 !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+  }
+
+  body:not(.force-mobile) .calendar-day.has-event,
+  body.force-desktop .calendar-day.has-event {
+    background: #558086 !important;
+  }
+}
+
+@media (max-width: 760px) {
+  body:not(.force-desktop),
+  body.force-mobile {
+    background: #203940;
+  }
+
+  .content {
+    background:
+      linear-gradient(180deg, #2d5057 0, #203940 230px),
+      #203940 !important;
+  }
+
+  body:not(.force-desktop) .panel,
+  body:not(.force-desktop) .card,
+  body.force-mobile .panel,
+  body.force-mobile .card {
+    background: #35565d !important;
+  }
+
+  body:not(.force-desktop) .item,
+  body.force-mobile .item,
+  body:not(.force-desktop) .player-check,
+  body:not(.force-desktop) .recipient-option,
+  body.force-mobile .player-check,
+  body.force-mobile .recipient-option {
+    background: #41666c !important;
+  }
+
+  body:not(.force-desktop) input,
+  body:not(.force-desktop) select,
+  body:not(.force-desktop) textarea,
+  body.force-mobile input,
+  body.force-mobile select,
+  body.force-mobile textarea,
+  body:not(.force-desktop) .topbar-search,
+  body.force-mobile .topbar-search {
+    background: #bfd2ce !important;
+    color: #173136 !important;
+    border-color: rgba(255, 255, 255, 0.16) !important;
+  }
+
+  body:not(.force-desktop) input::placeholder,
+  body.force-mobile input::placeholder,
+  body:not(.force-desktop) textarea::placeholder,
+  body.force-mobile textarea::placeholder {
+    color: rgba(23, 49, 54, 0.6) !important;
+  }
+
+  body:not(.force-desktop) .btn,
+  body.force-mobile .btn {
+    background: #bfd2ce !important;
+    color: #173136 !important;
+    border-color: rgba(255, 255, 255, 0.16) !important;
+  }
+
+  body:not(.force-desktop) .btn.primary,
+  body.force-mobile .btn.primary {
+    background: #0f7775 !important;
+    color: #fff !important;
+  }
+
+  body:not(.force-desktop) .calendar-layout,
+  body.force-mobile .calendar-layout {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  body:not(.force-desktop) .calendar-layout > .panel:nth-child(2),
+  body.force-mobile .calendar-layout > .panel:nth-child(2) {
+    order: 1;
+  }
+
+  body:not(.force-desktop) .calendar-layout > .panel:nth-child(1),
+  body.force-mobile .calendar-layout > .panel:nth-child(1) {
+    order: 2;
+  }
+
+  body:not(.force-desktop) .calendar-layout .panel,
+  body.force-mobile .calendar-layout .panel,
+  body:not(.force-desktop) .results-hero,
+  body.force-mobile .results-hero {
+    background: #35565d !important;
+  }
+
+  body:not(.force-desktop) .calendar-day,
+  body.force-mobile .calendar-day {
+    background: transparent !important;
+  }
+
+  body:not(.force-desktop) .modal input,
+  body:not(.force-desktop) .modal select,
+  body:not(.force-desktop) .modal textarea,
+  body.force-mobile .modal input,
+  body.force-mobile .modal select,
+  body.force-mobile .modal textarea,
+  body:not(.force-desktop) .composer input,
+  body.force-mobile .composer input {
+    background: #bfd2ce !important;
+    color: #173136 !important;
+  }
+}
