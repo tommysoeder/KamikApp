@@ -1008,6 +1008,21 @@ function normalize(raw) {
   next.permissions.feesCanBackupData ??= false;
   next.permissions.feesCanRestoreData ??= false;
   next.permissions.feesCanUndoBulk ??= false;
+  next.permissions.directorCanAnnouncements ??= true;
+  next.permissions.directorCanEvents ??= true;
+  next.permissions.directorCanCallups ??= true;
+  next.permissions.directorCanAttendance ??= true;
+  next.permissions.directorCanDocuments ??= true;
+  next.permissions.directorCanResults ??= true;
+  next.permissions.directorCanResultGallery ??= true;
+  next.permissions.directorCanTeams ??= true;
+  next.permissions.directorCanProfiles ??= true;
+  next.permissions.directorCanImportMembers ??= true;
+  next.permissions.directorCanExportData ??= true;
+  next.permissions.directorCanBackupData ??= true;
+  next.permissions.directorCanRestoreData ??= true;
+  next.permissions.directorCanUndoBulk ??= true;
+  next.permissions.directorCanMessages ??= true;
   next.mobileMenuOpen ??= false;
   next.toast ||= "";
   if (/operaci[oó]n no permitida|no se pudo conectar|sin conexi[oó]n|servidor local/i.test(next.toast)) next.toast = "";
@@ -7025,22 +7040,22 @@ function renderSettings() {
 
 function permissionMatrixRows() {
   return [
-    { label: t("publishAnnouncements"), president: "presidentCanAnnouncements", director: "always", coach: "coachCanAnnouncements", delegate: "delegateCanAnnouncements", fees: "feesCanAnnouncements", parent: "no", player: "no" },
-    { label: t("createEvents"), president: "presidentCanEvents", director: "always", coach: "coachCanEvents", delegate: "no", fees: "no", parent: "no", player: "no" },
-    { label: t("manageCallups"), president: "presidentCanCallups", director: "always", coach: "coachCanCallups", delegate: "no", fees: "no", parent: "no", player: "no" },
-    { label: t("confirmAttendanceAction"), president: "no", director: "always", coach: "coachCanAttendance", delegate: "delegateCanAttendance", fees: "no", parent: "own", player: "own" },
-    { label: t("uploadFilesAction"), president: "presidentCanDocuments", director: "always", coach: "coachCanDocuments", delegate: "delegateCanDocuments", fees: "feesCanDocuments", parent: "no", player: "no" },
-    { label: t("viewFilesAction"), president: "team", director: "always", coach: "team", delegate: "team", fees: "team", parent: "own", player: "own" },
-    { label: t("manageResultsAction"), president: "presidentCanResults", director: "always", coach: "coachCanResults", delegate: "no", fees: "no", parent: "no", player: "no" },
-    { label: t("manageGalleriesAction"), president: "presidentCanResultGallery", director: "always", coach: "coachCanResultGallery", delegate: "delegateCanResultGallery", fees: "no", parent: "no", player: "no" },
-    { label: t("editTeamsAction"), president: "presidentCanTeams", director: "always", coach: "coachCanTeams", delegate: "no", fees: "feesCanTeams", parent: "no", player: "no" },
-    { label: t("manageUsersAction"), president: "presidentCanProfiles", director: "always", coach: "no", delegate: "no", fees: "feesCanProfiles", parent: "no", player: "no" },
-    { label: t("importMembersAction"), president: "presidentCanImportMembers", director: "always", coach: "coachCanImportMembers", delegate: "delegateCanImportMembers", fees: "feesCanImportMembers", parent: "no", player: "no" },
-    { label: t("exportDataAction"), president: "presidentCanExportData", director: "always", coach: "coachCanExportData", delegate: "delegateCanExportData", fees: "feesCanExportData", parent: "no", player: "no" },
-    { label: t("backupDataAction"), president: "presidentCanBackupData", director: "always", coach: "coachCanBackupData", delegate: "delegateCanBackupData", fees: "feesCanBackupData", parent: "no", player: "no" },
-    { label: t("restoreDataAction"), president: "presidentCanRestoreData", director: "always", coach: "coachCanRestoreData", delegate: "delegateCanRestoreData", fees: "feesCanRestoreData", parent: "no", player: "no" },
-    { label: t("undoBulkAction"), president: "presidentCanUndoBulk", director: "always", coach: "coachCanUndoBulk", delegate: "delegateCanUndoBulk", fees: "feesCanUndoBulk", parent: "no", player: "no" },
-    { label: t("messageClubAction"), president: "presidentCanMessages", director: "always", coach: "team", delegate: "team", fees: "feesCanMessages", parent: "own", player: "own" },
+    { label: t("publishAnnouncements"), president: "presidentCanAnnouncements", director: "directorCanAnnouncements", coach: "coachCanAnnouncements", delegate: "delegateCanAnnouncements", fees: "feesCanAnnouncements", parent: "no", player: "no" },
+    { label: t("createEvents"), president: "presidentCanEvents", director: "directorCanEvents", coach: "coachCanEvents", delegate: "no", fees: "no", parent: "no", player: "no" },
+    { label: t("manageCallups"), president: "presidentCanCallups", director: "directorCanCallups", coach: "coachCanCallups", delegate: "no", fees: "no", parent: "no", player: "no" },
+    { label: t("confirmAttendanceAction"), president: "no", director: "directorCanAttendance", coach: "coachCanAttendance", delegate: "delegateCanAttendance", fees: "no", parent: "own", player: "own" },
+    { label: t("uploadFilesAction"), president: "presidentCanDocuments", director: "directorCanDocuments", coach: "coachCanDocuments", delegate: "delegateCanDocuments", fees: "feesCanDocuments", parent: "no", player: "no" },
+    { label: t("viewFilesAction"), president: "team", director: "directorCanDocuments", coach: "team", delegate: "team", fees: "team", parent: "own", player: "own" },
+    { label: t("manageResultsAction"), president: "presidentCanResults", director: "directorCanResults", coach: "coachCanResults", delegate: "no", fees: "no", parent: "no", player: "no" },
+    { label: t("manageGalleriesAction"), president: "presidentCanResultGallery", director: "directorCanResultGallery", coach: "coachCanResultGallery", delegate: "delegateCanResultGallery", fees: "no", parent: "no", player: "no" },
+    { label: t("editTeamsAction"), president: "presidentCanTeams", director: "directorCanTeams", coach: "coachCanTeams", delegate: "no", fees: "feesCanTeams", parent: "no", player: "no" },
+    { label: t("manageUsersAction"), president: "presidentCanProfiles", director: "directorCanProfiles", coach: "no", delegate: "no", fees: "feesCanProfiles", parent: "no", player: "no" },
+    { label: t("importMembersAction"), president: "presidentCanImportMembers", director: "directorCanImportMembers", coach: "coachCanImportMembers", delegate: "delegateCanImportMembers", fees: "feesCanImportMembers", parent: "no", player: "no" },
+    { label: t("exportDataAction"), president: "presidentCanExportData", director: "directorCanExportData", coach: "coachCanExportData", delegate: "delegateCanExportData", fees: "feesCanExportData", parent: "no", player: "no" },
+    { label: t("backupDataAction"), president: "presidentCanBackupData", director: "directorCanBackupData", coach: "coachCanBackupData", delegate: "delegateCanBackupData", fees: "feesCanBackupData", parent: "no", player: "no" },
+    { label: t("restoreDataAction"), president: "presidentCanRestoreData", director: "directorCanRestoreData", coach: "coachCanRestoreData", delegate: "delegateCanRestoreData", fees: "feesCanRestoreData", parent: "no", player: "no" },
+    { label: t("undoBulkAction"), president: "presidentCanUndoBulk", director: "directorCanUndoBulk", coach: "coachCanUndoBulk", delegate: "delegateCanUndoBulk", fees: "feesCanUndoBulk", parent: "no", player: "no" },
+    { label: t("messageClubAction"), president: "presidentCanMessages", director: "directorCanMessages", coach: "team", delegate: "team", fees: "feesCanMessages", parent: "own", player: "own" },
   ];
 }
 
@@ -7607,7 +7622,8 @@ function openAbsenceModal(trainingId, playerId) {
 
 function openThreadModal() {
   const user = currentUser();
-  const staffMode = isExecutive(user) || hasRole(user, "coach") || hasRole(user, "delegate") || hasRole(user, "president") || hasRole(user, "fees");
+  const role = activeRole(user);
+  const staffMode = ["director", "coach", "delegate", "president", "fees"].includes(role);
   const userPlayers = staffMode ? state.players.map((player) => player.id) : visiblePlayerIds(user);
   const recipientUsers = state.users
     .filter((item) => !item.disabled && item.id !== user.id)

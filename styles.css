@@ -9595,3 +9595,209 @@ body.force-desktop .calendar-layout .day-events button:hover {
     color: #eef8f5 !important;
   }
 }
+
+/* V199 - polish contrast hotspots and keep calendar event labels text-only */
+.day-events button::before,
+.day-events button.blue::before,
+.day-events button.gold::before,
+.day-events button.green::before,
+.day-events button.red::before,
+.day-events button.training::before {
+  content: none !important;
+  display: none !important;
+}
+
+.day-events button,
+.day-events button.blue,
+.day-events button.gold,
+.day-events button.green,
+.day-events button.red,
+.day-events button.training {
+  color: #f3faf8 !important;
+  font-weight: 520 !important;
+}
+
+.player-search-input,
+.global-search-box {
+  background: rgba(238, 248, 245, 0.08) !important;
+  color: rgba(238, 248, 245, 0.78) !important;
+  border-color: rgba(238, 248, 245, 0.1) !important;
+  box-shadow: none !important;
+}
+
+.player-search-input:focus,
+.global-search-box:focus-within {
+  background: rgba(207, 225, 220, 0.96) !important;
+  color: #102b30 !important;
+  border-color: rgba(116, 222, 213, 0.32) !important;
+}
+
+.player-search-input::placeholder,
+.global-search-box input::placeholder {
+  color: rgba(238, 248, 245, 0.5) !important;
+}
+
+@media (min-width: 761px) {
+  body:not(.force-mobile) .dashboard-announcements-compact,
+  body.force-desktop .dashboard-announcements-compact {
+    background: #385f66 !important;
+  }
+
+  body:not(.force-mobile) .dashboard-announcement-pill,
+  body.force-desktop .dashboard-announcement-pill {
+    background: #47737a !important;
+    color: #f4fbf8 !important;
+    border-color: rgba(232, 246, 242, 0.14) !important;
+  }
+
+  body:not(.force-mobile) .dashboard-announcement-pill strong,
+  body:not(.force-mobile) .dashboard-announcement-pill span,
+  body.force-desktop .dashboard-announcement-pill strong,
+  body.force-desktop .dashboard-announcement-pill span {
+    color: #f4fbf8 !important;
+  }
+
+  body:not(.force-mobile) .beta-funnel .stat,
+  body.force-desktop .beta-funnel .stat {
+    background: #426a71 !important;
+    color: #f2faf7 !important;
+  }
+
+  body:not(.force-mobile) .beta-followup-item,
+  body.force-desktop .beta-followup-item {
+    background: #47737a !important;
+    color: #f2faf7 !important;
+  }
+
+  body:not(.force-mobile) .beta-followup-item strong,
+  body:not(.force-mobile) .beta-followup-item span,
+  body:not(.force-mobile) .beta-followup-item em,
+  body.force-desktop .beta-followup-item strong,
+  body.force-desktop .beta-followup-item span,
+  body.force-desktop .beta-followup-item em {
+    color: #f2faf7 !important;
+  }
+
+  body:not(.force-mobile) .feedback-triage article,
+  body.force-desktop .feedback-triage article {
+    background: #3f6870 !important;
+    color: #eef8f5 !important;
+    border-color: rgba(232, 246, 242, 0.12) !important;
+  }
+
+  body:not(.force-mobile) .feedback-triage span,
+  body:not(.force-mobile) .feedback-triage strong,
+  body.force-desktop .feedback-triage span,
+  body.force-desktop .feedback-triage strong {
+    color: #eef8f5 !important;
+  }
+
+  body:not(.force-mobile) .activity-item,
+  body.force-desktop .activity-item {
+    background: #47737a !important;
+    color: #f3faf8 !important;
+    border-color: rgba(232, 246, 242, 0.14) !important;
+  }
+
+  body:not(.force-mobile) .activity-item strong,
+  body:not(.force-mobile) .activity-item em,
+  body.force-desktop .activity-item strong,
+  body.force-desktop .activity-item em {
+    color: #f3faf8 !important;
+  }
+
+  body:not(.force-mobile) .notification-prefs-panel .check-row,
+  body.force-desktop .notification-prefs-panel .check-row {
+    background: #47737a !important;
+    color: #f4fbf8 !important;
+    border-color: rgba(232, 246, 242, 0.14) !important;
+  }
+
+  body:not(.force-mobile) .notification-prefs-panel .check-row span,
+  body.force-desktop .notification-prefs-panel .check-row span {
+    color: #f4fbf8 !important;
+  }
+
+  body:not(.force-mobile) .results-hero,
+  body:not(.force-mobile) .result-card,
+  body:not(.force-mobile) .results-hero .result-card,
+  body.force-desktop .results-hero,
+  body.force-desktop .result-card,
+  body.force-desktop .results-hero .result-card {
+    background: #3d666d !important;
+    color: #f4fbf8 !important;
+    border-color: rgba(232, 246, 242, 0.14) !important;
+  }
+
+  body:not(.force-mobile) .result-card strong,
+  body:not(.force-mobile) .result-card span,
+  body:not(.force-mobile) .result-card .meta,
+  body.force-desktop .result-card strong,
+  body.force-desktop .result-card span,
+  body.force-desktop .result-card .meta {
+    color: #f4fbf8 !important;
+  }
+
+  body:not(.force-mobile) .profile-list-item,
+  body:not(.force-mobile) .player-profile,
+  body:not(.force-mobile) .profile-section,
+  body:not(.force-mobile) .profile-stats button,
+  body:not(.force-mobile) .mini-list button,
+  body:not(.force-mobile) .timeline-list button,
+  body.force-desktop .profile-list-item,
+  body.force-desktop .player-profile,
+  body.force-desktop .profile-section,
+  body.force-desktop .profile-stats button,
+  body.force-desktop .mini-list button,
+  body.force-desktop .timeline-list button {
+    background: #47737a !important;
+    color: #f4fbf8 !important;
+    border-color: rgba(232, 246, 242, 0.14) !important;
+  }
+
+  body:not(.force-mobile) .profile-list-item strong,
+  body:not(.force-mobile) .profile-list-item em,
+  body:not(.force-mobile) .player-profile strong,
+  body:not(.force-mobile) .player-profile span,
+  body:not(.force-mobile) .profile-section h4,
+  body.force-desktop .profile-list-item strong,
+  body.force-desktop .profile-list-item em,
+  body.force-desktop .player-profile strong,
+  body.force-desktop .player-profile span,
+  body.force-desktop .profile-section h4 {
+    color: #f4fbf8 !important;
+  }
+
+  body:not(.force-mobile) .document-card,
+  body:not(.force-mobile) .file-viewer,
+  body:not(.force-mobile) .file-preview-large,
+  body:not(.force-mobile) .doc-preview,
+  body.force-desktop .document-card,
+  body.force-desktop .file-viewer,
+  body.force-desktop .file-preview-large,
+  body.force-desktop .doc-preview {
+    background: #47737a !important;
+    color: #f4fbf8 !important;
+    border-color: rgba(232, 246, 242, 0.14) !important;
+  }
+
+  body:not(.force-mobile) .document-card strong,
+  body:not(.force-mobile) .document-card span,
+  body:not(.force-mobile) .document-card .meta,
+  body.force-desktop .document-card strong,
+  body.force-desktop .document-card span,
+  body.force-desktop .document-card .meta {
+    color: #f4fbf8 !important;
+  }
+
+  body:not(.force-mobile) .quality-level,
+  body:not(.force-mobile) .readiness-item .pill,
+  body:not(.force-mobile) .team-readiness-item .pill,
+  body.force-desktop .quality-level,
+  body.force-desktop .readiness-item .pill,
+  body.force-desktop .team-readiness-item .pill {
+    background: rgba(255, 139, 130, 0.22) !important;
+    color: #ffd3cf !important;
+    border-color: rgba(255, 139, 130, 0.24) !important;
+  }
+}
