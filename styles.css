@@ -6093,6 +6093,131 @@ input[type="file"]::file-selector-button:hover {
   }
 }
 
+/* V195 - target labels are metadata, not buttons; polish management/users */
+.schedule-item .pill-line .pill,
+.player-profile .pill-line .pill,
+.team-stats-card .pill-line .pill {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  color: rgba(9, 31, 36, 0.72) !important;
+  font-weight: 430 !important;
+  box-shadow: none !important;
+}
+
+.schedule-item .pill-line .pill + .pill,
+.player-profile .pill-line .pill + .pill,
+.team-stats-card .pill-line .pill + .pill {
+  margin-left: 10px;
+}
+
+.schedule-item .pill-line .pill + .pill::before,
+.player-profile .pill-line .pill + .pill::before,
+.team-stats-card .pill-line .pill + .pill::before {
+  content: "/";
+  margin-right: 10px;
+  color: rgba(9, 31, 36, 0.32);
+  font-weight: 350;
+}
+
+.item-row > .pill,
+.panel-header > .pill,
+.management-task > .pill,
+.result-card .pill {
+  border-radius: 999px !important;
+}
+
+@media (min-width: 761px) {
+  body:not(.force-mobile) .management-layout .panel,
+  body:not(.force-mobile) .users-admin,
+  body:not(.force-mobile) .profiles-layout .panel,
+  body.force-desktop .management-layout .panel,
+  body.force-desktop .users-admin,
+  body.force-desktop .profiles-layout .panel {
+    background: #31545b !important;
+    border-color: rgba(232, 246, 242, 0.1) !important;
+  }
+
+  body:not(.force-mobile) .management-card,
+  body:not(.force-mobile) .management-task,
+  body:not(.force-mobile) .user-card,
+  body:not(.force-mobile) .beta-followup-item,
+  body:not(.force-mobile) .beta-feedback-item,
+  body:not(.force-mobile) .quality-issue,
+  body:not(.force-mobile) .readiness-item,
+  body:not(.force-mobile) .team-readiness-item,
+  body.force-desktop .management-card,
+  body.force-desktop .management-task,
+  body.force-desktop .user-card,
+  body.force-desktop .beta-followup-item,
+  body.force-desktop .beta-feedback-item,
+  body.force-desktop .quality-issue,
+  body.force-desktop .readiness-item,
+  body.force-desktop .team-readiness-item {
+    background: #3b646b !important;
+    border-color: rgba(232, 246, 242, 0.1) !important;
+  }
+
+  body:not(.force-mobile) .management-card:hover,
+  body:not(.force-mobile) .beta-followup-item:hover,
+  body:not(.force-mobile) .quality-issue:hover,
+  body:not(.force-mobile) .readiness-item:hover,
+  body:not(.force-mobile) .team-readiness-item:hover,
+  body.force-desktop .management-card:hover,
+  body.force-desktop .beta-followup-item:hover,
+  body.force-desktop .quality-issue:hover,
+  body.force-desktop .readiness-item:hover,
+  body.force-desktop .team-readiness-item:hover {
+    background: #447178 !important;
+    transform: none !important;
+  }
+
+  body:not(.force-mobile) .management-card strong,
+  body:not(.force-mobile) .management-task h3,
+  body:not(.force-mobile) .user-card strong,
+  body:not(.force-mobile) .quality-issue strong,
+  body:not(.force-mobile) .readiness-item strong,
+  body:not(.force-mobile) .team-readiness-item strong,
+  body.force-desktop .management-card strong,
+  body.force-desktop .management-task h3,
+  body.force-desktop .user-card strong,
+  body.force-desktop .quality-issue strong,
+  body.force-desktop .readiness-item strong,
+  body.force-desktop .team-readiness-item strong {
+    color: #f2faf7 !important;
+    font-weight: 560 !important;
+  }
+
+  body:not(.force-mobile) .management-card span,
+  body:not(.force-mobile) .user-card .meta,
+  body:not(.force-mobile) .quality-issue em,
+  body:not(.force-mobile) .readiness-item em,
+  body:not(.force-mobile) .team-readiness-item em,
+  body:not(.force-mobile) .team-readiness-item i,
+  body.force-desktop .management-card span,
+  body.force-desktop .user-card .meta,
+  body.force-desktop .quality-issue em,
+  body.force-desktop .readiness-item em,
+  body.force-desktop .team-readiness-item em,
+  body.force-desktop .team-readiness-item i {
+    color: rgba(232, 246, 242, 0.7) !important;
+    font-weight: 380 !important;
+  }
+}
+
+@media (max-width: 760px) {
+  body:not(.force-desktop) .management-card,
+  body:not(.force-desktop) .management-task,
+  body:not(.force-desktop) .user-card,
+  body.force-mobile .management-card,
+  body.force-mobile .management-task,
+  body.force-mobile .user-card {
+    background: #3b646b !important;
+    border-color: rgba(232, 246, 242, 0.1) !important;
+  }
+}
+
 /* V192 - extend dark theme to every page and soften old chip surfaces */
 .actions .btn + .btn,
 .item .btn + .btn,
@@ -9166,5 +9291,79 @@ body.force-mobile .main {
     background: #406970 !important;
     color: #eef8f5 !important;
     border-color: rgba(232, 246, 242, 0.11) !important;
+  }
+}
+
+/* V196 - EOF polish: target labels are metadata, not buttons */
+.schedule-item .pill-line .pill,
+.player-profile .pill-line .pill,
+.team-stats-card .pill-line .pill {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  color: rgba(8, 28, 34, 0.72) !important;
+  font-weight: 430 !important;
+  box-shadow: none !important;
+}
+
+.schedule-item .pill-line .pill + .pill,
+.player-profile .pill-line .pill + .pill,
+.team-stats-card .pill-line .pill + .pill {
+  margin-left: 10px;
+}
+
+.schedule-item .pill-line .pill + .pill::before,
+.player-profile .pill-line .pill + .pill::before,
+.team-stats-card .pill-line .pill + .pill::before {
+  content: "/";
+  margin-right: 10px;
+  color: rgba(8, 28, 34, 0.3);
+  font-weight: 350;
+}
+
+.actions .btn + .btn,
+.item .btn + .btn,
+.modal .btn + .btn,
+.thread-tools .btn + .btn,
+.panel-header .btn + .btn {
+  border-left: 0 !important;
+}
+
+.actions .btn + .btn::before,
+.item .btn + .btn::before,
+.modal .btn + .btn::before,
+.thread-tools .btn + .btn::before,
+.panel-header .btn + .btn::before {
+  border-radius: 0 !important;
+}
+
+@media (min-width: 761px) {
+  body:not(.force-mobile) .management-layout .panel,
+  body:not(.force-mobile) .users-admin,
+  body.force-desktop .management-layout .panel,
+  body.force-desktop .users-admin {
+    background: #31545b !important;
+    border-color: rgba(232, 246, 242, 0.1) !important;
+  }
+
+  body:not(.force-mobile) .management-card,
+  body:not(.force-mobile) .management-task,
+  body:not(.force-mobile) .user-card,
+  body:not(.force-mobile) .beta-followup-item,
+  body:not(.force-mobile) .beta-feedback-item,
+  body:not(.force-mobile) .quality-issue,
+  body:not(.force-mobile) .readiness-item,
+  body:not(.force-mobile) .team-readiness-item,
+  body.force-desktop .management-card,
+  body.force-desktop .management-task,
+  body.force-desktop .user-card,
+  body.force-desktop .beta-followup-item,
+  body.force-desktop .beta-feedback-item,
+  body.force-desktop .quality-issue,
+  body.force-desktop .readiness-item,
+  body.force-desktop .team-readiness-item {
+    background: #3b646b !important;
+    border-color: rgba(232, 246, 242, 0.1) !important;
   }
 }
