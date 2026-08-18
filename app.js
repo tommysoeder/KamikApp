@@ -633,7 +633,7 @@ const seed = {
   lang: "es",
   session: null,
   activeView: "dashboard",
-  desktopTheme: "dark",
+  desktopTheme: "light",
   activeThreadId: "thread-1",
   mobileMenuOpen: false,
   calendarCursor: new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10),
@@ -1025,7 +1025,7 @@ function normalize(raw) {
   next.permissions.directorCanUndoBulk ??= true;
   next.permissions.directorCanMessages ??= true;
   next.mobileMenuOpen ??= false;
-  next.desktopTheme = next.desktopTheme === "light" ? "light" : "dark";
+  next.desktopTheme = next.desktopTheme === "dark" ? "dark" : "light";
   next.toast ||= "";
   if (/operaci[oó]n no permitida|no se pudo conectar|sin conexi[oó]n|servidor local/i.test(next.toast)) next.toast = "";
   const versionChanged = next.appVersion && next.appVersion !== APP_VERSION;
@@ -1631,7 +1631,7 @@ async function refreshRemoteState({ keepToast = false, force = false } = {}) {
     if (!force && (document.querySelector("#modal-root .modal") || document.activeElement?.closest?.("form"))) {
       return;
     }
-    const localDesktopTheme = state.desktopTheme === "light" ? "light" : "dark";
+    const localDesktopTheme = state.desktopTheme === "dark" ? "dark" : "light";
     const remote = normalize(JSON.parse(raw));
     lastRemoteSnapshot = raw;
     preservePlayerVisibleRemoteSchedule(remote, state);

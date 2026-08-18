@@ -10692,3 +10692,62 @@ body.force-desktop .calendar-layout .day-events button:hover {
     color: #ffb4ad !important;
   }
 }
+/* V206: restore classic login and make light theme the default desktop feel */
+.login {
+  background:
+    radial-gradient(circle at 10% 18%, rgba(255, 255, 255, 0.12), transparent 32%),
+    linear-gradient(135deg, #0f4447 0%, #153b3d 58%, #102b30 100%) !important;
+}
+
+.login-panel {
+  background: rgba(251, 250, 247, 0.96) !important;
+  border: 1px solid rgba(216, 221, 216, 0.9) !important;
+  color: #172023 !important;
+  box-shadow: 0 24px 70px rgba(21, 31, 34, 0.22) !important;
+}
+
+.login-panel h1,
+.login-panel h2,
+.login-panel h3,
+.login-panel label,
+.login-panel strong {
+  color: #172023 !important;
+}
+
+.login-panel p,
+.login-panel .meta {
+  color: #627074 !important;
+}
+
+.login-panel input,
+.login-panel select,
+.login-panel textarea {
+  background: #ffffff !important;
+  border-color: #d8ddd8 !important;
+  color: #172023 !important;
+}
+
+.login-panel input::placeholder {
+  color: rgba(98, 112, 116, 0.58) !important;
+}
+
+.login-panel .btn.primary,
+.login-panel button[type="submit"] {
+  background: #1d4d4f !important;
+  border-color: #1d4d4f !important;
+  color: #ffffff !important;
+  min-height: 42px !important;
+}
+
+.login-panel .btn.primary:hover,
+.login-panel button[type="submit"]:hover {
+  background: #236366 !important;
+  border-color: #236366 !important;
+}
+
+.login-panel .beta-banner,
+.login-panel .login-beta {
+  background: linear-gradient(90deg, rgba(200, 138, 45, 0.16), rgba(47, 116, 114, 0.1)) !important;
+  border-color: rgba(200, 138, 45, 0.28) !important;
+  color: #4f3510 !important;
+}
