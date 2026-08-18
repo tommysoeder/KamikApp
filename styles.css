@@ -9488,3 +9488,110 @@ body.force-mobile .main {
     border-color: rgba(232, 246, 242, 0.12) !important;
   }
 }
+
+/* V198 - stronger metadata text, borderless calendar entries, more surface polish */
+.schedule-item .pill-line .pill,
+.player-profile .pill-line .pill,
+.team-stats-card .pill-line .pill {
+  color: #ff8b82 !important;
+  font-weight: 500 !important;
+}
+
+.day-events button,
+.day-events button.blue,
+.day-events button.gold,
+.day-events button.green,
+.day-events button.red,
+.day-events button.training,
+body:not(.force-mobile) .calendar-layout .day-events button,
+body.force-desktop .calendar-layout .day-events button,
+body:not(.force-desktop) .day-events button,
+body.force-mobile .day-events button {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  padding: 1px 0 !important;
+  min-height: 18px !important;
+  color: #f4fbf8 !important;
+  box-shadow: none !important;
+}
+
+.day-events button:hover,
+body:not(.force-mobile) .calendar-layout .day-events button:hover,
+body.force-desktop .calendar-layout .day-events button:hover {
+  background: transparent !important;
+  color: #ffffff !important;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  filter: none !important;
+}
+
+.day-events button::before {
+  content: "";
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin: 0 5px 2px 0;
+  border-radius: 999px;
+  background: #ff8b82;
+}
+
+.day-events button.blue::before {
+  background: #58b7ff !important;
+}
+
+.day-events button.gold::before {
+  background: #ffc655 !important;
+}
+
+.day-events button.green::before {
+  background: #45dc99 !important;
+}
+
+.day-events button.training::before {
+  background: #8dd3c7 !important;
+}
+
+@media (min-width: 761px) {
+  body:not(.force-mobile) .thread-list,
+  body:not(.force-mobile) .thread-button,
+  body:not(.force-mobile) .document-card,
+  body:not(.force-mobile) .folder-chip,
+  body:not(.force-mobile) .permission-matrix table,
+  body:not(.force-mobile) .permission-matrix th,
+  body:not(.force-mobile) .permission-matrix td,
+  body:not(.force-mobile) .import-preview table,
+  body:not(.force-mobile) .import-preview th,
+  body:not(.force-mobile) .import-preview td,
+  body.force-desktop .thread-list,
+  body.force-desktop .thread-button,
+  body.force-desktop .document-card,
+  body.force-desktop .folder-chip,
+  body.force-desktop .permission-matrix table,
+  body.force-desktop .permission-matrix th,
+  body.force-desktop .permission-matrix td,
+  body.force-desktop .import-preview table,
+  body.force-desktop .import-preview th,
+  body.force-desktop .import-preview td {
+    background: #365f66 !important;
+    color: #eef8f5 !important;
+    border-color: rgba(232, 246, 242, 0.13) !important;
+  }
+
+  body:not(.force-mobile) .thread-button.active,
+  body:not(.force-mobile) .thread-button:hover,
+  body:not(.force-mobile) .folder-chip.active,
+  body.force-desktop .thread-button.active,
+  body.force-desktop .thread-button:hover,
+  body.force-desktop .folder-chip.active {
+    background: #47787f !important;
+  }
+
+  body:not(.force-mobile) .permission-toggle,
+  body.force-desktop .permission-toggle {
+    background: rgba(238, 248, 245, 0.08) !important;
+    border-color: rgba(238, 248, 245, 0.12) !important;
+    color: #eef8f5 !important;
+  }
+}
