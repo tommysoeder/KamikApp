@@ -10525,3 +10525,36 @@ body.force-desktop .calendar-layout .day-events button:hover {
     border-color: rgba(200, 138, 45, 0.28) !important;
   }
 }
+/* V204: colored light page banner and readable result scores */
+@media (min-width: 761px) {
+  body.desktop-light:not(.force-mobile) .topbar,
+  body.desktop-light.force-desktop .topbar {
+    background: linear-gradient(90deg, #dce8df 0%, #edf0e8 58%, #e8dfcf 100%) !important;
+    border-bottom: 1px solid rgba(29, 77, 79, 0.16) !important;
+    box-shadow: 0 14px 34px rgba(21, 31, 34, 0.08) !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .topbar h1,
+  body.desktop-light.force-desktop .topbar h1 {
+    color: #173034 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .topbar p,
+  body.desktop-light.force-desktop .topbar p {
+    color: #536760 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .scoreline strong,
+  body.desktop-light:not(.force-mobile) .scoreline.large strong,
+  body.desktop-light.force-desktop .scoreline strong,
+  body.desktop-light.force-desktop .scoreline.large strong {
+    background: #153b3d !important;
+    color: #ffffff !important;
+    border-color: #153b3d !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .result-card .scoreline strong,
+  body.desktop-light.force-desktop .result-card .scoreline strong {
+    color: #ffffff !important;
+  }
+}
