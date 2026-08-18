@@ -10558,3 +10558,137 @@ body.force-desktop .calendar-layout .day-events button:hover {
     color: #ffffff !important;
   }
 }
+/* V205: green page banners and readable mobile modals */
+@media (min-width: 761px) {
+  body:not(.force-mobile) .topbar,
+  body.force-desktop .topbar,
+  body.desktop-light:not(.force-mobile) .topbar,
+  body.desktop-light.force-desktop .topbar {
+    background: linear-gradient(90deg, #1d4d4f 0%, #246b67 58%, #2f7d68 100%) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+    box-shadow: 0 18px 44px rgba(12, 39, 42, 0.18) !important;
+  }
+
+  body:not(.force-mobile) .topbar h1,
+  body:not(.force-mobile) .topbar p,
+  body.force-desktop .topbar h1,
+  body.force-desktop .topbar p,
+  body.desktop-light:not(.force-mobile) .topbar h1,
+  body.desktop-light:not(.force-mobile) .topbar p,
+  body.desktop-light.force-desktop .topbar h1,
+  body.desktop-light.force-desktop .topbar p {
+    color: #f5fbf8 !important;
+  }
+
+  body:not(.force-mobile) .topbar .sync-indicator,
+  body.force-desktop .topbar .sync-indicator,
+  body.desktop-light:not(.force-mobile) .topbar .sync-indicator,
+  body.desktop-light.force-desktop .topbar .sync-indicator {
+    background: rgba(245, 251, 248, 0.9) !important;
+    border-color: rgba(255, 255, 255, 0.24) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  body:not(.force-desktop) .modal,
+  body.force-mobile .modal {
+    background: #244d54 !important;
+    border-color: rgba(230, 246, 242, 0.16) !important;
+    color: #f5fbf8 !important;
+  }
+
+  body:not(.force-desktop) .modal-head,
+  body.force-mobile .modal-head {
+    background: #1d4d4f !important;
+    border-bottom-color: rgba(230, 246, 242, 0.14) !important;
+  }
+
+  body:not(.force-desktop) .modal h2,
+  body:not(.force-desktop) .modal h3,
+  body:not(.force-desktop) .modal h4,
+  body:not(.force-desktop) .modal label,
+  body:not(.force-desktop) .modal .form-row label,
+  body:not(.force-desktop) .modal .check-row,
+  body:not(.force-desktop) .modal .check-row span,
+  body:not(.force-desktop) .modal .weekday-chip span,
+  body:not(.force-desktop) .modal .event-team-option,
+  body:not(.force-desktop) .modal .event-team-option span,
+  body:not(.force-desktop) .modal .recipient-option,
+  body:not(.force-desktop) .modal .recipient-option span,
+  body:not(.force-desktop) .modal .affected-player-row,
+  body:not(.force-desktop) .modal .affected-player-row span,
+  body.force-mobile .modal h2,
+  body.force-mobile .modal h3,
+  body.force-mobile .modal h4,
+  body.force-mobile .modal label,
+  body.force-mobile .modal .form-row label,
+  body.force-mobile .modal .check-row,
+  body.force-mobile .modal .check-row span,
+  body.force-mobile .modal .weekday-chip span,
+  body.force-mobile .modal .event-team-option,
+  body.force-mobile .modal .event-team-option span,
+  body.force-mobile .modal .recipient-option,
+  body.force-mobile .modal .recipient-option span,
+  body.force-mobile .modal .affected-player-row,
+  body.force-mobile .modal .affected-player-row span {
+    color: #f7fcfa !important;
+  }
+
+  body:not(.force-desktop) .modal p,
+  body:not(.force-desktop) .modal .meta,
+  body:not(.force-desktop) .modal small,
+  body.force-mobile .modal p,
+  body.force-mobile .modal .meta,
+  body.force-mobile .modal small {
+    color: rgba(245, 251, 248, 0.76) !important;
+  }
+
+  body:not(.force-desktop) .modal input,
+  body:not(.force-desktop) .modal select,
+  body:not(.force-desktop) .modal textarea,
+  body:not(.force-desktop) .modal .player-search-input,
+  body.force-mobile .modal input,
+  body.force-mobile .modal select,
+  body.force-mobile .modal textarea,
+  body.force-mobile .modal .player-search-input {
+    background: #e7efeb !important;
+    border-color: rgba(230, 246, 242, 0.18) !important;
+    color: #102b30 !important;
+  }
+
+  body:not(.force-desktop) .modal input::placeholder,
+  body:not(.force-desktop) .modal textarea::placeholder,
+  body.force-mobile .modal input::placeholder,
+  body.force-mobile .modal textarea::placeholder {
+    color: rgba(16, 43, 48, 0.48) !important;
+  }
+
+  body:not(.force-desktop) .modal .item,
+  body:not(.force-desktop) .modal .card,
+  body:not(.force-desktop) .modal .panel,
+  body:not(.force-desktop) .modal .checkbox-list,
+  body:not(.force-desktop) .modal .recipient-list,
+  body:not(.force-desktop) .modal .recipient-option,
+  body:not(.force-desktop) .modal .player-check,
+  body.force-mobile .modal .item,
+  body.force-mobile .modal .card,
+  body.force-mobile .modal .panel,
+  body.force-mobile .modal .checkbox-list,
+  body.force-mobile .modal .recipient-list,
+  body.force-mobile .modal .recipient-option,
+  body.force-mobile .modal .player-check {
+    background: #315f67 !important;
+    border-color: rgba(230, 246, 242, 0.14) !important;
+    color: #f7fcfa !important;
+  }
+
+  body:not(.force-desktop) .modal .btn,
+  body.force-mobile .modal .btn {
+    color: #f7fcfa !important;
+  }
+
+  body:not(.force-desktop) .modal .btn.danger,
+  body.force-mobile .modal .btn.danger {
+    color: #ffb4ad !important;
+  }
+}
