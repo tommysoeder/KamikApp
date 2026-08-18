@@ -1631,6 +1631,7 @@ async function refreshRemoteState({ keepToast = false, force = false } = {}) {
     if (!force && (document.querySelector("#modal-root .modal") || document.activeElement?.closest?.("form"))) {
       return;
     }
+    const localDesktopTheme = state.desktopTheme === "light" ? "light" : "dark";
     const remote = normalize(JSON.parse(raw));
     lastRemoteSnapshot = raw;
     preservePlayerVisibleRemoteSchedule(remote, state);
@@ -1638,6 +1639,7 @@ async function refreshRemoteState({ keepToast = false, force = false } = {}) {
     remote.activeView = state.activeView;
     remote.activeThreadId = state.activeThreadId;
     remote.mobileMenuOpen = state.mobileMenuOpen;
+    remote.desktopTheme = localDesktopTheme;
     remote.toast = keepToast ? state.toast : "";
     remote.syncStatus = { ...(state.syncStatus || {}), status: "ok", lastReadAt: new Date().toISOString(), error: "" };
     normalizeCalendarCursorForActiveView(remote);
@@ -5560,6 +5562,7 @@ function renderScheduleItem(item) {
         ${item.source === "event" && manageable ? `<button class="btn" type="button" onclick="event.stopPropagation(); openEditEventModal('${item.id}')">${t("editEvent")}</button>` : ""}
         ${item.source === "event" && manageable ? `<button class="btn danger" type="button" onclick="event.stopPropagation(); deleteEvent('${item.id}')">${t("delete")}</button>` : ""}
         ${item.source === "training" && manageable ? `<button class="btn" type="button" onclick="event.stopPropagation(); openEditTrainingModal('${item.id}')">${t("edit")}</button>` : ""}
+        ${item.source === "training" && manageable ? `<button class="btn" type="button" onclick="event.stopPropagation(); openEditTrainingModal('${item.id}','series')">Editar serie</button>` : ""}
         ${item.source === "training" && manageable ? `<button class="btn danger" type="button" onclick="event.stopPropagation(); deleteTrainingSeries('${item.id}')">Borrar serie</button>` : ""}
         ${item.source === "training" && manageable ? `<button class="btn danger" type="button" onclick="event.stopPropagation(); deleteTraining('${item.id}')">${t("delete")}</button>` : ""}
       </div>
@@ -5593,7 +5596,7 @@ function openScheduleDetail(source, id) {
           ? `<div class="actions inline-actions">
               ${
                 source === "training"
-                  ? `<button class="btn" type="button" onclick="openEditTrainingModal('${item.id}')">${t("edit")}</button><button class="btn" type="button" onclick="openDuplicateTrainingModal('${item.id}')">${t("duplicate")}</button><button class="btn" type="button" onclick="openRepeatTrainingModal('${item.id}')">${t("repeatTraining")}</button><button class="btn danger" type="button" onclick="deleteTrainingSeries('${item.id}')">Borrar serie</button><button class="btn danger" type="button" onclick="deleteTraining('${item.id}')">${t("delete")}</button>`
+                  ? `<button class="btn" type="button" onclick="openEditTrainingModal('${item.id}')">${t("edit")}</button><button class="btn" type="button" onclick="openEditTrainingModal('${item.id}','series')">Editar serie</button><button class="btn" type="button" onclick="openDuplicateTrainingModal('${item.id}')">${t("duplicate")}</button><button class="btn" type="button" onclick="openRepeatTrainingModal('${item.id}')">${t("repeatTraining")}</button><button class="btn danger" type="button" onclick="deleteTrainingSeries('${item.id}')">Borrar serie</button><button class="btn danger" type="button" onclick="deleteTraining('${item.id}')">${t("delete")}</button>`
                   : `<button class="btn" type="button" onclick="openEditEventModal('${item.id}')">${t("edit")}</button><button class="btn" type="button" onclick="openDuplicateEventModal('${item.id}')">${t("duplicate")}</button><button class="btn danger" type="button" onclick="deleteEvent('${item.id}')">${t("delete")}</button>`
               }
             </div>`
@@ -7318,13 +7321,14 @@ function openEditEventModal(eventId) {
   renderEventPlayerOptions(selectedTeamIds.join(","), (eventItem.playerIds || []).join(","));
 }
 
-function openEditTrainingModal(trainingId) {
+function openEditTrainingModal(trainingId, scope = "single") {
   const training = state.trainings.find((item) => item.id === trainingId);
   if (!training || !canManageScheduleItem(training)) return;
   const teams = editableEventTeamIds().map(getTeam).filter(Boolean);
   const allClubOption = isExecutive(currentUser()) ? `<option value="">${t("allClub")}</option>` : "";
+  const seriesCount = trainingSeriesMatches(training).length;
   openModal(
-    t("training"),
+    scope === "series" ? "Editar serie de entrenos" : t("training"),
     `<form class="form" onsubmit="updateTraining(event,'${training.id}')">
       <div class="form-grid">
         <div class="form-row"><label>${t("team")}</label><select name="teamId" onchange="renderEventPlayerOptions(this.value,'${(training.playerIds || []).join(",")}')">${allClubOption}${teams.map((team) => `<option value="${team.id}" ${training.teamId === team.id ? "selected" : ""}>${team.name}</option>`).join("")}</select></div>
@@ -7334,6 +7338,7 @@ function openEditTrainingModal(trainingId) {
       </div>
       <div class="form-row"><label>${t("affectedPlayers")}</label><div id="event-player-options"></div></div>
       <label class="check-row"><input name="notifyPlayers" type="checkbox" /> <span>Avisar a jugadores del cambio</span></label>
+      ${scope === "series" ? `<input type="hidden" name="applySeries" value="1" /><div class="meta">Se editarán ${seriesCount} entreno${seriesCount === 1 ? "" : "s"} de esta serie. Las fechas se mantienen; se actualizan equipo, hora, lugar, jugadores y notas.</div>` : ""}
       <div class="form-row"><label>${t("notes")}</label><textarea name="notes">${escapeHtml(training.notes || "")}</textarea></div>
       <button class="btn primary" type="submit">${t("save")}</button>
     </form>`
@@ -9744,6 +9749,23 @@ function updateTraining(event, trainingId) {
   if (!canUseEventTeam(nextTeamId)) return;
   const beforePlayers = training.playerIds || [];
   const nextPlayers = form.getAll("playerIds");
+  if (form.get("applySeries")) {
+    const matches = trainingSeriesMatches(training);
+    matches.forEach((item) => {
+      item.teamId = nextTeamId;
+      item.time = form.get("time");
+      item.place = form.get("place");
+      item.notes = form.get("notes");
+      item.playerIds = nextPlayers;
+    });
+    if (form.get("notifyPlayers")) {
+      matches.forEach((item) => notifyAffectedPlayers([...new Set([...(item.playerIds || []), ...beforePlayers])], "Serie de entrenos modificada", `${item.date} ${item.time} · ${item.place}`, item.id));
+    }
+    state.toast = `${matches.length} entreno${matches.length === 1 ? "" : "s"} actualizado${matches.length === 1 ? "" : "s"}`;
+    appendAudit("editar serie entrenos", "training", `${matches.length} · ${getTeam(nextTeamId)?.name || t("allClub")} · ${form.get("time")}`);
+    saveAndClose("manageEvents");
+    return;
+  }
   training.teamId = nextTeamId;
   training.date = form.get("date");
   training.time = form.get("time");
@@ -9771,16 +9793,8 @@ function deleteTraining(trainingId) {
 function deleteTrainingSeries(trainingId) {
   const training = state.trainings.find((item) => item.id === trainingId);
   if (!training || !canManageScheduleItem(training)) return;
-  const season = getSeason(training.seasonId || seasonIdForDate(training.date));
   const day = new Date(`${training.date}T00:00:00`).getDay() || 7;
-  const inSameSeason = (item) => {
-    if (!season) return true;
-    return item.date >= season.startsAt && item.date <= season.endsAt;
-  };
-  const matches = state.trainings.filter((item) => {
-    const itemDay = new Date(`${item.date}T00:00:00`).getDay() || 7;
-    return item.teamId === training.teamId && item.time === training.time && itemDay === day && inSameSeason(item) && canManageScheduleItem(item);
-  });
+  const matches = trainingSeriesMatches(training);
   if (!matches.length) return;
   const teamLabel = getTeam(training.teamId)?.name || t("allClub");
   const dayLabel = weekdayName(day);
@@ -9793,6 +9807,19 @@ function deleteTrainingSeries(trainingId) {
   save("manageEvents");
   closeModal();
   render();
+}
+
+function trainingSeriesMatches(training) {
+  const season = getSeason(training.seasonId || seasonIdForDate(training.date));
+  const day = new Date(`${training.date}T00:00:00`).getDay() || 7;
+  const inSameSeason = (item) => {
+    if (!season) return true;
+    return item.date >= season.startsAt && item.date <= season.endsAt;
+  };
+  return state.trainings.filter((item) => {
+    const itemDay = new Date(`${item.date}T00:00:00`).getDay() || 7;
+    return item.teamId === training.teamId && item.time === training.time && itemDay === day && inSameSeason(item) && canManageScheduleItem(item);
+  });
 }
 
 function weekdayName(day) {

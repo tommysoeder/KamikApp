@@ -10248,3 +10248,183 @@ body.force-desktop .calendar-layout .day-events button:hover {
     border-color: rgba(55, 94, 90, 0.18) !important;
   }
 }
+/* V202: restore classic light contrast on desktop while keeping modern controls */
+@media (min-width: 761px) {
+  body.desktop-light:not(.force-mobile),
+  body.desktop-light.force-desktop {
+    background: #f1eee7 !important;
+    color: #172023 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .main,
+  body.desktop-light:not(.force-mobile) .content,
+  body.desktop-light.force-desktop .main,
+  body.desktop-light.force-desktop .content {
+    background: #f1eee7 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .topbar,
+  body.desktop-light.force-desktop .topbar {
+    background: rgba(251, 250, 247, 0.94) !important;
+    border-bottom-color: #d8ddd8 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .panel,
+  body.desktop-light:not(.force-mobile) .card,
+  body.desktop-light:not(.force-mobile) .item,
+  body.desktop-light:not(.force-mobile) .management-card,
+  body.desktop-light:not(.force-mobile) .management-task,
+  body.desktop-light:not(.force-mobile) .user-card,
+  body.desktop-light:not(.force-mobile) .document-card,
+  body.desktop-light:not(.force-mobile) .profile-list-item,
+  body.desktop-light:not(.force-mobile) .player-profile,
+  body.desktop-light:not(.force-mobile) .profile-section,
+  body.desktop-light:not(.force-mobile) .activity-item,
+  body.desktop-light:not(.force-mobile) .thread-list,
+  body.desktop-light:not(.force-mobile) .thread-button,
+  body.desktop-light:not(.force-mobile) .chat-window,
+  body.desktop-light:not(.force-mobile) .chat-head,
+  body.desktop-light:not(.force-mobile) .calendar-month,
+  body.desktop-light:not(.force-mobile) .calendar-day,
+  body.desktop-light:not(.force-mobile) .diagnostics-layout .panel,
+  body.desktop-light:not(.force-mobile) .diagnostics-paths .item,
+  body.desktop-light:not(.force-mobile) .quality-issue,
+  body.desktop-light:not(.force-mobile) .readiness-item,
+  body.desktop-light:not(.force-mobile) .team-readiness-item,
+  body.desktop-light:not(.force-mobile) .beta-test-item,
+  body.desktop-light.force-desktop .panel,
+  body.desktop-light.force-desktop .card,
+  body.desktop-light.force-desktop .item,
+  body.desktop-light.force-desktop .management-card,
+  body.desktop-light.force-desktop .management-task,
+  body.desktop-light.force-desktop .user-card,
+  body.desktop-light.force-desktop .document-card,
+  body.desktop-light.force-desktop .profile-list-item,
+  body.desktop-light.force-desktop .player-profile,
+  body.desktop-light.force-desktop .profile-section,
+  body.desktop-light.force-desktop .activity-item,
+  body.desktop-light.force-desktop .thread-list,
+  body.desktop-light.force-desktop .thread-button,
+  body.desktop-light.force-desktop .chat-window,
+  body.desktop-light.force-desktop .chat-head,
+  body.desktop-light.force-desktop .calendar-month,
+  body.desktop-light.force-desktop .calendar-day,
+  body.desktop-light.force-desktop .diagnostics-layout .panel,
+  body.desktop-light.force-desktop .diagnostics-paths .item,
+  body.desktop-light.force-desktop .quality-issue,
+  body.desktop-light.force-desktop .readiness-item,
+  body.desktop-light.force-desktop .team-readiness-item,
+  body.desktop-light.force-desktop .beta-test-item {
+    background: #fbfaf7 !important;
+    border-color: #d8ddd8 !important;
+    color: #172023 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .results-hero,
+  body.desktop-light:not(.force-mobile) .dashboard-announcements-compact,
+  body.desktop-light:not(.force-mobile) .dashboard-feedback-compact,
+  body.desktop-light:not(.force-mobile) .dashboard-activity-panel,
+  body.desktop-light.force-desktop .results-hero,
+  body.desktop-light.force-desktop .dashboard-announcements-compact,
+  body.desktop-light.force-desktop .dashboard-feedback-compact,
+  body.desktop-light.force-desktop .dashboard-activity-panel {
+    background: #fbfaf7 !important;
+    border-color: #d8ddd8 !important;
+    color: #172023 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .dashboard-announcement-pill,
+  body.desktop-light:not(.force-mobile) .result-card,
+  body.desktop-light:not(.force-mobile) .empty,
+  body.desktop-light:not(.force-mobile) .table-wrap,
+  body.desktop-light:not(.force-mobile) .checkbox-list,
+  body.desktop-light:not(.force-mobile) .recipient-list,
+  body.desktop-light:not(.force-mobile) .recipient-option,
+  body.desktop-light:not(.force-mobile) .folder-chip,
+  body.desktop-light.force-desktop .dashboard-announcement-pill,
+  body.desktop-light.force-desktop .result-card,
+  body.desktop-light.force-desktop .empty,
+  body.desktop-light.force-desktop .table-wrap,
+  body.desktop-light.force-desktop .checkbox-list,
+  body.desktop-light.force-desktop .recipient-list,
+  body.desktop-light.force-desktop .recipient-option,
+  body.desktop-light.force-desktop .folder-chip {
+    background: #ffffff !important;
+    border-color: #d8ddd8 !important;
+    color: #172023 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) h1,
+  body.desktop-light:not(.force-mobile) h2,
+  body.desktop-light:not(.force-mobile) h3,
+  body.desktop-light:not(.force-mobile) h4,
+  body.desktop-light:not(.force-mobile) strong,
+  body.desktop-light:not(.force-mobile) label,
+  body.desktop-light.force-desktop h1,
+  body.desktop-light.force-desktop h2,
+  body.desktop-light.force-desktop h3,
+  body.desktop-light.force-desktop h4,
+  body.desktop-light.force-desktop strong,
+  body.desktop-light.force-desktop label {
+    color: #172023 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) p,
+  body.desktop-light:not(.force-mobile) span,
+  body.desktop-light:not(.force-mobile) em,
+  body.desktop-light:not(.force-mobile) .meta,
+  body.desktop-light.force-desktop p,
+  body.desktop-light.force-desktop span,
+  body.desktop-light.force-desktop em,
+  body.desktop-light.force-desktop .meta {
+    color: #627074 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .item h3,
+  body.desktop-light:not(.force-mobile) .item strong,
+  body.desktop-light:not(.force-mobile) .dashboard-announcement-pill strong,
+  body.desktop-light:not(.force-mobile) .result-card strong,
+  body.desktop-light.force-desktop .item h3,
+  body.desktop-light.force-desktop .item strong,
+  body.desktop-light.force-desktop .dashboard-announcement-pill strong,
+  body.desktop-light.force-desktop .result-card strong {
+    color: #172023 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) input,
+  body.desktop-light:not(.force-mobile) select,
+  body.desktop-light:not(.force-mobile) textarea,
+  body.desktop-light:not(.force-mobile) .global-search-box,
+  body.desktop-light.force-desktop input,
+  body.desktop-light.force-desktop select,
+  body.desktop-light.force-desktop textarea,
+  body.desktop-light.force-desktop .global-search-box {
+    background: #ffffff !important;
+    border-color: #d8ddd8 !important;
+    color: #172023 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .btn,
+  body.desktop-light:not(.force-mobile) .mini-action,
+  body.desktop-light.force-desktop .btn,
+  body.desktop-light.force-desktop .mini-action {
+    color: #1d4d4f !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .btn:hover,
+  body.desktop-light:not(.force-mobile) .mini-action:hover,
+  body.desktop-light.force-desktop .btn:hover,
+  body.desktop-light.force-desktop .mini-action:hover {
+    background: rgba(29, 77, 79, 0.08) !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .btn.danger,
+  body.desktop-light.force-desktop .btn.danger {
+    color: #b94a48 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .day-events button,
+  body.desktop-light.force-desktop .day-events button {
+    color: #172023 !important;
+  }
+}
