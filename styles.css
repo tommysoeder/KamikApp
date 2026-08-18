@@ -9367,3 +9367,124 @@ body.force-mobile .main {
     border-color: rgba(232, 246, 242, 0.1) !important;
   }
 }
+
+/* V197 - visible metadata accents and remaining contrast fixes */
+.schedule-item .pill-line .pill,
+.player-profile .pill-line .pill,
+.team-stats-card .pill-line .pill {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  color: #ff8b82 !important;
+  font-weight: 430 !important;
+  box-shadow: none !important;
+}
+
+.schedule-item .pill-line .pill + .pill::before,
+.player-profile .pill-line .pill + .pill::before,
+.team-stats-card .pill-line .pill + .pill::before {
+  color: rgba(255, 139, 130, 0.42) !important;
+}
+
+.schedule-item .pill-line .pill.green,
+.schedule-item .pill-line .pill.blue,
+.schedule-item .pill-line .pill.gold,
+.schedule-item .pill-line .pill.red,
+.player-profile .pill-line .pill.green,
+.player-profile .pill-line .pill.blue,
+.player-profile .pill-line .pill.gold,
+.player-profile .pill-line .pill.red {
+  color: #ff8b82 !important;
+}
+
+@media (min-width: 761px) {
+  body:not(.force-mobile) .empty,
+  body:not(.force-mobile) .import-preview,
+  body:not(.force-mobile) .table-wrap,
+  body:not(.force-mobile) .standings-table,
+  body:not(.force-mobile) .diagnostics-paths .item,
+  body:not(.force-mobile) .activity-list,
+  body:not(.force-mobile) .quality-list,
+  body:not(.force-mobile) .readiness-list,
+  body:not(.force-mobile) .team-readiness-list,
+  body:not(.force-mobile) .beta-test-list,
+  body:not(.force-mobile) .public-result-list > div,
+  body:not(.force-mobile) .file-viewer,
+  body:not(.force-mobile) .file-preview-large,
+  body:not(.force-mobile) .doc-preview,
+  body.force-desktop .empty,
+  body.force-desktop .import-preview,
+  body.force-desktop .table-wrap,
+  body.force-desktop .standings-table,
+  body.force-desktop .diagnostics-paths .item,
+  body.force-desktop .activity-list,
+  body.force-desktop .quality-list,
+  body.force-desktop .readiness-list,
+  body.force-desktop .team-readiness-list,
+  body.force-desktop .beta-test-list,
+  body.force-desktop .public-result-list > div,
+  body.force-desktop .file-viewer,
+  body.force-desktop .file-preview-large,
+  body.force-desktop .doc-preview {
+    background: #345b62 !important;
+    color: #eef8f5 !important;
+    border-color: rgba(232, 246, 242, 0.12) !important;
+  }
+
+  body:not(.force-mobile) table,
+  body:not(.force-mobile) th,
+  body:not(.force-mobile) td,
+  body.force-desktop table,
+  body.force-desktop th,
+  body.force-desktop td {
+    background: transparent !important;
+    color: #eef8f5 !important;
+    border-color: rgba(232, 246, 242, 0.12) !important;
+  }
+
+  body:not(.force-mobile) th,
+  body.force-desktop th {
+    color: rgba(238, 248, 245, 0.72) !important;
+    font-weight: 520 !important;
+  }
+
+  body:not(.force-mobile) .quality-level,
+  body.force-desktop .quality-level {
+    background: rgba(255, 139, 130, 0.14) !important;
+    color: #ffb8b2 !important;
+    border-color: rgba(255, 139, 130, 0.16) !important;
+  }
+
+  body:not(.force-mobile) .management-layout .panel,
+  body:not(.force-mobile) .users-admin,
+  body:not(.force-mobile) .profile-list-panel,
+  body:not(.force-mobile) .profile-detail,
+  body.force-desktop .management-layout .panel,
+  body.force-desktop .users-admin,
+  body.force-desktop .profile-list-panel,
+  body.force-desktop .profile-detail {
+    background: #2f535a !important;
+  }
+}
+
+@media (max-width: 760px) {
+  body:not(.force-desktop) .empty,
+  body:not(.force-desktop) .table-wrap,
+  body:not(.force-desktop) .activity-list,
+  body:not(.force-desktop) .quality-list,
+  body:not(.force-desktop) .readiness-list,
+  body:not(.force-desktop) .team-readiness-list,
+  body:not(.force-desktop) .file-viewer,
+  body.force-mobile .empty,
+  body.force-mobile .table-wrap,
+  body.force-mobile .activity-list,
+  body.force-mobile .quality-list,
+  body.force-mobile .readiness-list,
+  body.force-mobile .team-readiness-list,
+  body.force-mobile .file-viewer {
+    background: #345b62 !important;
+    color: #eef8f5 !important;
+    border-color: rgba(232, 246, 242, 0.12) !important;
+  }
+}
