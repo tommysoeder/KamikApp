@@ -633,6 +633,7 @@ const seed = {
   lang: "es",
   session: null,
   activeView: "dashboard",
+  desktopTheme: "dark",
   activeThreadId: "thread-1",
   mobileMenuOpen: false,
   calendarCursor: new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10),
@@ -1024,6 +1025,7 @@ function normalize(raw) {
   next.permissions.directorCanUndoBulk ??= true;
   next.permissions.directorCanMessages ??= true;
   next.mobileMenuOpen ??= false;
+  next.desktopTheme = next.desktopTheme === "light" ? "light" : "dark";
   next.toast ||= "";
   if (/operaci[oó]n no permitida|no se pudo conectar|sin conexi[oó]n|servidor local/i.test(next.toast)) next.toast = "";
   const versionChanged = next.appVersion && next.appVersion !== APP_VERSION;
@@ -1321,6 +1323,7 @@ function persistentState() {
   delete snapshot.diagnosticAuditAction;
   delete snapshot.diagnosticAuditTeamId;
   delete snapshot.appVersion;
+  delete snapshot.desktopTheme;
   snapshot.mobileMenuOpen = false;
   return snapshot;
 }
@@ -2592,6 +2595,12 @@ function setLang(lang) {
   render();
 }
 
+function toggleDesktopTheme() {
+  state.desktopTheme = state.desktopTheme === "light" ? "dark" : "light";
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  render();
+}
+
 function setActiveRole(role) {
   const user = currentUser();
   if (user?.roles.includes(role)) {
@@ -2606,6 +2615,7 @@ function render() {
   if (document.body?.classList) {
     document.body.classList.toggle("force-desktop", viewOverride === "desktop");
     document.body.classList.toggle("force-mobile", viewOverride === "mobile");
+    document.body.classList.toggle("desktop-light", state.desktopTheme === "light");
   }
   const app = document.querySelector("#app");
   if (!state.session) {
@@ -3080,6 +3090,7 @@ function renderSidebar(user) {
               <option value="en" ${state.lang === "en" ? "selected" : ""}>EN</option>
             </select>
           </div>
+          <button class="btn compact desktop-theme-toggle" type="button" onclick="toggleDesktopTheme()">${state.desktopTheme === "light" ? "Tema oscuro" : "Tema claro"}</button>
           <button class="btn" type="button" onclick="logout()">${t("switchAccount")}</button>
         </div>
         ${renderSyncIndicator("sidebar")}
@@ -6174,11 +6185,22 @@ function openCallupDetail(callupId) {
       <div class="meta">${callup.date} · ${callup.time} · ${escapeHtml(callup.place)} · llegada ${callup.arrival}${coachName ? ` · entrenador ${escapeHtml(coachName)}` : ""}</div>
       <div class="pill-line" style="margin:10px 0">
         <span class="pill gold">${escapeHtml(callup.kit)}</span>
-        ${players.map((player) => `<span class="pill ${responseClass(callup.responses[player.id])}">${escapeHtml(player.name)}: ${responseLabel(callup.responses[player.id])}</span>`).join("")}
+        ${players.map((player) => `<span class="pill">${escapeHtml(player.name)}</span>`).join("")}
+      </div>
+      <button class="btn compact" type="button" onclick="toggleCallupAttendanceDetail()">Asistencia</button>
+      <div id="callup-attendance-detail" class="callup-attendance-detail" hidden>
+        <div class="pill-line">
+          ${players.map((player) => `<span class="pill ${responseClass(callup.responses[player.id])}">${escapeHtml(player.name)}: ${responseLabel(callup.responses[player.id])}</span>`).join("")}
+        </div>
       </div>
       <p>${escapeHtml(callup.notes || "")}</p>
     </article>`
   );
+}
+
+function toggleCallupAttendanceDetail() {
+  const detail = document.querySelector("#callup-attendance-detail");
+  if (detail) detail.hidden = !detail.hidden;
 }
 
 function responseLabel(status) {
@@ -6324,9 +6346,8 @@ function renderMessages() {
           .map(
             (thread) => `
           <button class="thread-button ${active?.id === thread.id ? "active" : ""}" type="button" onclick="selectThread('${thread.id}')">
-            <strong>${escapeHtml(thread.subject)}</strong>
+            <strong>${escapeHtml(threadDisplayTitle(thread))}</strong>
             <div class="meta">${thread.relatedPlayerIds.map((id) => getPlayer(id)?.name).filter(Boolean).join(", ")}</div>
-            <div class="meta">Para: ${employeeName(thread.assignedToId)}</div>
           </button>`
           )
           .join("")}
@@ -6334,7 +6355,7 @@ function renderMessages() {
       ${
         active
           ? `<div class="chat-window">
-              <div class="chat-head"><strong>${escapeHtml(active.subject)}</strong><div class="meta">Canal vertical empleado-familia/jugador</div></div>
+              <div class="chat-head"><strong>${escapeHtml(threadDisplayTitle(active))}</strong></div>
               <div class="messages">${active.messages
                 .map((message) => `<div class="bubble ${message.from === "club" ? "club" : message.from === "system" ? "system" : "user"}"><div>${escapeHtml(message.text)}</div><div class="meta">${message.at}</div></div>`)
                 .join("")}</div>
@@ -6352,6 +6373,17 @@ function renderMessages() {
 function employeeName(userId) {
   if (!userId) return "";
   return state.users.find((user) => user.id === userId)?.name || "Club";
+}
+
+function threadDisplayTitle(thread) {
+  if (!thread) return "";
+  if (thread.betaFeedback) return thread.subject || "Feedback beta";
+  const last = thread.messages?.[thread.messages.length - 1];
+  if (last?.from === "club") return employeeName(thread.assignedToId) || "Club";
+  const subject = String(thread.subject || "");
+  if (subject.includes(" -> ")) return subject.split(" -> ")[0].trim();
+  if (subject.includes(":")) return subject.split(":")[0].trim();
+  return subject || "Conversacion";
 }
 
 function employees() {

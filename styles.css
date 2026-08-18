@@ -10000,3 +10000,251 @@ body.force-desktop .calendar-layout .day-events button:hover {
     font-weight: 540 !important;
   }
 }
+/* V201: dashboard spacing, compact callups/messages, optional light desktop theme */
+.dashboard-announcements-compact {
+  margin-bottom: 16px !important;
+}
+
+.callup-attendance-detail {
+  margin-top: 10px !important;
+}
+
+.thread-button .meta:empty {
+  display: none !important;
+}
+
+@media (max-width: 760px) {
+  body:not(.force-desktop) .thread-list,
+  body.force-mobile .thread-list {
+    max-height: 26vh !important;
+  }
+
+  body:not(.force-desktop) .thread-button,
+  body.force-mobile .thread-button {
+    min-height: 34px !important;
+    padding: 5px 8px !important;
+  }
+
+  body:not(.force-desktop) .thread-button strong,
+  body.force-mobile .thread-button strong {
+    font-size: 0.74rem !important;
+  }
+
+  body:not(.force-desktop) .chat-head,
+  body.force-mobile .chat-head {
+    padding: 9px 10px !important;
+  }
+
+  body:not(.force-desktop) .chat-head strong,
+  body.force-mobile .chat-head strong {
+    font-size: 0.92rem !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .desktop-theme-toggle {
+    display: none !important;
+  }
+}
+
+@media (min-width: 761px) {
+  body.desktop-light:not(.force-mobile),
+  body.desktop-light.force-desktop {
+    --ink: #173034;
+    --muted: #66716b;
+    --line: rgba(91, 117, 111, 0.2);
+    --paper: #e8e2d5;
+    --band: #d9e3dc;
+    --teal: #1f696b;
+    --teal-2: #358f88;
+    --gold: #c78a2d;
+    --red: #b6544f;
+    --green: #27795a;
+    --blue: #3d6f91;
+    color: #173034 !important;
+    background: #d4ddd5 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .main,
+  body.desktop-light.force-desktop .main {
+    background: #d4ddd5 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .content,
+  body.desktop-light.force-desktop .content {
+    background: #d4ddd5 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .topbar,
+  body.desktop-light.force-desktop .topbar {
+    background: rgba(224, 231, 222, 0.94) !important;
+    border-color: rgba(69, 102, 97, 0.16) !important;
+    color: #173034 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .topbar h1,
+  body.desktop-light:not(.force-mobile) .topbar p,
+  body.desktop-light.force-desktop .topbar h1,
+  body.desktop-light.force-desktop .topbar p {
+    color: #173034 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .panel,
+  body.desktop-light:not(.force-mobile) .card,
+  body.desktop-light:not(.force-mobile) .item,
+  body.desktop-light:not(.force-mobile) .management-card,
+  body.desktop-light:not(.force-mobile) .management-task,
+  body.desktop-light:not(.force-mobile) .user-card,
+  body.desktop-light:not(.force-mobile) .document-card,
+  body.desktop-light:not(.force-mobile) .profile-list-item,
+  body.desktop-light:not(.force-mobile) .player-profile,
+  body.desktop-light:not(.force-mobile) .profile-section,
+  body.desktop-light:not(.force-mobile) .activity-item,
+  body.desktop-light:not(.force-mobile) .thread-list,
+  body.desktop-light:not(.force-mobile) .thread-button,
+  body.desktop-light:not(.force-mobile) .chat-window,
+  body.desktop-light:not(.force-mobile) .chat-head,
+  body.desktop-light:not(.force-mobile) .calendar-month,
+  body.desktop-light:not(.force-mobile) .calendar-day,
+  body.desktop-light.force-desktop .panel,
+  body.desktop-light.force-desktop .card,
+  body.desktop-light.force-desktop .item,
+  body.desktop-light.force-desktop .management-card,
+  body.desktop-light.force-desktop .management-task,
+  body.desktop-light.force-desktop .user-card,
+  body.desktop-light.force-desktop .document-card,
+  body.desktop-light.force-desktop .profile-list-item,
+  body.desktop-light.force-desktop .player-profile,
+  body.desktop-light.force-desktop .profile-section,
+  body.desktop-light.force-desktop .activity-item,
+  body.desktop-light.force-desktop .thread-list,
+  body.desktop-light.force-desktop .thread-button,
+  body.desktop-light.force-desktop .chat-window,
+  body.desktop-light.force-desktop .chat-head,
+  body.desktop-light.force-desktop .calendar-month,
+  body.desktop-light.force-desktop .calendar-day {
+    background: #e3e8df !important;
+    border-color: rgba(55, 94, 90, 0.18) !important;
+    color: #173034 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .panel h2,
+  body.desktop-light:not(.force-mobile) .panel h3,
+  body.desktop-light:not(.force-mobile) .panel h4,
+  body.desktop-light:not(.force-mobile) .panel p,
+  body.desktop-light:not(.force-mobile) .panel strong,
+  body.desktop-light:not(.force-mobile) .panel em,
+  body.desktop-light:not(.force-mobile) .panel span,
+  body.desktop-light:not(.force-mobile) .item h3,
+  body.desktop-light:not(.force-mobile) .item strong,
+  body.desktop-light:not(.force-mobile) .item .meta,
+  body.desktop-light.force-desktop .panel h2,
+  body.desktop-light.force-desktop .panel h3,
+  body.desktop-light.force-desktop .panel h4,
+  body.desktop-light.force-desktop .panel p,
+  body.desktop-light.force-desktop .panel strong,
+  body.desktop-light.force-desktop .panel em,
+  body.desktop-light.force-desktop .panel span,
+  body.desktop-light.force-desktop .item h3,
+  body.desktop-light.force-desktop .item strong,
+  body.desktop-light.force-desktop .item .meta {
+    color: #173034 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .meta,
+  body.desktop-light:not(.force-mobile) .muted,
+  body.desktop-light.force-desktop .meta,
+  body.desktop-light.force-desktop .muted {
+    color: #5d6e69 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .results-hero,
+  body.desktop-light:not(.force-mobile) .dashboard-announcements-compact,
+  body.desktop-light:not(.force-mobile) .dashboard-activity-panel,
+  body.desktop-light.force-desktop .results-hero,
+  body.desktop-light.force-desktop .dashboard-announcements-compact,
+  body.desktop-light.force-desktop .dashboard-activity-panel {
+    background: #dce6de !important;
+    color: #173034 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .dashboard-announcement-pill,
+  body.desktop-light:not(.force-mobile) .result-card,
+  body.desktop-light:not(.force-mobile) .empty,
+  body.desktop-light.force-desktop .dashboard-announcement-pill,
+  body.desktop-light.force-desktop .result-card,
+  body.desktop-light.force-desktop .empty {
+    background: #edf0e8 !important;
+    border-color: rgba(55, 94, 90, 0.16) !important;
+    color: #173034 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) input,
+  body.desktop-light:not(.force-mobile) select,
+  body.desktop-light:not(.force-mobile) textarea,
+  body.desktop-light:not(.force-mobile) .global-search-box,
+  body.desktop-light.force-desktop input,
+  body.desktop-light.force-desktop select,
+  body.desktop-light.force-desktop textarea,
+  body.desktop-light.force-desktop .global-search-box {
+    background: #eef1ea !important;
+    border-color: rgba(55, 94, 90, 0.18) !important;
+    color: #173034 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) input::placeholder,
+  body.desktop-light.force-desktop input::placeholder {
+    color: rgba(23, 48, 52, 0.48) !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .btn,
+  body.desktop-light:not(.force-mobile) .mini-action,
+  body.desktop-light.force-desktop .btn,
+  body.desktop-light.force-desktop .mini-action {
+    color: #174b4d !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .btn:hover,
+  body.desktop-light:not(.force-mobile) .mini-action:hover,
+  body.desktop-light.force-desktop .btn:hover,
+  body.desktop-light.force-desktop .mini-action:hover {
+    background: rgba(31, 105, 107, 0.12) !important;
+    color: #0f4143 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .btn.primary,
+  body.desktop-light.force-desktop .btn.primary {
+    color: #0f4143 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .btn.danger,
+  body.desktop-light.force-desktop .btn.danger {
+    color: #9d4039 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .pill,
+  body.desktop-light.force-desktop .pill {
+    color: #a9433d !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .pill.green,
+  body.desktop-light.force-desktop .pill.green {
+    color: #23734f !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .pill.gold,
+  body.desktop-light.force-desktop .pill.gold {
+    color: #9a671e !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .pill.blue,
+  body.desktop-light.force-desktop .pill.blue {
+    color: #2d6384 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .sync-indicator,
+  body.desktop-light.force-desktop .sync-indicator {
+    background: #edf0e8 !important;
+    border-color: rgba(55, 94, 90, 0.18) !important;
+  }
+}
