@@ -6145,9 +6145,8 @@ function renderCallupItem(callup) {
       <div class="item-row">
         <div>
           <h3>${getTeam(callup.teamId)?.name || ""} vs ${escapeHtml(callup.rival)}</h3>
-          <div class="meta">${callup.date} · ${callup.time} · ${escapeHtml(callup.place)} · llegada ${callup.arrival}${coachName ? ` · ${escapeHtml(coachName)}` : ""}</div>
+          <div class="meta">${callup.date} · ${callup.time} · ${escapeHtml(callup.place)} · llegada ${callup.arrival} · ${escapeHtml(callup.kit)}${coachName ? ` · ${escapeHtml(coachName)}` : ""}</div>
         </div>
-        <span class="pill gold">${escapeHtml(callup.kit)}</span>
       </div>
       <div class="meta">${escapeHtml(callup.notes || "")}</div>
       <div class="pill-line">
@@ -6185,9 +6184,8 @@ function openCallupDetail(callupId) {
   openModal(
     `${getTeam(callup.teamId)?.name || ""} vs ${escapeHtml(callup.rival)}`,
     `<article class="article-detail">
-      <div class="meta">${callup.date} · ${callup.time} · ${escapeHtml(callup.place)} · llegada ${callup.arrival}${coachName ? ` · entrenador ${escapeHtml(coachName)}` : ""}</div>
+      <div class="meta">${callup.date} · ${callup.time} · ${escapeHtml(callup.place)} · llegada ${callup.arrival} · ${escapeHtml(callup.kit)}${coachName ? ` · entrenador ${escapeHtml(coachName)}` : ""}</div>
       <div class="pill-line" style="margin:10px 0">
-        <span class="pill gold">${escapeHtml(callup.kit)}</span>
         ${players.map((player) => `<span class="pill">${escapeHtml(player.name)}</span>`).join("")}
       </div>
       <button class="btn compact" type="button" onclick="toggleCallupAttendanceDetail()">Asistencia</button>

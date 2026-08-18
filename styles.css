@@ -10428,3 +10428,100 @@ body.force-desktop .calendar-layout .day-events button:hover {
     color: #172023 !important;
   }
 }
+/* V203: callup metadata, mobile home icon, light desktop sidebar reset */
+@media (max-width: 760px) {
+  .mobile-bottom-nav .home .nav-ico,
+  body.force-mobile .mobile-bottom-nav .home .nav-ico,
+  body:not(.force-desktop) .mobile-bottom-nav .home .nav-ico {
+    border: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+
+  .mobile-bottom-nav .home .nav-ico svg,
+  body.force-mobile .mobile-bottom-nav .home .nav-ico svg,
+  body:not(.force-desktop) .mobile-bottom-nav .home .nav-ico svg {
+    border: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+}
+
+@media (min-width: 761px) {
+  body.desktop-light:not(.force-mobile) .sidebar,
+  body.desktop-light.force-desktop .sidebar {
+    background: #153b3d !important;
+    color: #ffffff !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .sidebar *,
+  body.desktop-light.force-desktop .sidebar * {
+    color: rgba(255, 255, 255, 0.82) !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .sidebar strong,
+  body.desktop-light:not(.force-mobile) .sidebar .nav button.active span,
+  body.desktop-light:not(.force-mobile) .sidebar .nav button:hover span,
+  body.desktop-light.force-desktop .sidebar strong,
+  body.desktop-light.force-desktop .sidebar .nav button.active span,
+  body.desktop-light.force-desktop .sidebar .nav button:hover span {
+    color: #ffffff !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .role-box,
+  body.desktop-light.force-desktop .role-box {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .role-box label,
+  body.desktop-light:not(.force-mobile) .sidebar-foot,
+  body.desktop-light:not(.force-mobile) .sidebar .meta,
+  body.desktop-light.force-desktop .role-box label,
+  body.desktop-light.force-desktop .sidebar-foot,
+  body.desktop-light.force-desktop .sidebar .meta {
+    color: rgba(255, 255, 255, 0.72) !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .role-box select,
+  body.desktop-light.force-desktop .role-box select {
+    background: #ffffff !important;
+    color: #172023 !important;
+    border-color: rgba(255, 255, 255, 0.22) !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .role-box select option,
+  body.desktop-light.force-desktop .role-box select option {
+    color: #172023 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .sidebar .btn,
+  body.desktop-light.force-desktop .sidebar .btn {
+    color: #ffffff !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .sidebar .account-btn,
+  body.desktop-light.force-desktop .sidebar .account-btn {
+    color: #ffffff !important;
+    opacity: 1 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .sidebar .nav button,
+  body.desktop-light.force-desktop .sidebar .nav button {
+    background: transparent !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .sidebar .nav button.active,
+  body.desktop-light:not(.force-mobile) .sidebar .nav button:hover,
+  body.desktop-light.force-desktop .sidebar .nav button.active,
+  body.desktop-light.force-desktop .sidebar .nav button:hover {
+    background: rgba(255, 255, 255, 0.14) !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .beta-banner,
+  body.desktop-light.force-desktop .beta-banner {
+    background: linear-gradient(90deg, rgba(200, 138, 45, 0.16), rgba(47, 116, 114, 0.1)) !important;
+    color: #4f3510 !important;
+    border-color: rgba(200, 138, 45, 0.28) !important;
+  }
+}
