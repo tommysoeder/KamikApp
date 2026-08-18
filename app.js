@@ -3501,9 +3501,6 @@ function renderDashboard() {
       </div>
       <div class="results-strip">${weekendResults.map(renderResultCard).join("") || `<div class="empty">${t("noResults")}</div>`}</div>
     </section>
-    <div class="grid ${statCards.length >= 3 ? "three" : "two"}">
-      ${statCards.join("")}
-    </div>
     ${
       user && !user.acceptedBetaAt
         ? `<section class="panel dashboard-beta-consent">
@@ -3527,6 +3524,9 @@ function renderDashboard() {
       </div>
       <div class="dashboard-announcement-strip">${announcements.length ? announcements.map(renderDashboardAnnouncement).join("") : `<div class="empty compact-empty">Sin anuncios publicados.</div>`}</div>
     </section>
+    <div class="grid ${statCards.length >= 3 ? "three" : "two"}">
+      ${statCards.join("")}
+    </div>
     <div class="grid two dashboard-week-row">
       <section class="panel">
         <div class="panel-header"><div><h2>${t("visibleWeek")}</h2><p>${t("weekAuto")}</p></div></div>

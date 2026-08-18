@@ -9801,3 +9801,202 @@ body.force-desktop .calendar-layout .day-events button:hover {
     border-color: rgba(255, 139, 130, 0.24) !important;
   }
 }
+/* V200 final polish: diagnostics, mobile messages, compact player lists */
+.day-dots i {
+  box-shadow: none !important;
+  border: 0 !important;
+}
+
+.item .pill-line {
+  gap: 4px 10px !important;
+}
+
+.item .pill-line .pill {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  color: #ffaaa4 !important;
+  font-size: 0.86rem !important;
+  font-weight: 560 !important;
+  padding: 0 !important;
+}
+
+.item .pill-line .pill.green {
+  color: #9ff1c6 !important;
+}
+
+.item .pill-line .pill.red,
+.item .pill-line .pill.danger {
+  color: #ff9d96 !important;
+}
+
+.item .pill-line .pill.gold {
+  color: #ffd28a !important;
+}
+
+.item .pill-line .pill.blue {
+  color: #b8e7ff !important;
+}
+
+@media (min-width: 761px) {
+  body:not(.force-mobile) .diagnostics-layout .panel,
+  body.force-desktop .diagnostics-layout .panel {
+    background: #345d64 !important;
+    color: #f2faf7 !important;
+    border-color: rgba(230, 246, 242, 0.16) !important;
+  }
+
+  body:not(.force-mobile) .diagnostics-layout h2,
+  body:not(.force-mobile) .diagnostics-layout h3,
+  body:not(.force-mobile) .diagnostics-layout h4,
+  body:not(.force-mobile) .diagnostics-layout p,
+  body:not(.force-mobile) .diagnostics-layout strong,
+  body:not(.force-mobile) .diagnostics-layout em,
+  body:not(.force-mobile) .diagnostics-layout span,
+  body.force-desktop .diagnostics-layout h2,
+  body.force-desktop .diagnostics-layout h3,
+  body.force-desktop .diagnostics-layout h4,
+  body.force-desktop .diagnostics-layout p,
+  body.force-desktop .diagnostics-layout strong,
+  body.force-desktop .diagnostics-layout em,
+  body.force-desktop .diagnostics-layout span {
+    color: #f2faf7 !important;
+  }
+
+  body:not(.force-mobile) .diagnostics-paths .item,
+  body:not(.force-mobile) .diagnostic-audit .activity-item,
+  body:not(.force-mobile) .quality-issue,
+  body:not(.force-mobile) .readiness-item,
+  body:not(.force-mobile) .team-readiness-item,
+  body:not(.force-mobile) .beta-test-item,
+  body.force-desktop .diagnostics-paths .item,
+  body.force-desktop .diagnostic-audit .activity-item,
+  body.force-desktop .quality-issue,
+  body.force-desktop .readiness-item,
+  body.force-desktop .team-readiness-item,
+  body.force-desktop .beta-test-item {
+    background: #427179 !important;
+    border: 1px solid rgba(230, 246, 242, 0.14) !important;
+    color: #f5fbf9 !important;
+  }
+
+  body:not(.force-mobile) .diagnostics-layout .card.stat,
+  body.force-desktop .diagnostics-layout .card.stat {
+    background: #477980 !important;
+    color: #f7fcfa !important;
+    border-color: rgba(230, 246, 242, 0.12) !important;
+  }
+
+  body:not(.force-mobile) .diagnostics-layout .pill,
+  body:not(.force-mobile) .diagnostics-layout .quality-level,
+  body.force-desktop .diagnostics-layout .pill,
+  body.force-desktop .diagnostics-layout .quality-level {
+    background: rgba(255, 210, 138, 0.22) !important;
+    color: #ffe3a8 !important;
+    border: 1px solid rgba(255, 210, 138, 0.28) !important;
+    font-weight: 620 !important;
+  }
+
+  body:not(.force-mobile) .diagnostics-layout .pill.green,
+  body.force-desktop .diagnostics-layout .pill.green {
+    background: rgba(96, 222, 161, 0.22) !important;
+    color: #b9ffd8 !important;
+    border-color: rgba(96, 222, 161, 0.3) !important;
+  }
+
+  body:not(.force-mobile) .diagnostics-layout .pill.red,
+  body:not(.force-mobile) .readiness-item.blocker .pill,
+  body:not(.force-mobile) .team-readiness-item.blocker .pill,
+  body.force-desktop .diagnostics-layout .pill.red,
+  body.force-desktop .readiness-item.blocker .pill,
+  body.force-desktop .team-readiness-item.blocker .pill {
+    background: rgba(255, 139, 130, 0.24) !important;
+    color: #ffd1cc !important;
+    border-color: rgba(255, 139, 130, 0.34) !important;
+  }
+
+  body:not(.force-mobile) .notification-prefs-panel,
+  body.force-desktop .notification-prefs-panel {
+    background: #345d64 !important;
+  }
+
+  body:not(.force-mobile) .notification-prefs-panel .check-row,
+  body.force-desktop .notification-prefs-panel .check-row {
+    background: #47737a !important;
+    border: 1px solid rgba(230, 246, 242, 0.16) !important;
+    color: #f6fcfa !important;
+    padding: 9px 10px !important;
+  }
+
+  body:not(.force-mobile) .notification-prefs-panel .check-row span,
+  body.force-desktop .notification-prefs-panel .check-row span {
+    color: #f6fcfa !important;
+  }
+}
+
+@media (max-width: 760px) {
+  body:not(.force-desktop) .chat,
+  body.force-mobile .chat {
+    gap: 10px !important;
+  }
+
+  body:not(.force-desktop) .thread-list,
+  body.force-mobile .thread-list {
+    gap: 4px !important;
+    max-height: 30vh !important;
+    overflow: auto !important;
+    padding: 8px !important;
+  }
+
+  body:not(.force-desktop) .thread-button,
+  body.force-mobile .thread-button {
+    background: #345d64 !important;
+    border: 1px solid rgba(232, 246, 242, 0.08) !important;
+    border-radius: 6px !important;
+    color: #ecf8f5 !important;
+    min-height: 38px !important;
+    padding: 6px 8px !important;
+  }
+
+  body:not(.force-desktop) .thread-button.active,
+  body.force-mobile .thread-button.active {
+    background: #49767d !important;
+    border-color: rgba(255, 170, 164, 0.24) !important;
+    color: #ffffff !important;
+  }
+
+  body:not(.force-desktop) .thread-button strong,
+  body.force-mobile .thread-button strong {
+    color: #f6fcfa !important;
+    font-size: 0.78rem !important;
+    font-weight: 620 !important;
+    line-height: 1.15 !important;
+  }
+
+  body:not(.force-desktop) .thread-button .meta,
+  body.force-mobile .thread-button .meta {
+    color: rgba(238, 248, 245, 0.7) !important;
+    font-size: 0.64rem !important;
+    line-height: 1.1 !important;
+    margin-top: 1px !important;
+  }
+
+  body:not(.force-desktop) .notification-prefs-panel .check-row,
+  body.force-mobile .notification-prefs-panel .check-row {
+    background: #3e6870 !important;
+    border-color: rgba(232, 246, 242, 0.12) !important;
+    color: #f4fbf8 !important;
+  }
+
+  body:not(.force-desktop) .notification-prefs-panel .check-row span,
+  body.force-mobile .notification-prefs-panel .check-row span {
+    color: #f4fbf8 !important;
+  }
+
+  body:not(.force-desktop) .item .pill-line .pill,
+  body.force-mobile .item .pill-line .pill {
+    font-size: 0.78rem !important;
+    font-weight: 540 !important;
+  }
+}
