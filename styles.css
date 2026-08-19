@@ -10751,3 +10751,33 @@ body.force-desktop .calendar-layout .day-events button:hover {
   border-color: rgba(200, 138, 45, 0.28) !important;
   color: #4f3510 !important;
 }
+/* V207: translucent login brand behind a cleaner access panel */
+.login {
+  align-items: center !important;
+  background:
+    linear-gradient(rgba(15, 68, 71, 0.82), rgba(16, 43, 48, 0.9)),
+    url("assets/kamikazes-logo.png") center 9vh / min(86vw, 980px) auto no-repeat,
+    linear-gradient(135deg, #0f4447 0%, #153b3d 58%, #102b30 100%) !important;
+  display: flex !important;
+  justify-content: center !important;
+  min-height: 100vh !important;
+  padding-top: clamp(160px, 27vh, 260px) !important;
+}
+
+.login-logo {
+  display: none !important;
+}
+
+.login-panel {
+  max-width: 520px !important;
+}
+
+@media (max-width: 760px) {
+  .login {
+    background:
+      linear-gradient(rgba(15, 68, 71, 0.82), rgba(16, 43, 48, 0.9)),
+      url("assets/kamikazes-logo.png") center 8vh / 92vw auto no-repeat,
+      linear-gradient(135deg, #0f4447 0%, #153b3d 58%, #102b30 100%) !important;
+    padding: 150px 18px 28px !important;
+  }
+}
