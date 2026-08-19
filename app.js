@@ -5716,10 +5716,12 @@ function isAwayMatch(item) {
 
 function renderMonthActivityList() {
   const cursor = new Date(`${state.calendarCursor}T00:00:00`);
-  const items = scheduleItems({ includeExpired: true }).filter((item) => {
-    const date = new Date(`${item.date}T00:00:00`);
-    return date.getFullYear() === cursor.getFullYear() && date.getMonth() === cursor.getMonth();
-  });
+  const items = scheduleItems({ includeExpired: true })
+    .filter((item) => item.source !== "training")
+    .filter((item) => {
+      const date = new Date(`${item.date}T00:00:00`);
+      return date.getFullYear() === cursor.getFullYear() && date.getMonth() === cursor.getMonth();
+    });
   return `
     <div class="month-activity">
       <h3>Actividades del mes</h3>
