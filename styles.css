@@ -11338,9 +11338,7 @@ body.force-desktop .calendar-layout .day-events button:hover {
 @media (min-width: 761px) {
   body:not(.force-mobile) .results-hero,
   body.force-desktop .results-hero {
-    background:
-      linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(241, 248, 244, 0.96) 54%, rgba(232, 244, 240, 0.95) 100%),
-      radial-gradient(circle at 92% 10%, rgba(218, 160, 51, 0.2), transparent 28%) !important;
+    background: #dceeea !important;
     border: 1px solid rgba(31, 77, 79, 0.14) !important;
     box-shadow: 0 22px 48px rgba(30, 44, 41, 0.12) !important;
     overflow: hidden !important;
@@ -11349,14 +11347,14 @@ body.force-desktop .calendar-layout .day-events button:hover {
 
   body:not(.force-mobile) .results-hero::after,
   body.force-desktop .results-hero::after {
-    background: linear-gradient(180deg, rgba(31, 126, 113, 0.18), transparent) !important;
+    background: transparent !important;
     content: "" !important;
     height: 100% !important;
     pointer-events: none !important;
     position: absolute !important;
     right: 0 !important;
     top: 0 !important;
-    width: 110px !important;
+    width: 0 !important;
   }
 
   body:not(.force-mobile) .results-hero .panel-header,
