@@ -12039,4 +12039,19 @@ body.force-desktop .calendar-layout .day-events button:hover {
   body:not(.force-desktop) .results-week-row .btn:not(.icon-only) {
     padding-inline: 0 !important;
   }
+
+  body.force-mobile .results-section .results-controls,
+  body:not(.force-desktop) .results-section .results-controls {
+    display: grid !important;
+    gap: 10px !important;
+    grid-template-columns: 1fr !important;
+    justify-items: center !important;
+    width: 100% !important;
+  }
+
+  body.force-mobile .results-section .results-week-row,
+  body:not(.force-desktop) .results-section .results-week-row {
+    grid-column: 1 / -1 !important;
+    justify-self: center !important;
+  }
 }
