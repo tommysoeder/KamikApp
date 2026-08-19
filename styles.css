@@ -11576,3 +11576,79 @@ body.force-desktop .calendar-layout .day-events button:hover {
     color: #102b30 !important;
   }
 }
+
+/* V214: mobile results readability and centered header/results controls */
+@media (max-width: 760px) {
+  body.force-mobile .mobile-header,
+  body:not(.force-desktop) .mobile-header {
+    position: sticky !important;
+  }
+
+  body.force-mobile .mobile-logo-button,
+  body:not(.force-desktop) .mobile-logo-button {
+    left: 50% !important;
+    position: absolute !important;
+    transform: translateX(-50%) !important;
+  }
+
+  body.force-mobile .results-section .panel-header,
+  body:not(.force-desktop) .results-section .panel-header {
+    align-items: stretch !important;
+    gap: 14px !important;
+  }
+
+  body.force-mobile .results-section .actions,
+  body:not(.force-desktop) .results-section .actions {
+    display: grid !important;
+    gap: 10px !important;
+    grid-template-columns: 1fr 1fr 1fr !important;
+    justify-items: center !important;
+    width: 100% !important;
+  }
+
+  body.force-mobile .results-section .actions .compact-select,
+  body:not(.force-desktop) .results-section .actions .compact-select {
+    grid-column: 1 / -1 !important;
+    justify-self: center !important;
+    max-width: 320px !important;
+    text-align: center !important;
+    text-align-last: center !important;
+    width: min(100%, 320px) !important;
+  }
+
+  body.force-mobile .results-section .actions .compact-select + .compact-select,
+  body:not(.force-desktop) .results-section .actions .compact-select + .compact-select {
+    margin-top: -2px !important;
+  }
+
+  body.force-mobile .results-section .actions .btn.primary,
+  body:not(.force-desktop) .results-section .actions .btn.primary {
+    grid-column: 1 / -1 !important;
+    width: min(100%, 320px) !important;
+  }
+
+  body.force-mobile .results-section .result-date,
+  body.force-mobile .results-section .result-meta,
+  body.force-mobile .results-section .result-meta > span,
+  body.force-mobile .results-section .result-meta > span:not(.pill),
+  body:not(.force-desktop) .results-section .result-date,
+  body:not(.force-desktop) .results-section .result-meta,
+  body:not(.force-desktop) .results-section .result-meta > span,
+  body:not(.force-desktop) .results-section .result-meta > span:not(.pill) {
+    color: #eaf7f3 !important;
+    opacity: 1 !important;
+    text-shadow: 0 1px 1px rgba(4, 18, 22, 0.22) !important;
+  }
+
+  body.force-mobile .results-section .result-card .scoreline > span,
+  body:not(.force-desktop) .results-section .result-card .scoreline > span {
+    color: #ffffff !important;
+    opacity: 1 !important;
+  }
+
+  body.force-mobile .results-section .result-card .pill,
+  body:not(.force-desktop) .results-section .result-card .pill {
+    opacity: 1 !important;
+    text-shadow: none !important;
+  }
+}
