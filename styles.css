@@ -10781,3 +10781,300 @@ body.force-desktop .calendar-layout .day-events button:hover {
     padding: 150px 18px 28px !important;
   }
 }
+
+/* V208: final light-theme contrast pass and readable dark modals */
+@media (min-width: 761px) {
+  body:not(.force-mobile) .modal,
+  body.force-desktop .modal {
+    background: #315b63 !important;
+    border-color: rgba(230, 246, 242, 0.18) !important;
+    color: #f7fcfa !important;
+  }
+
+  body:not(.force-mobile) .modal-head,
+  body.force-desktop .modal-head {
+    background: #254e55 !important;
+    border-bottom: 1px solid rgba(230, 246, 242, 0.14) !important;
+  }
+
+  body:not(.force-mobile) .modal h2,
+  body:not(.force-mobile) .modal h3,
+  body:not(.force-mobile) .modal h4,
+  body:not(.force-mobile) .modal label,
+  body:not(.force-mobile) .modal .form-row label,
+  body:not(.force-mobile) .modal .check-row,
+  body:not(.force-mobile) .modal .check-row span,
+  body:not(.force-mobile) .modal .weekday-chip span,
+  body.force-desktop .modal h2,
+  body.force-desktop .modal h3,
+  body.force-desktop .modal h4,
+  body.force-desktop .modal label,
+  body.force-desktop .modal .form-row label,
+  body.force-desktop .modal .check-row,
+  body.force-desktop .modal .check-row span,
+  body.force-desktop .modal .weekday-chip span {
+    color: #f7fcfa !important;
+  }
+
+  body:not(.force-mobile) .modal p,
+  body:not(.force-mobile) .modal small,
+  body:not(.force-mobile) .modal .meta,
+  body.force-desktop .modal p,
+  body.force-desktop .modal small,
+  body.force-desktop .modal .meta {
+    color: rgba(245, 251, 248, 0.78) !important;
+  }
+
+  body:not(.force-mobile) .modal-close,
+  body.force-desktop .modal-close {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    color: #f7fcfa !important;
+  }
+
+  body:not(.force-mobile) .modal-close:hover,
+  body.force-desktop .modal-close:hover {
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #ffffff !important;
+  }
+
+  body:not(.force-mobile) .modal .btn,
+  body.force-desktop .modal .btn {
+    color: #f7fcfa !important;
+  }
+
+  body:not(.force-mobile) .modal .btn.primary,
+  body:not(.force-mobile) .modal button[type="submit"],
+  body.force-desktop .modal .btn.primary,
+  body.force-desktop .modal button[type="submit"] {
+    background: rgba(20, 130, 124, 0.36) !important;
+    border-color: rgba(116, 222, 213, 0.28) !important;
+    color: #ffffff !important;
+  }
+
+  body:not(.force-mobile) .modal .btn.danger,
+  body.force-desktop .modal .btn.danger {
+    color: #ffb4ad !important;
+  }
+
+  body:not(.force-mobile) .modal input,
+  body:not(.force-mobile) .modal select,
+  body:not(.force-mobile) .modal textarea,
+  body.force-desktop .modal input,
+  body.force-desktop .modal select,
+  body.force-desktop .modal textarea {
+    background: #f8fbf8 !important;
+    border-color: rgba(230, 246, 242, 0.24) !important;
+    color: #102b30 !important;
+  }
+
+  body:not(.force-mobile) .modal input::placeholder,
+  body:not(.force-mobile) .modal textarea::placeholder,
+  body.force-desktop .modal input::placeholder,
+  body.force-desktop .modal textarea::placeholder {
+    color: rgba(16, 43, 48, 0.48) !important;
+  }
+
+  body:not(.force-mobile) .modal .checkbox-list,
+  body:not(.force-mobile) .modal .recipient-list,
+  body:not(.force-mobile) .modal .recipient-option,
+  body:not(.force-mobile) .modal .player-check,
+  body:not(.force-mobile) .modal .affected-player-row,
+  body:not(.force-mobile) .modal .event-team-option,
+  body.force-desktop .modal .checkbox-list,
+  body.force-desktop .modal .recipient-list,
+  body.force-desktop .modal .recipient-option,
+  body.force-desktop .modal .player-check,
+  body.force-desktop .modal .affected-player-row,
+  body.force-desktop .modal .event-team-option {
+    background: #e6f1ed !important;
+    border-color: rgba(62, 128, 123, 0.25) !important;
+    color: #173034 !important;
+  }
+
+  body:not(.force-mobile) .modal .checkbox-list *,
+  body:not(.force-mobile) .modal .recipient-list *,
+  body:not(.force-mobile) .modal .recipient-option *,
+  body:not(.force-mobile) .modal .player-check *,
+  body:not(.force-mobile) .modal .affected-player-row *,
+  body:not(.force-mobile) .modal .event-team-option *,
+  body.force-desktop .modal .checkbox-list *,
+  body.force-desktop .modal .recipient-list *,
+  body.force-desktop .modal .recipient-option *,
+  body.force-desktop .modal .player-check *,
+  body.force-desktop .modal .affected-player-row *,
+  body.force-desktop .modal .event-team-option * {
+    color: #173034 !important;
+  }
+}
+
+@media (min-width: 761px) {
+  body.desktop-light:not(.force-mobile) .management-card,
+  body.desktop-light:not(.force-mobile) .management-task,
+  body.desktop-light:not(.force-mobile) .user-card,
+  body.desktop-light:not(.force-mobile) .beta-followup-item,
+  body.desktop-light:not(.force-mobile) .beta-feedback-item,
+  body.desktop-light:not(.force-mobile) .feedback-triage article,
+  body.desktop-light:not(.force-mobile) .diagnostics-layout .card.stat,
+  body.desktop-light:not(.force-mobile) .profile-stats button,
+  body.desktop-light:not(.force-mobile) .mini-list button,
+  body.desktop-light:not(.force-mobile) .timeline-list button,
+  body.desktop-light:not(.force-mobile) .notification-prefs-panel .check-row,
+  body.desktop-light:not(.force-mobile) .folder-chip,
+  body.desktop-light:not(.force-mobile) .document-card,
+  body.desktop-light:not(.force-mobile) .profile-section .item,
+  body.desktop-light:not(.force-mobile) .activity-item,
+  body.desktop-light.force-desktop .management-card,
+  body.desktop-light.force-desktop .management-task,
+  body.desktop-light.force-desktop .user-card,
+  body.desktop-light.force-desktop .beta-followup-item,
+  body.desktop-light.force-desktop .beta-feedback-item,
+  body.desktop-light.force-desktop .feedback-triage article,
+  body.desktop-light.force-desktop .diagnostics-layout .card.stat,
+  body.desktop-light.force-desktop .profile-stats button,
+  body.desktop-light.force-desktop .mini-list button,
+  body.desktop-light.force-desktop .timeline-list button,
+  body.desktop-light.force-desktop .notification-prefs-panel .check-row,
+  body.desktop-light.force-desktop .folder-chip,
+  body.desktop-light.force-desktop .document-card,
+  body.desktop-light.force-desktop .profile-section .item,
+  body.desktop-light.force-desktop .activity-item {
+    background: #ffffff !important;
+    border-color: #d8ddd8 !important;
+    color: #172023 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .feedback-triage article,
+  body.desktop-light:not(.force-mobile) .diagnostics-layout .card.stat,
+  body.desktop-light:not(.force-mobile) .profile-stats button,
+  body.desktop-light:not(.force-mobile) .notification-prefs-panel .check-row,
+  body.desktop-light.force-desktop .feedback-triage article,
+  body.desktop-light.force-desktop .diagnostics-layout .card.stat,
+  body.desktop-light.force-desktop .profile-stats button,
+  body.desktop-light.force-desktop .notification-prefs-panel .check-row {
+    background: #eef5f0 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .management-card *,
+  body.desktop-light:not(.force-mobile) .management-task *,
+  body.desktop-light:not(.force-mobile) .user-card *,
+  body.desktop-light:not(.force-mobile) .beta-followup-item *,
+  body.desktop-light:not(.force-mobile) .beta-feedback-item *,
+  body.desktop-light:not(.force-mobile) .feedback-triage *,
+  body.desktop-light:not(.force-mobile) .diagnostics-layout .card.stat *,
+  body.desktop-light:not(.force-mobile) .profile-stats *,
+  body.desktop-light:not(.force-mobile) .mini-list button *,
+  body.desktop-light:not(.force-mobile) .timeline-list button *,
+  body.desktop-light:not(.force-mobile) .notification-prefs-panel .check-row *,
+  body.desktop-light:not(.force-mobile) .folder-chip *,
+  body.desktop-light:not(.force-mobile) .document-card *,
+  body.desktop-light:not(.force-mobile) .profile-section .item *,
+  body.desktop-light:not(.force-mobile) .activity-item *,
+  body.desktop-light.force-desktop .management-card *,
+  body.desktop-light.force-desktop .management-task *,
+  body.desktop-light.force-desktop .user-card *,
+  body.desktop-light.force-desktop .beta-followup-item *,
+  body.desktop-light.force-desktop .beta-feedback-item *,
+  body.desktop-light.force-desktop .feedback-triage *,
+  body.desktop-light.force-desktop .diagnostics-layout .card.stat *,
+  body.desktop-light.force-desktop .profile-stats *,
+  body.desktop-light.force-desktop .mini-list button *,
+  body.desktop-light.force-desktop .timeline-list button *,
+  body.desktop-light.force-desktop .notification-prefs-panel .check-row *,
+  body.desktop-light.force-desktop .folder-chip *,
+  body.desktop-light.force-desktop .document-card *,
+  body.desktop-light.force-desktop .profile-section .item *,
+  body.desktop-light.force-desktop .activity-item * {
+    color: #172023 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .permission-matrix table,
+  body.desktop-light.force-desktop .permission-matrix table {
+    background: #ffffff !important;
+    color: #172023 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .permission-matrix th,
+  body.desktop-light.force-desktop .permission-matrix th {
+    background: #1d4d4f !important;
+    color: #ffffff !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .permission-matrix td,
+  body.desktop-light.force-desktop .permission-matrix td {
+    background: #f9faf6 !important;
+    border-color: #d8ddd8 !important;
+    color: #172023 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .permission-toggle,
+  body.desktop-light.force-desktop .permission-toggle {
+    background: #eef5f0 !important;
+    border-color: #cfdad5 !important;
+    color: #173034 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .permission-toggle *,
+  body.desktop-light.force-desktop .permission-toggle * {
+    color: #173034 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .permission-toggle input,
+  body.desktop-light.force-desktop .permission-toggle input,
+  body.desktop-light:not(.force-mobile) .notification-prefs-panel input,
+  body.desktop-light.force-desktop .notification-prefs-panel input {
+    accent-color: #147f79 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .bubble.club,
+  body.desktop-light:not(.force-mobile) .bubble.user,
+  body.desktop-light:not(.force-mobile) .bubble.system,
+  body.desktop-light.force-desktop .bubble.club,
+  body.desktop-light.force-desktop .bubble.user,
+  body.desktop-light.force-desktop .bubble.system {
+    background: #e3f0ec !important;
+    color: #173034 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .bubble *,
+  body.desktop-light.force-desktop .bubble * {
+    color: #173034 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) table,
+  body.desktop-light:not(.force-mobile) th,
+  body.desktop-light:not(.force-mobile) td,
+  body.desktop-light.force-desktop table,
+  body.desktop-light.force-desktop th,
+  body.desktop-light.force-desktop td {
+    color: #173034 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) th,
+  body.desktop-light.force-desktop th {
+    color: #536760 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .documents-team-tabs,
+  body.desktop-light:not(.force-mobile) .documents-folder-tabs,
+  body.desktop-light.force-desktop .documents-team-tabs,
+  body.desktop-light.force-desktop .documents-folder-tabs {
+    background: #eef5f0 !important;
+    color: #173034 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .documents-team-tabs *,
+  body.desktop-light:not(.force-mobile) .documents-folder-tabs *,
+  body.desktop-light.force-desktop .documents-team-tabs *,
+  body.desktop-light.force-desktop .documents-folder-tabs * {
+    color: #173034 !important;
+  }
+
+  body.desktop-light:not(.force-mobile) .day-events button:hover,
+  body.desktop-light.force-desktop .day-events button:hover {
+    background: transparent !important;
+    color: #173034 !important;
+    text-decoration: underline;
+  }
+}
