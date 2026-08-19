@@ -4273,14 +4273,14 @@ function renderResults() {
   return `
     <section class="panel results-section">
       <div class="panel-header">
-        <div class="results-title-block"><h2>${state.lang === "es" ? "Resultado de la semana" : "Weekly result"}</h2><p>${weekendLabel(cursor)}</p></div>
+        <div class="results-title-block"><h2>${t("weekendResults")}</h2><p>${weekendLabel(cursor)}</p></div>
         <div class="actions results-controls">
-          <div class="results-filter-row">${seasonCompetitionControls()}</div>
           <div class="results-week-row">
             <button class="btn icon-only" type="button" onclick="moveResultsWeek(-1)" aria-label="Semana anterior">&lt;</button>
             <button class="btn" type="button" onclick="goToCurrentResultsWeek()">Este finde</button>
             <button class="btn icon-only" type="button" onclick="moveResultsWeek(1)" aria-label="Semana siguiente">&gt;</button>
           </div>
+          <div class="results-filter-row">${seasonCompetitionControls()}</div>
           ${canManageResults() ? `<button class="btn primary results-add-button" type="button" onclick="openResultModal()">${t("addResult")}</button>` : ""}
         </div>
       </div>

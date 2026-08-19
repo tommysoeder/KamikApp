@@ -11801,7 +11801,8 @@ body.force-desktop .calendar-layout .day-events button:hover {
     margin: 0 auto !important;
     max-height: calc(100dvh - 108px - env(safe-area-inset-bottom)) !important;
     overflow: auto !important;
-    width: min(100%, 680px) !important;
+    width: calc(100vw - 20px) !important;
+    max-width: 680px !important;
   }
 
   body.force-mobile .modal-body,
@@ -11860,6 +11861,21 @@ body.force-desktop .calendar-layout .day-events button:hover {
 
   body.force-mobile .results-add-button,
   body:not(.force-desktop) .results-add-button {
+    width: 100% !important;
+  }
+
+  body.force-mobile .modal .form-grid,
+  body:not(.force-desktop) .modal .form-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  body.force-mobile .modal input,
+  body.force-mobile .modal select,
+  body.force-mobile .modal textarea,
+  body:not(.force-desktop) .modal input,
+  body:not(.force-desktop) .modal select,
+  body:not(.force-desktop) .modal textarea {
+    min-width: 0 !important;
     width: 100% !important;
   }
 }
