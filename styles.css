@@ -11920,3 +11920,123 @@ body.force-desktop .calendar-layout .day-events button:hover {
     width: 100% !important;
   }
 }
+
+/* V220 override: keep the weekend picker centered after the mobile results layout */
+@media (max-width: 760px) {
+  .login {
+    align-items: flex-start !important;
+    background:
+      linear-gradient(180deg, rgba(8, 37, 42, 0.28) 0%, rgba(8, 37, 42, 0.76) 54%, rgba(8, 31, 35, 0.94) 100%),
+      radial-gradient(circle at 50% 17%, rgba(68, 159, 146, 0.32), transparent 38%),
+      url("assets/kamikazes-logo.png") center 56px / min(88vw, 440px) auto no-repeat,
+      linear-gradient(145deg, #0d4547 0%, #143a3e 58%, #0a2429 100%) !important;
+    min-height: 100dvh !important;
+    padding: clamp(150px, 26vh, 190px) 18px 30px !important;
+  }
+
+  .login-panel {
+    background: rgba(248, 252, 250, 0.95) !important;
+    border: 1px solid rgba(255, 255, 255, 0.74) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 28px 78px rgba(3, 22, 25, 0.34) !important;
+    max-width: 430px !important;
+    padding: 22px 20px 20px !important;
+    width: min(100%, 430px) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(1.08) !important;
+    backdrop-filter: blur(16px) saturate(1.08) !important;
+  }
+
+  .login-panel h1 {
+    color: #08242b !important;
+    font-size: clamp(2rem, 7.4vw, 2.45rem) !important;
+    font-weight: 800 !important;
+    letter-spacing: 0 !important;
+    line-height: 1.04 !important;
+    margin: 18px 0 18px !important;
+  }
+
+  .login-panel p {
+    color: #49656b !important;
+    font-size: 0.98rem !important;
+    line-height: 1.45 !important;
+  }
+
+  .login-panel label {
+    color: #294d53 !important;
+    font-size: 0.78rem !important;
+    font-weight: 750 !important;
+    letter-spacing: 0.04em !important;
+    text-transform: uppercase !important;
+  }
+
+  .login-panel input,
+  .login-panel select {
+    background: rgba(255, 255, 255, 0.96) !important;
+    border: 1px solid #d4e0dd !important;
+    border-radius: 13px !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72) !important;
+    color: #102a30 !important;
+    font-size: 1rem !important;
+    min-height: 52px !important;
+    padding: 0 14px !important;
+  }
+
+  .login-panel input:focus,
+  .login-panel select:focus {
+    border-color: #0b7f78 !important;
+    box-shadow: 0 0 0 4px rgba(11, 127, 120, 0.14) !important;
+    outline: none !important;
+  }
+
+  .login-panel .btn.primary,
+  .login-panel button[type="submit"] {
+    background: linear-gradient(135deg, #0b817b, #0b6267) !important;
+    border: 0 !important;
+    border-radius: 15px !important;
+    box-shadow: 0 16px 34px rgba(8, 92, 96, 0.28) !important;
+    color: #f7fffc !important;
+    font-size: 1rem !important;
+    font-weight: 800 !important;
+    min-height: 54px !important;
+  }
+
+  .login-panel .btn.primary:hover,
+  .login-panel button[type="submit"]:hover {
+    background: linear-gradient(135deg, #0d8f88, #0a5960) !important;
+  }
+
+  .login-panel .beta-banner,
+  .login-panel .login-beta {
+    background: linear-gradient(90deg, rgba(226, 171, 64, 0.18), rgba(40, 129, 119, 0.12)) !important;
+    border: 1px solid rgba(218, 160, 51, 0.32) !important;
+    border-radius: 13px !important;
+    color: #68470e !important;
+    font-weight: 800 !important;
+    padding: 12px 14px !important;
+    text-align: center !important;
+  }
+
+  body.force-mobile .results-controls,
+  body:not(.force-desktop) .results-controls {
+    align-items: center !important;
+    justify-items: center !important;
+  }
+
+  body.force-mobile .results-week-row,
+  body:not(.force-desktop) .results-week-row {
+    grid-template-columns: 42px minmax(122px, 1fr) 42px !important;
+    margin-inline: auto !important;
+    max-width: 286px !important;
+    width: min(100%, 286px) !important;
+  }
+
+  body.force-mobile .results-week-row .btn,
+  body:not(.force-desktop) .results-week-row .btn {
+    min-width: 0 !important;
+  }
+
+  body.force-mobile .results-week-row .btn:not(.icon-only),
+  body:not(.force-desktop) .results-week-row .btn:not(.icon-only) {
+    padding-inline: 0 !important;
+  }
+}
