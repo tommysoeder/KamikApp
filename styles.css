@@ -11850,6 +11850,11 @@ body.force-desktop .calendar-layout .day-events button:hover {
     width: 100% !important;
   }
 
+  body.force-mobile .results-filter-row-bottom,
+  body:not(.force-desktop) .results-filter-row-bottom {
+    margin-top: 12px !important;
+  }
+
   body.force-mobile .results-week-row,
   body:not(.force-desktop) .results-week-row {
     align-items: center !important;

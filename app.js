@@ -4280,11 +4280,11 @@ function renderResults() {
             <button class="btn" type="button" onclick="goToCurrentResultsWeek()">Este finde</button>
             <button class="btn icon-only" type="button" onclick="moveResultsWeek(1)" aria-label="Semana siguiente">&gt;</button>
           </div>
-          <div class="results-filter-row">${seasonCompetitionControls()}</div>
           ${canManageResults() ? `<button class="btn primary results-add-button" type="button" onclick="openResultModal()">${t("addResult")}</button>` : ""}
         </div>
       </div>
       <div class="results-grid">${results.map(renderResultCard).join("") || `<div class="empty">${t("noResults")}</div>`}</div>
+      <div class="results-filter-row results-filter-row-bottom">${seasonCompetitionControls()}</div>
     </section>
     <div class="grid two" style="margin-top:16px">
       <section class="panel">
