@@ -11185,3 +11185,104 @@ body.force-desktop .calendar-layout .day-events button:hover {
     color: #102b30 !important;
   }
 }
+
+/* V210: mobile contrast polish and calendar event-day number reset */
+@media (max-width: 760px) {
+  body.force-mobile .panel,
+  body.force-mobile .card,
+  body.force-mobile .item,
+  body.force-mobile .results-hero,
+  body.force-mobile .dashboard-announcements-compact,
+  body.force-mobile .dashboard-feedback-compact,
+  body.force-mobile .dashboard-beta-consent,
+  body.force-mobile .calendar-month {
+    color: #f5fbf8 !important;
+  }
+
+  body.force-mobile .panel h2,
+  body.force-mobile .panel h3,
+  body.force-mobile .panel h4,
+  body.force-mobile .panel strong,
+  body.force-mobile .item h3,
+  body.force-mobile .item h4,
+  body.force-mobile .result-card strong,
+  body.force-mobile .dashboard-announcement-pill strong,
+  body.force-mobile .card.stat strong {
+    color: #ffffff !important;
+    text-shadow: 0 1px 1px rgba(7, 29, 32, 0.18) !important;
+  }
+
+  body.force-mobile .panel p,
+  body.force-mobile .panel span,
+  body.force-mobile .panel em,
+  body.force-mobile .panel .meta,
+  body.force-mobile .item p,
+  body.force-mobile .item span,
+  body.force-mobile .item em,
+  body.force-mobile .item .meta,
+  body.force-mobile .result-card .result-date,
+  body.force-mobile .result-card .result-meta,
+  body.force-mobile .dashboard-announcement-pill span,
+  body.force-mobile .card.stat span {
+    color: rgba(245, 251, 248, 0.78) !important;
+  }
+
+  body.force-mobile .results-hero .result-card {
+    background: rgba(70, 117, 121, 0.74) !important;
+    border-color: rgba(225, 246, 242, 0.18) !important;
+  }
+
+  body.force-mobile .results-hero .scoreline strong,
+  body.force-mobile .result-card .scoreline strong {
+    color: #ffffff !important;
+    text-shadow: none !important;
+  }
+
+  body.force-mobile .results-hero .pill.green,
+  body.force-mobile .pill.green {
+    background: rgba(75, 204, 151, 0.26) !important;
+    color: #baf5d8 !important;
+  }
+
+  body.force-mobile .results-hero .pill.red,
+  body.force-mobile .pill.red {
+    background: rgba(255, 126, 116, 0.18) !important;
+    color: #ffbbb4 !important;
+  }
+
+  body.force-mobile .dashboard-announcement-pill,
+  body.force-mobile .dashboard-card,
+  body.force-mobile .card.stat {
+    background: rgba(64, 105, 109, 0.72) !important;
+    border-color: rgba(225, 246, 242, 0.16) !important;
+  }
+
+  body.force-mobile .dashboard-announcement-pill span,
+  body.force-mobile .dashboard-announcement-pill .meta {
+    color: rgba(245, 251, 248, 0.68) !important;
+  }
+
+  body.force-mobile .calendar-day.has-event .day-number,
+  body.force-mobile .calendar-day.has-event > span,
+  body:not(.force-desktop) .calendar-day.has-event .day-number,
+  body:not(.force-desktop) .calendar-day.has-event > span {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    color: #ffffff !important;
+  }
+
+  body.force-mobile .calendar-day.muted-day .day-number,
+  body.force-mobile .calendar-day.muted-day > span,
+  body:not(.force-desktop) .calendar-day.muted-day .day-number,
+  body:not(.force-desktop) .calendar-day.muted-day > span {
+    color: rgba(245, 251, 248, 0.34) !important;
+  }
+
+  body.force-mobile .day-events button,
+  body.force-mobile .calendar-layout .day-events button,
+  body:not(.force-desktop) .day-events button,
+  body:not(.force-desktop) .calendar-layout .day-events button {
+    color: rgba(245, 251, 248, 0.9) !important;
+  }
+}
