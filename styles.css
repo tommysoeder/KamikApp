@@ -12055,3 +12055,214 @@ body.force-desktop .calendar-layout .day-events button:hover {
     justify-self: center !important;
   }
 }
+
+/* V222: XPS-inspired visual pass and hard-centered mobile weekend selector */
+@media (max-width: 760px) {
+  body.force-mobile,
+  body:not(.force-desktop) {
+    background: #0a1d23 !important;
+    color: #f4fbf8 !important;
+  }
+
+  body.force-mobile .main,
+  body.force-mobile .content,
+  body:not(.force-desktop) .main,
+  body:not(.force-desktop) .content {
+    background:
+      linear-gradient(180deg, rgba(30, 78, 83, 0.96), rgba(10, 29, 35, 0.98) 240px),
+      #0a1d23 !important;
+  }
+
+  body.force-mobile .mobile-header,
+  body:not(.force-desktop) .mobile-header {
+    background: rgba(31, 77, 79, 0.96) !important;
+    border-bottom: 1px solid rgba(211, 232, 225, 0.12) !important;
+    box-shadow: 0 10px 26px rgba(3, 16, 20, 0.2) !important;
+  }
+
+  body.force-mobile .mobile-bottom-nav,
+  body:not(.force-desktop) .mobile-bottom-nav {
+    background: rgba(28, 73, 78, 0.92) !important;
+    border-top: 1px solid rgba(211, 232, 225, 0.13) !important;
+    box-shadow: 0 -16px 36px rgba(3, 16, 20, 0.34) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    backdrop-filter: blur(16px) !important;
+  }
+
+  body.force-mobile .panel,
+  body.force-mobile .card,
+  body.force-mobile .item,
+  body:not(.force-desktop) .panel,
+  body:not(.force-desktop) .card,
+  body:not(.force-desktop) .item {
+    background: rgba(57, 101, 106, 0.86) !important;
+    border-color: rgba(216, 236, 230, 0.16) !important;
+    box-shadow: 0 14px 30px rgba(3, 16, 20, 0.16) !important;
+    color: #f5fbf8 !important;
+  }
+
+  body.force-mobile .panel h1,
+  body.force-mobile .panel h2,
+  body.force-mobile .panel h3,
+  body.force-mobile .panel strong,
+  body:not(.force-desktop) .panel h1,
+  body:not(.force-desktop) .panel h2,
+  body:not(.force-desktop) .panel h3,
+  body:not(.force-desktop) .panel strong {
+    color: #ffffff !important;
+    font-weight: 760 !important;
+  }
+
+  body.force-mobile .panel p,
+  body.force-mobile .panel .meta,
+  body.force-mobile .panel span,
+  body:not(.force-desktop) .panel p,
+  body:not(.force-desktop) .panel .meta,
+  body:not(.force-desktop) .panel span {
+    color: rgba(236, 248, 244, 0.8) !important;
+  }
+
+  body.force-mobile input,
+  body.force-mobile select,
+  body.force-mobile textarea,
+  body:not(.force-desktop) input,
+  body:not(.force-desktop) select,
+  body:not(.force-desktop) textarea {
+    background: rgba(214, 233, 227, 0.88) !important;
+    border-color: rgba(255, 255, 255, 0.16) !important;
+    color: #10272d !important;
+  }
+
+  body.force-mobile .results-section .panel-header,
+  body:not(.force-desktop) .results-section .panel-header {
+    align-items: center !important;
+    justify-items: center !important;
+    text-align: center !important;
+  }
+
+  body.force-mobile .results-section .actions.results-controls,
+  body:not(.force-desktop) .results-section .actions.results-controls {
+    align-items: center !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    justify-self: stretch !important;
+    margin-inline: auto !important;
+    width: 100% !important;
+  }
+
+  body.force-mobile .results-section .results-week-row,
+  body:not(.force-desktop) .results-section .results-week-row {
+    display: grid !important;
+    flex: 0 0 auto !important;
+    gap: 10px !important;
+    grid-template-columns: 38px 138px 38px !important;
+    justify-content: center !important;
+    justify-items: center !important;
+    left: auto !important;
+    margin-inline: auto !important;
+    max-width: none !important;
+    position: static !important;
+    transform: none !important;
+    width: 224px !important;
+  }
+
+  body.force-mobile .results-section .results-week-row .btn,
+  body:not(.force-desktop) .results-section .results-week-row .btn {
+    justify-content: center !important;
+    width: 100% !important;
+  }
+}
+
+@media (min-width: 761px) {
+  body:not(.force-mobile):not(.desktop-light),
+  body.force-desktop:not(.desktop-light) {
+    background: #0b2026 !important;
+    color: #f3faf7 !important;
+  }
+
+  body:not(.force-mobile):not(.desktop-light) .main,
+  body.force-desktop:not(.desktop-light) .main {
+    background:
+      linear-gradient(180deg, rgba(32, 81, 85, 0.92), rgba(11, 32, 38, 0.98) 238px),
+      #0b2026 !important;
+  }
+
+  body:not(.force-mobile):not(.desktop-light) .topbar,
+  body.force-desktop:not(.desktop-light) .topbar {
+    background: rgba(16, 43, 48, 0.9) !important;
+    border-bottom-color: rgba(218, 238, 231, 0.12) !important;
+    color: #f4fbf8 !important;
+  }
+
+  body:not(.force-mobile):not(.desktop-light) .topbar h1,
+  body.force-desktop:not(.desktop-light) .topbar h1 {
+    color: #ffffff !important;
+  }
+
+  body:not(.force-mobile):not(.desktop-light) .topbar p,
+  body.force-desktop:not(.desktop-light) .topbar p {
+    color: rgba(236, 248, 244, 0.74) !important;
+  }
+
+  body:not(.force-mobile):not(.desktop-light) .sidebar,
+  body.force-desktop:not(.desktop-light) .sidebar {
+    background: linear-gradient(180deg, #103f42, #082b31) !important;
+    border-right: 1px solid rgba(218, 238, 231, 0.12) !important;
+  }
+
+  body:not(.force-mobile):not(.desktop-light) .panel,
+  body:not(.force-mobile):not(.desktop-light) .card,
+  body:not(.force-mobile):not(.desktop-light) .item,
+  body.force-desktop:not(.desktop-light) .panel,
+  body.force-desktop:not(.desktop-light) .card,
+  body.force-desktop:not(.desktop-light) .item {
+    background: rgba(57, 101, 106, 0.88) !important;
+    border-color: rgba(216, 236, 230, 0.16) !important;
+    box-shadow: 0 16px 34px rgba(3, 16, 20, 0.18) !important;
+    color: #f6fcfa !important;
+  }
+
+  body:not(.force-mobile):not(.desktop-light) .panel h1,
+  body:not(.force-mobile):not(.desktop-light) .panel h2,
+  body:not(.force-mobile):not(.desktop-light) .panel h3,
+  body:not(.force-mobile):not(.desktop-light) .panel strong,
+  body.force-desktop:not(.desktop-light) .panel h1,
+  body.force-desktop:not(.desktop-light) .panel h2,
+  body.force-desktop:not(.desktop-light) .panel h3,
+  body.force-desktop:not(.desktop-light) .panel strong {
+    color: #ffffff !important;
+    font-weight: 760 !important;
+  }
+
+  body:not(.force-mobile):not(.desktop-light) .panel p,
+  body:not(.force-mobile):not(.desktop-light) .panel .meta,
+  body:not(.force-mobile):not(.desktop-light) .panel span,
+  body.force-desktop:not(.desktop-light) .panel p,
+  body.force-desktop:not(.desktop-light) .panel .meta,
+  body.force-desktop:not(.desktop-light) .panel span {
+    color: rgba(236, 248, 244, 0.78) !important;
+  }
+
+  body:not(.force-mobile):not(.desktop-light) input,
+  body:not(.force-mobile):not(.desktop-light) select,
+  body:not(.force-mobile):not(.desktop-light) textarea,
+  body.force-desktop:not(.desktop-light) input,
+  body.force-desktop:not(.desktop-light) select,
+  body.force-desktop:not(.desktop-light) textarea {
+    background: rgba(218, 234, 229, 0.9) !important;
+    border-color: rgba(255, 255, 255, 0.14) !important;
+    color: #10272d !important;
+  }
+
+  body:not(.force-mobile):not(.desktop-light) .calendar-day,
+  body.force-desktop:not(.desktop-light) .calendar-day {
+    background: rgba(65, 109, 114, 0.62) !important;
+    border-color: rgba(216, 236, 230, 0.14) !important;
+  }
+
+  body:not(.force-mobile):not(.desktop-light) .day-number,
+  body.force-desktop:not(.desktop-light) .day-number {
+    color: #ffffff !important;
+  }
+}
