@@ -118,7 +118,7 @@ All variables are optional because the server provides defaults. `.env.example` 
 | `APP_LABEL` | `Beta privada` in beta mode | Label displayed for the current environment. |
 | `PRESENTATION_DEMO` | disabled in beta/production | Enables presentation-specific behavior when set to `1` outside beta/production. |
 | `SHOW_LOGIN_PROFILES` | `0` | Shows selectable profiles on the login screen when set to `1`. |
-| `MAX_UPLOAD_MB` | `30` in server code | Maximum accepted upload size in megabytes. |
+| `MAX_UPLOAD_MB` | `30` | Maximum accepted upload size in megabytes. The server uses 30 MB when the variable is unset; `.env.example` suggests 15 MB, which applies only when configured explicitly. |
 | `BACKUP_KEEP` | `120` | Maximum number of automatic backup files retained. |
 
 Example for a POSIX shell:
